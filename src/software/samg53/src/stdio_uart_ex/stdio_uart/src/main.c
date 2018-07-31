@@ -32,7 +32,8 @@
 
 int main (void)
 {
-	char in_char;
+	const char str[] = "Type 'a' to continue...\r\n";
+	uint8_t rx_char = 0;
 	
 	const usart_serial_options_t usart_serial_options = 
 	{
@@ -51,16 +52,22 @@ int main (void)
 	stdio_serial_init(CONF_UART, &usart_serial_options);
 	
 	/* initial console message */
-	printf("\r\nHello, world!\r\n");
+	//printf("\r\nHello, world!\r\n");
+	
+	// send a string using the write packet function
+	usart_serial_write_packet(CONF_UART, (const uint8_t*)str, sizeof(str) - 1);
+	do 
+	{
+		usart_serial_getchar(CONF_UART, &rx_char); // get single char
+	} while (rx_char != 'a');
+	// send a single character
+	usart_serial_putchar(CONF_UART, 'A'); // echo cuz user is idiot
+	
+	//usart_serial_read_packet() function reads packet of certain length from uart
 	
 	/* main app */
 	while (1) 
 	{
-		scanf("%c", &in_char);         // scan for character
-		
-		if (in_char) 
-		{
-			printf("%c\r\n", in_char); // echo character to console
-		} // end if
+		// nothing to see 
 	} // end main app
 } // end main
