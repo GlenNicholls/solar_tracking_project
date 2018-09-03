@@ -21,7 +21,10 @@ void setup()
   // Ensure that no current flows through the sensor at this moment
   sensor.calibrate();
 
+  // SD init routine. Only have CardInfo or Init active at once as they collide for pin info
+  //sdLogger.CardInfo();
   sdLogger.Init();
+  SD.remove(filename);
   sdLogger.WriteFileLine(filename,"Volts[V],Current[A],Power[W]");
 }
 
@@ -37,10 +40,11 @@ void loop()
   // Send it to serial
   //Serial.println(String("I = ") + I + " A");
   dataToLog = String(V) + "," + String(I) + "," + String(P);
+  Serial.println("");
   Serial.println(String("I = ") + I + "A," + String("V = ") + V + "V," + String("P = ") + P + "W");
 
   sdLogger.WriteFileLine(filename, dataToLog);
   
   // Wait one second before the new cycle
-  delay(1000);
+  delay(2000);
 }

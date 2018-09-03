@@ -8,6 +8,7 @@
 class ADA254 {
 public:
     ADA254(uint8_t _chipSelect);
+    void CardInfo();
     void Init();
     void WriteFileLine(String filename, String strToWr);
     String ReadFileLine(String filename);
