@@ -87,25 +87,10 @@ void ADA254::CardInfo() {
 
 void ADA254::WriteFileLine(String filename, String strToWr) {
   File dataFile;
-  //bool filePresentValid = SD.exists(filename);
-
-  //delay(100);
-
-  //if (!filePresentValid) {
-  //  Serial.println("-DBG- FILE NOT PRESENT");
-  //  Serial.println("-W- " + filename + " DOES NOT exist!");
-  //  Serial.println("-I- Attempting to create file: " + filename);
-  //  dataFile = SD.open(filename, FILE_WRITE);
-  //  dataFile.close();
-  //}
-  //else {
-  //  dataFile = SD.open(filename, FILE_WRITE);
-  //}
 
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
   dataFile = SD.open(filename, FILE_WRITE);
-  //delay(100);
 
   // if the file is available, write to it
   if (dataFile) {
