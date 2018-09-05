@@ -1,7 +1,7 @@
 ==============================
 = SETTING UP UART
 ==============================
-For setting up UART to forward to pins 8(TXD) & 10(RXD)
+For setting up UART on pi zeroW to forward to pins 8(TXD) & 10(RXD)
 
 REFERENCE: https://raspberrypi.stackexchange.com/questions/45570/how-do-i-make-serial-work-on-the-raspberry-pi3-pi3b-pizerow
 
@@ -40,3 +40,18 @@ REFERENCE: https://raspberrypi.stackexchange.com/questions/45570/how-do-i-make-s
     * enable_uart=1
   8) reboot system
     * >>> sudo reboot
+
+==============================
+= Python Serial
+==============================
+  >>> sudo apt-get install python-serial
+
+  Ex: 
+    import serial
+
+    serialport = serial.Serial("serial0", baudrate=9600, timeout=3.0)
+
+    while True:
+        serialport.write("rnSay something:")
+        rcv = port.read(10)
+        serialport.write("rnYou sent:" + repr(rcv))

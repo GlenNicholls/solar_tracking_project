@@ -46,5 +46,5 @@ void loop()
   sdLogger.WriteFileLine(filename, dataToLog);
   
   // Wait one second before the new cycle
-  delay(500);
+  delay(1000);
 }
