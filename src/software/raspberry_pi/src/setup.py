@@ -6,23 +6,26 @@ import argparse
 # having a long list like 'import module.package.something' is really inconvenient
 class PythonFileTreeMaker(object):
     def _recurse_search_paths(self):
-        print('-I- parsing file tree to add unknown python directories to the $PYTHONPATH')
-
+        start_path =  os.getcwd()
         added_dir_buf = []
 
-        for dir_path,sub_dirs,file_list in os.walk(os.getcwd()):
-            if self._verbose:
-                print('-I- the following files have been found in {}'.format(dir_path))
-                for i,file in enumerate(file_list):
-                    print('\t' + file)
+        print('-I- parsing file tree to add unknown python directories to the $PYTHONPATH')
+        print('-I starting in: {}'.format(start_path))
 
-                print('-I- the following subdirectories have been found in {}'.format(dir_path))
-                for i,sub_dir in enumerate(sub_dirs):
-                    print('\t' + sub_dir)
-
+        for dir_path,sub_dirs,file_list in os.walk(start_path):
             if str(dir_path).find('__pycache__') == -1 and str(file_list).find('__init__.py') > -1:
                 sys.path.append(dir_path)
                 added_dir_buf.append(dir_path)
+            # print file tree
+            if self._verbose:
+                level = dir_path.replace(start_path, '').count(os.sep)
+                indent = ' ' * 4 * (level)
+                subindent = ' ' * 4 * (level + 1)
+                if len( str(os.path.basename(dir_path)) ) > 2:
+                    print('{}{}/'.format(indent, os.path.basename(dir_path)))
+                    for f in file_list:
+                        print('{}{}'.format(subindent, f))
+
         print('-I- the following directories have been added to the system path:')
         for i,j in enumerate(added_dir_buf):
             print('\t' + j)
@@ -31,21 +34,8 @@ class PythonFileTreeMaker(object):
         self._verbose = args.verbose
         if self._verbose:
             print('-I- parsing file tree with verbose opton')
-        #self._output = args.output
-        #print("root:%s" % self.root)
 
         self._recurse_search_paths()
-
-        #buf = []
-        #path_parts = self.root.rsplit(os.path.sep, 1)
-        #buf.append("[%s]" % (path_parts[-1],))
-        #self._recurse(self.root, os.listdir(self.root), "", buf, 0)
-        #
-        #output_str = "\n".join(buf)
-        #if len(args.output) != 0:
-        #    with open(self._output, 'w') as of:
-        #        of.write(output_str)
-        #return output_str
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
