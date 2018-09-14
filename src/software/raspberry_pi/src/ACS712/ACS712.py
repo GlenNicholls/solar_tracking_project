@@ -15,7 +15,7 @@ class ACS712(object):
             self._sensitivity = 0.100
         elif device_type.lower == 'acs712_30a':
             self._sensitivity = 0.066
-        else
+        else:
             self._sensitivity = None
 
         if hardware_spi:
