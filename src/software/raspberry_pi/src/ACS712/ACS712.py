@@ -9,11 +9,11 @@ class ACS712(object):
     '''
 
     def __init__(self, device_type='ACS712_05B', hardware_spi=True, num_adc_bits=10, vref=3.3, ac_freq=60):
-        if device_type.lower = 'acs712_05a':
+        if device_type.lower == 'acs712_05a':
             self._sensitivity = 0.185
-        elif device_type.lower = 'acs712_20a':
+        elif device_type.lower == 'acs712_20a':
             self._sensitivity = 0.100
-        elif device_type.lower = 'acs712_30a':
+        elif device_type.lower == 'acs712_30a':
             self._sensitivity = 0.066
         else
             self._sensitivity = None
