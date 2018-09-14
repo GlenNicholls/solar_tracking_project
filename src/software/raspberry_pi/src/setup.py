@@ -4,7 +4,7 @@ import argparse
 
 # todo: expand function to add to $PYTHONPATH if it is not already there...
 # having a long list like 'import module.package.something' is really inconvenient
-class (object):
+class PythonFileTreeMaker(object):
     def _recurse_search_paths(self):
         print('-I- parsing file tree to add unknown python directories to the $PYTHONPATH')
 
@@ -13,11 +13,14 @@ class (object):
         for dir_path,sub_dirs,file_list in os.walk(os.getcwd()):
             if self._verbose:
                 print('-I- the following files have been found in {}'.format(dir_path))
-                print(file_list)
-                print('-I- the following subdirectories have been found in {}'.format(dir_path))
-                print(sub_dirs)
+                for i,file in enumerate(file_list):
+                    print('\t' + file)
 
-            if(str(dir_path).find('__pycache__') == -1 and str(file_list).find('__init__.py') > -1:
+                print('-I- the following subdirectories have been found in {}'.format(dir_path))
+                for i,sub_dir in enumerate(sub_dirs):
+                    print('\t' + sub_dir)
+
+            if str(dir_path).find('__pycache__') == -1 and str(file_list).find('__init__.py') > -1:
                 sys.path.append(dir_path)
                 added_dir_buf.append(dir_path)
         print('-I- the following directories have been added to the system path:')
@@ -50,4 +53,4 @@ if __name__ == "__main__":
     #parser.add_argument("-o", "--output", help="output file name", default="")
     args = parser.parse_args()
 
-    make(args)
+    PythonFileTreeMaker().make(args)
