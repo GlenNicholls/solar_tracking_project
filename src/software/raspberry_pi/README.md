@@ -18,9 +18,8 @@ If you would like to perform a fresh system install, perform this command. This 
 src files are copied
 >>> sudo python setup.py install
  
-==============================
-= SETTING UP UART
-==============================
+# Ignore the below
+# Setting Up UART
 For setting up UART on pi zeroW to forward to pins 8(TXD) & 10(RXD)
 
 REFERENCE: https://raspberrypi.stackexchange.com/questions/45570/how-do-i-make-serial-work-on-the-raspberry-pi3-pi3b-pizerow
@@ -61,9 +60,8 @@ REFERENCE: https://raspberrypi.stackexchange.com/questions/45570/how-do-i-make-s
   8) reboot system
     * >>> sudo reboot
 
-==============================
-= Python Serial
-==============================
+
+# Setting Up Python Serial
   >>> sudo apt-get install python-serial
 
   Ex: 
