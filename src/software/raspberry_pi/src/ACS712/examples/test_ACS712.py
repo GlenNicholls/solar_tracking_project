@@ -5,7 +5,7 @@ ACS712_type = 'ACS712_30A'
 hardware_spi_en = True
 num_adc_bits = 10
 Vref = 3.3
-current_sensor = ACS712(ACS712_type,
+current_sensor = ACS712.ACS712(ACS712_type,
                         hardware_spi_en,
                         num_adc_bits,
                         Vref)
