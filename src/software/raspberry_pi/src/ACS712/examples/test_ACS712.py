@@ -1,17 +1,26 @@
 import time
 import ACS712
 
-ACS712_type = 'ACS712_30A'
+# ACS712 configuration
+ACS712_type     = 'ACS712_30A'
+Vref            = 3.3
+num_adc_bits    = 10
 hardware_spi_en = True
-num_adc_bits = 10
-Vref = 3.3
-current_sensor = ACS712.ACS712(ACS712_type,
-                        hardware_spi_en,
-                        num_adc_bits,
-                        Vref)
+adc_port        = 0
+num_cal_avgs    = 20
+
+current_sensor = ACS712.ACS712(device_type  = ACS712_type,
+                               vref         = Vref,
+                               num_adc_bits = num_adc_bits,
+                               adc_port     = adc_port,
+                               num_cal_avgs = num_cal_avgs,
+                               hardware_spi = hardware_spi_en
+                               )
+
+# Other device configuration
 
 print('-I- calibrating current sensor...')
-current_sensor._calibrate(adc_port=0, num_averages=10)
+current_sensor._calibrate()
 
 print('Reading ACS712 value')
 print('| {0:>4} | {1:>4} | {2:>4} |'.format('current [I]', 'voltage [V]', 'power [W]'))
