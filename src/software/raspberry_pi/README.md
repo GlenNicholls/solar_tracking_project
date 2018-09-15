@@ -1,3 +1,23 @@
+# Raspberry Pi Setup
+To set up the Raspberry pi, perform the following steps
+
+## Install dependencies
+To install dependencies for the python code base and creating egg info for the python interpreter, run the 
+following commands, (recommend install in step 2b):
+
+### 1)
+>>> cd ~/solar_tracking_project/src/software/raspberry_pi/src/
+
+### 2a)
+If you would like to develop on the device, run this command to ensure symbolic links point to the source code in this repository.
+This allows the developer to make changes here without having to re-install the python repository
+>>> sudo python setup.py developer
+
+### 2b)
+If you would like to perform a fresh system install, perform this command. This will generate egg info under site-packages, meaning 
+src files are copied
+>>> sudo python setup.py install
+ 
 ==============================
 = SETTING UP UART
 ==============================
