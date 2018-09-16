@@ -41,7 +41,7 @@ setup(
                          'https://github.com/adafruit/Adafruit_Python_MCP3008/tarball/master#egg=Adafruit-MCP3008-1.0.2'],
                          # 'https://github.com/adafruit/Adafruit_CircuitPython_DS3231/tarball/master#egg=Adafruit_CircuitPython_DS3231-2.1.0',],
     install_requires  = ['Adafruit-GPIO>=0.6.5',
-                         'Adafruit-MCP3008>=1.0.2'
+                         'Adafruit-MCP3008>=1.0.2',
                          'RPI.GPIO>=0.6.3'],
                          # 'adafruit-circuitpython-ds3231>=2.1.0'],
     packages          = find_packages('src'), # can also leave blank (empty parameters) to declare anything below, don't need src/ top level in setup.py loc
