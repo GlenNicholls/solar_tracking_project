@@ -18,6 +18,19 @@ If you would like to perform a fresh system install, perform this command. This 
 src files are copied
 >>> sudo python setup.py install
  
+# TODO:
+* Set up software for the DS3231 package, dynamic control based on WIFI to synchronize RTC and/or switch to RTC for timekeeping
+* Logging/database
+* voltage sense
+* Circuit for the power/timer: https://www.allaboutcircuits.com/projects/build-programmable-time-based-switches-using-a-real-time-clock/
+* High level web server to simple control
+* SW from Graeme for SE's
+* SW alg from Josh/Brad for the light sensors
+* SW for the motor control
+* pulling information from web regarding sun position
+
+
+
 # Ignore the below
 # Setting Up UART
 For setting up UART on pi zeroW to forward to pins 8(TXD) & 10(RXD)
