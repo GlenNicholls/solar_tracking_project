@@ -6,17 +6,14 @@ To set up the Raspberry pi, perform the following steps
 
 ## Install dependencies
 To install dependencies for the python code base and creating egg info for the python interpreter, run the 
-following commands, (recommend install in step 2b):
+following commands, (recommend install in step 1b):
 
-### 1)
->>> cd ~/solar_tracking_project/src/software/raspberry_pi/src/
-
-### 2a)
+### 1a)
 If you would like to develop on the device, run this command to ensure symbolic links point to the source code in this repository.
 This allows the developer to make changes here without having to re-install the python repository
 >>> sudo python setup.py developer
 
-### 2b)
+### 1b)
 If you would like to perform a fresh system install, perform this command. This will generate egg info under site-packages, meaning 
 src files are copied
 >>> sudo python setup.py install
@@ -25,11 +22,10 @@ src files are copied
 * Set up software for the DS3231 package, dynamic control based on WIFI to synchronize RTC and/or switch to RTC for timekeeping
 * Logging/database
 * voltage sense
-* system temp and general system monitor package
 * setup script to configure system entirely along with reboot schemes where required (don't want set up anything noted below in the other sections)
 * unit test/regression test framework
 * Circuit for the power/timer: https://www.allaboutcircuits.com/projects/build-programmable-time-based-switches-using-a-real-time-clock/
-* High level web server to simple control
+* High level web server for simple control
 * SW from Graeme for SE's
 * SW alg from Josh/Brad for the light sensors
 * SW for the motor control from Mike
