@@ -22,11 +22,14 @@ src files are copied
 * Set up software for the DS3231 package, dynamic control based on WIFI to synchronize RTC and/or switch to RTC for timekeeping
 * Logging/database
 * voltage sense
+* system temp and general system monitor package
+* setup script to configure system entirely along with reboot schemes where required (don't want set up anything noted below in the other sections)
+* unit test/regression test framework
 * Circuit for the power/timer: https://www.allaboutcircuits.com/projects/build-programmable-time-based-switches-using-a-real-time-clock/
 * High level web server to simple control
 * SW from Graeme for SE's
 * SW alg from Josh/Brad for the light sensors
-* SW for the motor control
+* SW for the motor control from Mike
 * pulling information from web regarding sun position
 
 
