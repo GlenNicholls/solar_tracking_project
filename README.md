@@ -19,6 +19,7 @@ src files are copied
 >>> sudo python setup.py install
  
 # TODO:
+* Install new caps based on ACS712 NF. We will be doing less than 1k samples per second for current measurements, so we should prioritize lower NF
 * Set up software for the DS3231 package, dynamic control based on WIFI to synchronize RTC and/or switch to RTC for timekeeping
 * Logging/database
 * voltage sense
