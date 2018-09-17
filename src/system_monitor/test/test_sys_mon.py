@@ -6,6 +6,11 @@ sys_mon = system_monitor.system_monitor()
 
 
 print('-I- Monitoring system information')
+print('-I- ----WLAN Information----')
+print('-I-     Connected: {}'.format(sys_mon.is_wlan_connected()))
+print('-I-     Bit Rate: {}'.format(sys_mon.get_wlan_bit_rate()))
+print('-I-     Link Quality: {}'.format(sys_mon.get_wlan_link_quality_perc()))
+print('-I-     Rx Power: {}'.format(sys_mon.get_wlan_rx_pwr()))
 
 str_p = []
 str_p.append('temp [\'C]')
@@ -31,6 +36,8 @@ while True:
     data.append(sys_mon.get_cpu_use_perc())
     data.append(sys_mon.get_ram_use_perc())
     data.append(sys_mon.get_disk_use_perc())
+
+    sys_mon._get_connection_info()
 
     str_format = ''
     print( ('+' + '-' * (max_str_len + 2) ) * len(str_p) + '+')
