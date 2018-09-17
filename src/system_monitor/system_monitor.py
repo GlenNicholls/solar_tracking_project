@@ -151,3 +151,14 @@ class system_monitor(object):
             else:
                 rx_power = None
         return rx_power
+
+    # get wifi name
+    def get_wlan_wifi_name(self):
+        self._get_connection_info()
+        for i, line in enumerate(self._wlan_out):
+            if line.find('ESSID') > -1:
+                name = line.split(':')[1]
+                break
+            else:
+                name = None
+        return name
