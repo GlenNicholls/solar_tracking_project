@@ -18,6 +18,20 @@ If you would like to perform a fresh system install, perform this command. This 
 src files are copied
 >>> sudo python setup.py install
  
+## Enable I2C and SPI
+Begin by opening a termineal and performing the following steps:
+>>> sudo raspi-config
+||| Interfacing Options > I2C > Yes
+||| Interfacing Options > SPI > Yes
+>>> sudo reboot
+>>> lsmod | grep i2c_
+
+You should now see something come up. You can also do the following to see devices:
+>>> sudo i2cdetect -y 1
+
+No further configuration is required.
+
+
 # TODO:
 * Install new caps based on ACS712 NF. We will be doing less than 1k samples per second for current measurements, so we should prioritize lower NF
 * Set up software for the DS3231 package, dynamic control based on WIFI to synchronize RTC and/or switch to RTC for timekeeping
