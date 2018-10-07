@@ -123,7 +123,7 @@ class DS3231(object):
         if False:
             print(
                 "addr =0x%x register = 0x%x data = 0x%x %i " %
-                (self._addr, register, data, bcd_to_int(data)))
+                (self._addr, register, data, self._bcd_to_int(data)))
         self._bus.write_byte_data(self._addr, register, data)
 
          
@@ -136,7 +136,7 @@ class DS3231(object):
                 "addr = 0x%x reg_addr = 0x%x %i data = 0x%x %i "
                 % (
                     self._addr, reg_addr, reg_addr,
-                    data, bcd_to_int(data)))
+                    data, self._bcd_to_int(data)))
         return data
 
 
@@ -159,7 +159,7 @@ class DS3231(object):
                 hrs = 0x40
             hrs &= 0x3F
         return tuple(
-            bcd_to_int(t)
+            self._bcd_to_int(t)
             for t in (yrs, month, date, day, hrs, mins, sec))
 
 
@@ -212,39 +212,39 @@ class DS3231(object):
         if sec is not None:
             if not 0 <= sec < self._SEC_PER_MIN:
                 raise ValueError('sec is out of range [0,59].')
-            seconds_reg = int_to_bcd(sec)
+            seconds_reg = self._int_to_bcd(sec)
             self._write(self._REG_SEC, seconds_reg)
 
         if mins is not None:
             if not 0 <= mins < self._MIN_PER_HR:
                 raise ValueError('mins is out of range [0,59].')
-            self._write(self._REG_MIN, int_to_bcd(mins))
+            self._write(self._REG_MIN, self._int_to_bcd(mins))
 
         if hrs is not None:
             if not 0 <= hrs < self._HR_PER_DAY:
                 raise ValueError('hrs is out of range [0,23].')
-            self._write(self._REG_HRS, int_to_bcd(hrs) ) # not  | 0x40 according to datasheet
+            self._write(self._REG_HRS, self._int_to_bcd(hrs) ) # not  | 0x40 according to datasheet
 
         if yrs is not None:
             if not 0 <= yrs < self._YRS_PER_CENTURY:
                 raise ValueError('Years is out of range [0,99].')
-            self._write(self._REG_YR, int_to_bcd(yrs))
+            self._write(self._REG_YR, self._int_to_bcd(yrs))
 
         if month is not None:
             if not 1 <= month <= self._MONTH_PER_YR:
                 raise ValueError('month is out of range [1,12].')
-            self._write(self._REG_MONTH, int_to_bcd(month))
+            self._write(self._REG_MONTH, self._int_to_bcd(month))
 
         if date is not None:
             # How about a more sophisticated check?
             if not 1 <= date <= self._MAX_DAYS_PER_MONTH:
                 raise ValueError('Date is out of range [1,31].')
-            self._write(self._REG_DATE, int_to_bcd(date))
+            self._write(self._REG_DATE, self._int_to_bcd(date))
 
         if day is not None:
             if not 1 <= day <= self._DAY_PER_WEEK:
                 raise ValueError('Day is out of range [1,7].')
-            self._write(self._REG_DAY, int_to_bcd(day))
+            self._write(self._REG_DAY, self._int_to_bcd(day))
 
 
     # write datetime
@@ -277,7 +277,9 @@ class DS3231(object):
     # get status register data
     # Returns byte
     def _get_status(self):
-      return self._read(self._REG_STATUS)
+        status_reg = self._read(self._REG_STATUS)
+        print('-I- Status Reg: {}'.format(status_reg))
+        return status_reg
 
 
     # Get Power Lost
@@ -289,7 +291,7 @@ class DS3231(object):
     # Get alarm 1 flag
     # Returns boolean
     def get_alarm_1_flag():
-        return (self._get_status() $ self._MASK_alrm_1_flag) == self._MASK_alrm_1_flag
+        return (self._get_status() & self._MASK_alrm_1_flag) == self._MASK_alrm_1_flag
 
 
     # Clear alarm 1 flag
@@ -302,7 +304,7 @@ class DS3231(object):
     # Get alarm 2 flag
     # Returns boolean
     def get_alarm_2_flag():
-        return (self._get_status() $ self._MASK_alrm_2_flag) == self._MASK_alrm_2_flag
+        return (self._get_status() & self._MASK_alrm_2_flag) == self._MASK_alrm_2_flag
 
 
     # Clear alarm 2 flag
@@ -315,7 +317,7 @@ class DS3231(object):
     # Get temperature conversion busy state
     # Returns boolean
     def get_temp_conversion_busy():
-        return (self._get_status() $ self._MASK_busy) == self._MASK_busy
+        return (self._get_status() & self._MASK_busy) == self._MASK_busy
 
 
     ''' Control Register
@@ -339,11 +341,13 @@ class DS3231(object):
             print('-I- Configuration of control register successful!')
         else:
             print('-E- Configuration of control register was NOT successful!')
+        print('-I- Control Reg Value: 0b{:08b}, Expected Value: 0b{:08b}'.format(check_ctrl_reg, self._CONFIG_REG_CTRL))
 
-        if check_stat_reg == self._MASK_en_32_kHz:
+        if check_stat_reg == self._CONFIG_REG_STATUS:
             print('-I- Configuration of status register successful!')
         else:
             print('-E- Configuration of status register was NOT successful!')
+        print('-I- Status Reg Value: 0b{:08b}, Expected Value: 0b{:08b}'.format(check_stat_reg, self._CONFIG_REG_STATUS))
 
 
     ''' Temperature register
