@@ -21,8 +21,8 @@ src files are copied
 ## Enable I2C and SPI
 Begin by opening a termineal and performing the following steps:
 >>> sudo raspi-config
-||| Interfacing Options > I2C > Yes
-||| Interfacing Options > SPI > Yes
+>>> Interfacing Options > I2C > Yes
+>>> Interfacing Options > SPI > Yes
 >>> sudo reboot
 >>> lsmod | grep i2c_
 
