@@ -49,13 +49,31 @@ class DS3231(object):
         self._MONTH_PER_YR       = 12
         self._YRS_PER_CENTURY    = 100
 
-        # masks
-        self._oscillator_on_mask = 0b1<<7 # _REG_CTRL
-        self._power_lost_mask    = 0b1<<7 # _REG_STATUS
-
         # i2c object
         self._bus  = smbus.SMBus(i2c_port)
         self._addr = i2c_addr
+
+        # masks
+        self._MASK_oscillator_on = 0b1<<7 
+
+        # _REG_CTRL
+        # todo: can probably remove these masks since we won't need to change
+        # them after config is done
+        #self._MASK_oscillator_en_N   = 0x80 # active low
+        #self._MASK_bat_backed_sqw_en = 0x40
+        #self._MASK_conv_temp         = 0x20
+        #self._MASK_interrupt_en      = 0x04
+        #self._MASK_alrm_2_en         = 0x02
+        #self._MASK_alrm_1_en         = 0x01
+        self._CONFIG_REG_CTRL        = 0x05
+
+        # _REG_STATUS
+        self._MASK_power_lost   = 0x80
+        self._MASK_en_32_kHz    = 0x08
+        self._MASK_busy         = 0x04
+        self._MASK_alrm_2_flag  = 0x02
+        self._MASK_alrm_1_flag  = 0x01
+        self._CONFIG_REG_STATUS = 0x00
 
         # reg map tuples for DS3231
         self._reg_time_addrs = (
@@ -76,10 +94,10 @@ class DS3231(object):
             self._REG_ALRM_2_HRS,
             self._REG_ALRM_2_DAY_DATE,
         )
-        self._reg_ctrl_stat = (
-            self._REG_CTRL,
-            self._REG_STATUS,
-        )
+        #self._reg_ctrl_stat = (
+        #    self._REG_CTRL,
+        #    self._REG_STATUS,
+        #)
         # self._reg_age_offset_addr = (
         #     self._REG_AGE_OFFSET,
         # )
@@ -141,7 +159,7 @@ class DS3231(object):
             for reg_addr in self._reg_time_addrs
         )
 
-        sec &= ~self._oscillator_on_mask
+        sec &= ~self._MASK_oscillator_on
         if True:
             # This stuff is suspicious.
             if hrs == 0x64:
@@ -257,15 +275,6 @@ class DS3231(object):
                int(byte_tlsb[1]) * 2**(-2)
 
 
-    ''' Control
-    '''
-    # todo: set oscillator EOSC
-    # todo: set BBSQW
-    # todo: set CONV
-    # todo: set INTCN
-    # todo: set A2IE
-    # todo: set A1IE
-
     ''' Status
     '''
     # todo: get OSF
@@ -273,3 +282,74 @@ class DS3231(object):
     # todo: get BSY
     # todo: get A2F
     # todo: get A1F
+
+    # get status register data
+    # Returns byte
+    def _get_status(self):
+      return self._read(self._REG_STATUS)
+
+
+    # Get Power Lost
+    # Returns boolean
+    def get_power_lost(self):
+        return (self._get_status() & self._MASK_power_lost) == self._MASK_power_lost
+
+
+    # Get alarm 1 flag
+    # Returns boolean
+    def get_alarm_1_flag():
+        return (self._get_status() $ self._MASK_alrm_1_flag) == self._MASK_alrm_1_flag
+
+
+    # Clear alarm 1 flag
+    # clears alarm 1 flag without modifying anything in register
+    def clear_alarm_1_flag():
+        current_status = self._get_status() & 0xFE
+        self._write(self._REG_STATUS, current_status)
+
+
+    # Get alarm 2 flag
+    # Returns boolean
+    def get_alarm_2_flag():
+        return (self._get_status() $ self._MASK_alrm_2_flag) == self._MASK_alrm_2_flag
+
+
+    # Clear alarm 2 flag
+    # clears alarm 2 flag without modifying anything in register
+    def clear_alarm_2_flag():
+        current_status = self._get_status() & 0xFD
+        self._write(self._REG_STATUS, current_status)
+
+
+    # Get temperature conversion busy state
+    # Returns boolean
+    def get_temp_conversion_busy():
+        return (self._get_status() $ self._MASK_busy) == self._MASK_busy
+
+
+    ''' Control
+    '''
+    # Configure DS3231 
+    #   set: EOSC_N  = 0
+    #        BBSQW   = 0
+    #        CONV    = 0     
+    #        INTCN   = 1 -- enable interrupts for alarms
+    #        A2IE    = 0 -- disable alarm 2 interrupts
+    #        A1IE    = 1 -- enable alarm 1 interrupts
+    def configure_ds3231(self):
+        self._write(self._REG_CTRL, self._CONFIG_REG_CTRL)
+        self._write(self._REG_STATUS, self._CONFIG_REG_STATUS)
+
+        check_ctrl_reg = self._read(self._REG_CTRL)
+        check_stat_reg = self._read(self._REG_STATUS) & self._MASK_en_32_kHz
+
+        if check_ctrl_reg == self._CONFIG_REG_CTRL:
+            print('-I- Configuration of control register successful!')
+        else:
+            print('-E- Configuration of control register was NOT successful!')
+
+        if check_stat_reg == self._MASK_en_32_kHz:
+            print('-I- Configuration of status register successful!')
+        else:
+            print('-E- Configuration of status register was NOT successful!')
+
