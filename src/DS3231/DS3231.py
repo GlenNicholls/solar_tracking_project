@@ -12,25 +12,25 @@ class DS3231(object):
     '''
     # reg map for the DS3231 RTC
     (
-      _reg_sec,             # 0x00
-      _reg_min,             # 0x01
-      _reg_hrs,             # 0x02
-      _reg_day,             # 0x03
-      _reg_date,            # 0x04
-      _reg_mo,              # 0x05
-      _reg_yr,              # 0x06
-      _reg_alrm_1_sec,      # 0x07
-      _reg_alrm_1_min,      # 0x08
-      _reg_alrm_1_hrs,      # 0x09
-      _reg_alrm_1_day_date, # 0x0a
-      _reg_alrm_2_min,      # 0x0b
-      _reg_alrm_2_hrs,      # 0x0c
-      _reg_alrm_2_day_date, # 0x0d
-      _reg_ctrl,            # 0x0e
-      _reg_status,          # 0x0f
-      _reg_age_offset,      # 0x10
-      _reg_tmp_msb,         # 0x11
-      _reg_tmp_lsb,         # 0x12
+      _REG_SEC,             # 0x00
+      _REG_MIN,             # 0x01
+      _REG_HRS,             # 0x02
+      _REG_DAY,             # 0x03
+      _REG_DATE,            # 0x04
+      _REG_MONTH,           # 0x05
+      _REG_YR,              # 0x06
+      _REG_ALRM_1_SEC,      # 0x07
+      _REG_ALRM_1_MIN,      # 0x08
+      _REG_ALRM_1_HRS,      # 0x09
+      _REG_ALRM_1_DAY_DATE, # 0x0a
+      _REG_ALRM_2_MIN,      # 0x0b
+      _REG_ALRM_2_HRS,      # 0x0c
+      _REG_ALRM_2_DAY_DATE, # 0x0d
+      _REG_CTRL,            # 0x0e
+      _REG_STATUS,          # 0x0f
+      _REG_AGE_OFFSET,      # 0x10
+      _REG_TMP_MSB,         # 0x11
+      _REG_TMP_LSB,         # 0x12
     ) = range(19)
 
 
@@ -41,17 +41,17 @@ class DS3231(object):
                        ):
         
         # constants
-        self._sec_per_min     = 60
-        self._min_per_hr      = 60
-        self._hr_per_day      = 24
-        self._day_per_week    = 7
-        self._max_days_per_mo = 31
-        self._mo_per_yr       = 12
-        self._yr_per_century  = 100
+        self._SEC_PER_MIN        = 60
+        self._MIN_PER_HR         = 60
+        self._HR_PER_DAY         = 24
+        self._DAY_PER_WEEK       = 7
+        self._MAX_DAYS_PER_MONTH = 31
+        self._MONTH_PER_YR       = 12
+        self._YRS_PER_CENTURY    = 100
 
         # masks
-        self._oscillator_on_mask = 0b1<<7 # _reg_ctrl
-        self._power_lost_mask    = 0b1<<7 # _reg_status
+        self._oscillator_on_mask = 0b1<<7 # _REG_CTRL
+        self._power_lost_mask    = 0b1<<7 # _REG_STATUS
 
         # i2c object
         self._bus  = smbus.SMBus(i2c_port)
@@ -59,33 +59,33 @@ class DS3231(object):
 
         # reg map tuples for DS3231
         self._reg_time_addrs = (
-            self._reg_sec,
-            self._reg_min,
-            self._reg_hrs,
-            self._reg_day,
-            self._reg_date,
-            self._reg_mo,
-            self._reg_yr,
+            self._REG_SEC,
+            self._REG_MIN,
+            self._REG_HRS,
+            self._REG_DAY,
+            self._REG_DATE,
+            self._REG_MONTH,
+            self._REG_YR,
         )
         self._reg_alrm_addrs = (
-            self._reg_alrm_1_sec,
-            self._reg_alrm_1_min,
-            self._reg_alrm_1_hrs,
-            self._reg_alrm_1_day_date,
-            self._reg_alrm_2_min,
-            self._reg_alrm_2_hrs,
-            self._reg_alrm_2_day_date,
+            self._REG_ALRM_1_SEC,
+            self._REG_ALRM_1_MIN,
+            self._REG_ALRM_1_HRS,
+            self._REG_ALRM_1_DAY_DATE,
+            self._REG_ALRM_2_MIN,
+            self._REG_ALRM_2_HRS,
+            self._REG_ALRM_2_DAY_DATE,
         )
         self._reg_ctrl_stat = (
-            self._reg_ctrl,
-            self._reg_status,
+            self._REG_CTRL,
+            self._REG_STATUS,
         )
         # self._reg_age_offset_addr = (
-        #     self._reg_age_offset,
+        #     self._REG_AGE_OFFSET,
         # )
         # self._reg_tmp_addrs = (
-        #     self._reg_tmp_msb,
-        #     self._reg_tmp_lsb,
+        #     self._REG_TMP_MSB,
+        #     self._REG_TMP_LSB,
         # )
 
 
@@ -180,7 +180,7 @@ class DS3231(object):
     # Return the datetime.datetime object.
     def read_datetime(self, century=21, tzinfo=None):
         yrs, mo, date, _, hrs, mins, sec = self.read_all()
-        yrs = self._yr_per_century * (century - 1) + yrs
+        yrs = self._YRS_PER_CENTURY * (century - 1) + yrs
         return datetime(
             yrs, mo, date, hrs, mins, sec,
             0, tzinfo=tzinfo)
@@ -199,41 +199,41 @@ class DS3231(object):
             date=None, mo=None, yrs=None, save_as_24h=True):
         
         if sec is not None:
-            if not 0 <= sec < self._sec_per_min:
+            if not 0 <= sec < self._SEC_PER_MIN:
                 raise ValueError('sec is out of range [0,59].')
             seconds_reg = int_to_bcd(sec)
-            self._write(self._reg_sec, seconds_reg)
+            self._write(self._REG_SEC, seconds_reg)
 
         if mins is not None:
-            if not 0 <= mins < self._min_per_hr:
+            if not 0 <= mins < self._MIN_PER_HR:
                 raise ValueError('mins is out of range [0,59].')
-            self._write(self._reg_min, int_to_bcd(mins))
+            self._write(self._REG_MIN, int_to_bcd(mins))
 
         if hrs is not None:
-            if not 0 <= hrs < self._hr_per_day:
+            if not 0 <= hrs < self._HR_PER_DAY:
                 raise ValueError('hrs is out of range [0,23].')
-            self._write(self._reg_hrs, int_to_bcd(hrs) ) # not  | 0x40 according to datasheet
+            self._write(self._REG_HRS, int_to_bcd(hrs) ) # not  | 0x40 according to datasheet
 
         if yrs is not None:
-            if not 0 <= yrs < self._yr_per_century:
+            if not 0 <= yrs < self._YRS_PER_CENTURY:
                 raise ValueError('Years is out of range [0,99].')
-            self._write(self._reg_yr, int_to_bcd(yrs))
+            self._write(self._REG_YR, int_to_bcd(yrs))
 
         if mo is not None:
-            if not 1 <= mo <= self._mo_per_yr:
+            if not 1 <= mo <= self._MONTH_PER_YR:
                 raise ValueError('mo is out of range [1,12].')
-            self._write(self._reg_mo, int_to_bcd(mo))
+            self._write(self._REG_MONTH, int_to_bcd(mo))
 
         if date is not None:
             # How about a more sophisticated check?
-            if not 1 <= date <= self._max_days_per_mo:
+            if not 1 <= date <= self._MAX_DAYS_PER_MONTH:
                 raise ValueError('Date is out of range [1,31].')
-            self._write(self._reg_date, int_to_bcd(date))
+            self._write(self._REG_DATE, int_to_bcd(date))
 
         if day is not None:
-            if not 1 <= day <= self._day_per_week:
+            if not 1 <= day <= self._DAY_PER_WEEK:
                 raise ValueError('Day is out of range [1,7].')
-            self._write(self._reg_day, int_to_bcd(day))
+            self._write(self._REG_DAY, int_to_bcd(day))
 
 
     # write datetime
@@ -251,8 +251,8 @@ class DS3231(object):
 
     # Get temp of DS3231
     def get_temp(self):
-        byte_tmsb = self._bus.read_byte_data(self._addr, self._reg_tmp_msb)
-        byte_tlsb = bin(self._bus.read_byte_data(self._addr, self._reg_tmp_lsb))[2:].zfill(8)
+        byte_tmsb = self._bus.read_byte_data(self._addr, self._REG_TMP_MSB)
+        byte_tlsb = bin(self._bus.read_byte_data(self._addr, self._REG_TMP_LSB))[2:].zfill(8)
         return byte_tmsb + int(byte_tlsb[0]) * 2**(-1) + \
                int(byte_tlsb[1]) * 2**(-2)
 
