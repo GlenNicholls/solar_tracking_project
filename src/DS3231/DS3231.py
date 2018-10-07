@@ -80,13 +80,13 @@ class DS3231(object):
             self._reg_ctrl,
             self._reg_status,
         )
-        self._reg_age_offset_addr = (
-            self._reg_age_offset,
-        )
-        self._reg_tmp_addrs = (
-            self._reg_tmp_msb,
-            self._reg_tmp_lsb,
-        )
+        # self._reg_age_offset_addr = (
+        #     self._reg_age_offset,
+        # )
+        # self._reg_tmp_addrs = (
+        #     self._reg_tmp_msb,
+        #     self._reg_tmp_lsb,
+        # )
 
 
     # BCD to integer
@@ -179,73 +179,97 @@ class DS3231(object):
     # Read datetime
     # Return the datetime.datetime object.
     def read_datetime(self, century=21, tzinfo=None):
-        
         yrs, mo, date, _, hrs, mins, sec = self.read_all()
-        yrs = 100 * (century - 1) + yrs
+        yrs = self._yr_per_century * (century - 1) + yrs
         return datetime(
             yrs, mo, date, hrs, mins, sec,
             0, tzinfo=tzinfo)
 
 
+    # Read datetime Julian
+    # todo: add function to return datetime object as julian time
+
+
+    # Write all
+    # updates RTC time register with synchronized information
+    # Direct write un-none value.
+    #  Range: sec [0,59], mins [0,59], hrs [0,23],
+    #         day [0,7], date [1-31], mo [1-12], yrs [0-99].
     def write_all(self, sec=None, mins=None, hrs=None, day=None,
             date=None, mo=None, yrs=None, save_as_24h=True):
-        """Direct write un-none value.
-        Range: sec [0,59], mins [0,59], hrs [0,23],
-               day [0,7], date [1-31], mo [1-12], yrs [0-99].
-        """
+        
         if sec is not None:
-            if not 0 <= sec < SECONDS_PER_MINUTE:
+            if not 0 <= sec < self._sec_per_min:
                 raise ValueError('sec is out of range [0,59].')
             seconds_reg = int_to_bcd(sec)
-            self._write(self._REG_SECONDS, seconds_reg)
+            self._write(self._reg_sec, seconds_reg)
 
         if mins is not None:
-            if not 0 <= mins < MINUTES_PER_HOUR:
+            if not 0 <= mins < self._min_per_hr:
                 raise ValueError('mins is out of range [0,59].')
-            self._write(self._REG_MINUTES, int_to_bcd(mins))
+            self._write(self._reg_min, int_to_bcd(mins))
 
         if hrs is not None:
-            if not 0 <= hrs < HOURS_PER_DAY:
+            if not 0 <= hrs < self._hr_per_day:
                 raise ValueError('hrs is out of range [0,23].')
-            self._write(self._REG_HOURS, int_to_bcd(hrs) ) # not  | 0x40 according to datasheet
+            self._write(self._reg_hrs, int_to_bcd(hrs) ) # not  | 0x40 according to datasheet
 
         if yrs is not None:
-            if not 0 <= yrs < YEARS_PER_CENTURY:
+            if not 0 <= yrs < self._yr_per_century:
                 raise ValueError('Years is out of range [0,99].')
-            self._write(self._REG_YEAR, int_to_bcd(yrs))
+            self._write(self._reg_yr, int_to_bcd(yrs))
 
         if mo is not None:
-            if not 1 <= mo <= MONTHS_PER_YEAR:
+            if not 1 <= mo <= self._mo_per_yr:
                 raise ValueError('mo is out of range [1,12].')
-            self._write(self._REG_MONTH, int_to_bcd(mo))
+            self._write(self._reg_mo, int_to_bcd(mo))
 
         if date is not None:
             # How about a more sophisticated check?
-            if not 1 <= date <= MAX_DAYS_PER_MONTH:
+            if not 1 <= date <= self._max_days_per_mo:
                 raise ValueError('Date is out of range [1,31].')
-            self._write(self._REG_DATE, int_to_bcd(date))
+            self._write(self._reg_date, int_to_bcd(date))
 
         if day is not None:
-            if not 1 <= day <= DAYS_PER_WEEK:
+            if not 1 <= day <= self._day_per_week:
                 raise ValueError('Day is out of range [1,7].')
-            self._write(self._REG_DAY, int_to_bcd(day))
+            self._write(self._reg_day, int_to_bcd(day))
 
 
+    # write datetime
+    # Write from a datetime.datetime object.
     def write_datetime(self, dt):
-        """Write from a datetime.datetime object.
-        """
         self.write_all(dt.second, dt.minute, dt.hour,
-                dt.isoweekday(), dt.day, dt.mo, dt.yrs % 100)
+                dt.isoweekday(), dt.day, dt.month, dt.year % 100)
 
 
+    # write datetime.now
+    # Write from a datetime.datetime object.
     def write_now(self):
-        """Equal to DS3231.write_datetime(datetime.datetime.now()).
-        """
         self.write_datetime(datetime.now())
 
 
-    def getTemp(self):
-        byte_tmsb = self._bus.read_byte_data(self._addr,0x11)
-        byte_tlsb = bin(self._bus.read_byte_data(self._addr,0x12))[2:].zfill(8)
-        return byte_tmsb+int(byte_tlsb[0])*2**(-1)+int(byte_tlsb[1])*2**(-2)
+    # Get temp of DS3231
+    def get_temp(self):
+        byte_tmsb = self._bus.read_byte_data(self._addr, self._reg_tmp_msb)
+        byte_tlsb = bin(self._bus.read_byte_data(self._addr, self._reg_tmp_lsb))[2:].zfill(8)
+        return byte_tmsb + int(byte_tlsb[0]) * 2**(-1) + \
+               int(byte_tlsb[1]) * 2**(-2)
 
+
+    ''' Control
+    '''
+    # todo: set oscillator EOSC
+    # todo: set BBSQW
+    # todo: set CONV
+    # todo: set INTCN
+    # todo: set A2IE
+    # todo: set A1IE
+
+    ''' Status
+    '''
+    # todo: get OSF
+    # todo: get EN32KHZ
+    # todo: get BSY
+    # todo: get A2F
+    # todo: get A1F
