@@ -21,9 +21,13 @@ src files are copied
 ## Enable I2C and SPI
 Begin by opening a termineal and performing the following steps:
 >>> sudo raspi-config
+
 >>> Interfacing Options > I2C > Yes
+
 >>> Interfacing Options > SPI > Yes
+
 >>> sudo reboot
+
 >>> lsmod | grep i2c_
 
 You should now see something come up. You can also do the following to see devices:
