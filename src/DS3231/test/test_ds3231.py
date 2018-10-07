@@ -1,45 +1,48 @@
-# Simple demo of reading and writing the time for the DS3231 real-time clock.
-# Change the if False to if True below to set the time, otherwise it will just
-# print the current date and time every second.  Notice also comments to adjust
-# for working with hardware vs. software I2C.
-
+import sys
 import time
-import board
-# For hardware I2C (M0 boards) use this line:
-import busio as io
-# Or for software I2C (ESP8266) use this line instead:
-#import bitbangio as io
-
-import adafruit_ds3231
+import datetime
+import DS3231
 
 
-i2c = io.I2C(board.SCL, board.SDA)  # Change to the appropriate I2C clock & data
-                                    # pins here!
 
-# Create the RTC instance:
-rtc = adafruit_ds3231.DS3231(i2c)
+starttime = datetime.datetime.utcnow()
 
-# Lookup table for names of days (nicer printing).
-days = ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+rtc = DS3231.DS3231(i2c_port=1, i2c_addr=0x68)
+# uncomment next line if running on generation 1 pi:
+#ds3231 = DS3231.DS3231(i2c_port=0, itc_addr=0x68)
+
+# comment out the next line after the clock has been initialized
+# ds3231.write_now()
+
+print('-I- Monitoring DS3231 Information')
+
+# Configure RTC
+rtc.configure_ds3231()
+
+# Initial checks for time accuracy
+print('-I- Checking time as YYMMDDTHHMMSS')
+print('-I- RTCs current time: {}'.format(rtc.read_str()))
+print('-I- Current NTP time: {}'.format(datetime.datetime.utcnow()))
+
+# update RTC if power was lost
+print('-I- Checking to see if power was lost')
+if rtc.get_power_lost():
+    rtc.write_now()
+    print('-I- Power was lost, time updated to: {}'.format())
+else:
+    print('-I- Power was not lost, starting log')
 
 
-#pylint: disable-msg=bad-whitespace
-#pylint: disable-msg=using-constant-test
-if False:   # change to True if you want to set the time!
-    #                     year, mon, date, hour, min, sec, wday, yday, isdst
-    t = time.struct_time((2017,  10,   29,   15,  14,  15,    0,   -1,    -1))
-    # you must set year, mon, date, hour, min, sec and weekday
-    # yearday is not supported, isdst can be set but we don't do anything with it at this time
-    print("Setting time to:", t)     # uncomment for debugging
-    rtc.datetime = t
-    print()
-#pylint: enable-msg=using-constant-test
-#pylint: enable-msg=bad-whitespace
-
-# Main loop:
-while True:
-    t = rtc.datetime
-    #print(t)     # uncomment for debugging
-    print("The date is {} {}/{}/{}".format(days[int(t.tm_wday)], t.tm_mday, t.tm_mon, t.tm_year))
-    print("The time is {}:{:02}:{:02}".format(t.tm_hour, t.tm_min, t.tm_sec))
-    time.sleep(1) # wait a second
+# while True:
+# 	#
+# 	currenttime = datetime.datetime.utcnow()
+# 
+# 	deltatime = currenttime - starttime
+#  
+# 	print ""
+# 	print "Raspberry Pi=\t" + time.strftime("%Y-%m-%d %H:%M:%S")
+# 	
+# 	print "DS3231=\t\t%s" % ds3231.read_datetime()
+# 
+# 	print "DS3231 Temp=", ds3231.getTemp()
+# 	time.sleep(1.0)

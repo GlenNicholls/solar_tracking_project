@@ -94,19 +94,10 @@ class DS3231(object):
             self._REG_ALRM_2_HRS,
             self._REG_ALRM_2_DAY_DATE,
         )
-        #self._reg_ctrl_stat = (
-        #    self._REG_CTRL,
-        #    self._REG_STATUS,
-        #)
-        # self._reg_age_offset_addr = (
-        #     self._REG_AGE_OFFSET,
-        # )
-        # self._reg_tmp_addrs = (
-        #     self._REG_TMP_MSB,
-        #     self._REG_TMP_LSB,
-        # )
 
 
+    ''' Helper functions
+    '''
     # BCD to integer
     # Decode n least significant packed binary coded decimal digits to binary.
     # Return binary result.
@@ -149,12 +140,14 @@ class DS3231(object):
         return data
 
 
+    ''' Time Registers
+    '''
     # incoherent read of all time regs
-    # Return tuple of yrs, mo, date, day, hrs, mins, sec.
+    # Return tuple of yrs, month, date, day, hrs, mins, sec.
     # Since each value is read one byte at a time,
     # it might not be coherent.
     def _incoherent_read_all(self):
-        sec, mins, hrs, day, date, mo, yrs = (
+        sec, mins, hrs, day, date, month, yrs = (
             self._read(reg_addr)
             for reg_addr in self._reg_time_addrs
         )
@@ -167,11 +160,11 @@ class DS3231(object):
             hrs &= 0x3F
         return tuple(
             bcd_to_int(t)
-            for t in (yrs, mo, date, day, hrs, mins, sec))
+            for t in (yrs, month, date, day, hrs, mins, sec))
 
 
     # Read All
-    # Return tuple of yrs, mo, date, day, hrs, mins, sec.
+    # Return tuple of yrs, month, date, day, hrs, mins, sec.
     # Read until one gets same result twice in a row.
     # Then one knows the time is coherent.
     def read_all(self):
@@ -187,20 +180,20 @@ class DS3231(object):
     # Read string
     # Return a string such as 'YY-MM-DDTHH-MM-SS'.
     def read_str(self):
-        yrs, mo, date, _, hrs, mins, sec = self.read_all()
+        yrs, month, date, _, hrs, mins, sec = self.read_all()
         return (
             '%02d-%02d-%02dT%02d:%02d:%02d' %
-            (yrs, mo, date, hrs, mins, sec)
+            (yrs, month, date, hrs, mins, sec)
         )
 
 
     # Read datetime
     # Return the datetime.datetime object.
     def read_datetime(self, century=21, tzinfo=None):
-        yrs, mo, date, _, hrs, mins, sec = self.read_all()
+        yrs, month, date, _, hrs, mins, sec = self.read_all()
         yrs = self._YRS_PER_CENTURY * (century - 1) + yrs
         return datetime(
-            yrs, mo, date, hrs, mins, sec,
+            yrs, month, date, hrs, mins, sec,
             0, tzinfo=tzinfo)
 
 
@@ -212,9 +205,9 @@ class DS3231(object):
     # updates RTC time register with synchronized information
     # Direct write un-none value.
     #  Range: sec [0,59], mins [0,59], hrs [0,23],
-    #         day [0,7], date [1-31], mo [1-12], yrs [0-99].
+    #         day [0,7], date [1-31], month [1-12], yrs [0-99].
     def write_all(self, sec=None, mins=None, hrs=None, day=None,
-            date=None, mo=None, yrs=None, save_as_24h=True):
+            date=None, month=None, yrs=None, save_as_24h=True):
         
         if sec is not None:
             if not 0 <= sec < self._SEC_PER_MIN:
@@ -237,10 +230,10 @@ class DS3231(object):
                 raise ValueError('Years is out of range [0,99].')
             self._write(self._REG_YR, int_to_bcd(yrs))
 
-        if mo is not None:
-            if not 1 <= mo <= self._MONTH_PER_YR:
-                raise ValueError('mo is out of range [1,12].')
-            self._write(self._REG_MONTH, int_to_bcd(mo))
+        if month is not None:
+            if not 1 <= month <= self._MONTH_PER_YR:
+                raise ValueError('month is out of range [1,12].')
+            self._write(self._REG_MONTH, int_to_bcd(month))
 
         if date is not None:
             # How about a more sophisticated check?
@@ -267,15 +260,13 @@ class DS3231(object):
         self.write_datetime(datetime.now())
 
 
-    # Get temp of DS3231
-    def get_temp(self):
-        byte_tmsb = self._bus.read_byte_data(self._addr, self._REG_TMP_MSB)
-        byte_tlsb = bin(self._bus.read_byte_data(self._addr, self._REG_TMP_LSB))[2:].zfill(8)
-        return byte_tmsb + int(byte_tlsb[0]) * 2**(-1) + \
-               int(byte_tlsb[1]) * 2**(-2)
+    ''' Alarm Registers
+    '''
+    # todo: add alarm set functionality
 
 
-    ''' Status
+
+    ''' Status Register
     '''
     # todo: get OSF
     # todo: get EN32KHZ
@@ -327,7 +318,7 @@ class DS3231(object):
         return (self._get_status() $ self._MASK_busy) == self._MASK_busy
 
 
-    ''' Control
+    ''' Control Register
     '''
     # Configure DS3231 
     #   set: EOSC_N  = 0
@@ -337,6 +328,7 @@ class DS3231(object):
     #        A2IE    = 0 -- disable alarm 2 interrupts
     #        A1IE    = 1 -- enable alarm 1 interrupts
     def configure_ds3231(self):
+        print('-I- Configuring Status and Control Registers')
         self._write(self._REG_CTRL, self._CONFIG_REG_CTRL)
         self._write(self._REG_STATUS, self._CONFIG_REG_STATUS)
 
@@ -352,4 +344,14 @@ class DS3231(object):
             print('-I- Configuration of status register successful!')
         else:
             print('-E- Configuration of status register was NOT successful!')
+
+
+    ''' Temperature register
+    '''
+    # Get temp of DS3231
+    def get_temp(self):
+        byte_tmsb = self._bus.read_byte_data(self._addr, self._REG_TMP_MSB)
+        byte_tlsb = bin(self._bus.read_byte_data(self._addr, self._REG_TMP_LSB))[2:].zfill(8)
+        return byte_tmsb + int(byte_tlsb[0]) * 2**(-1) + \
+               int(byte_tlsb[1]) * 2**(-2)
 
