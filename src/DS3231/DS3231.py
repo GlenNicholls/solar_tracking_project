@@ -278,7 +278,6 @@ class DS3231(object):
     # Returns byte
     def _get_status(self):
         status_reg = self._read(self._REG_STATUS)
-        print('-I- Status Reg: {}'.format(status_reg))
         return status_reg
 
 
