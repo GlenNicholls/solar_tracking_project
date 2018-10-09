@@ -183,4 +183,22 @@ class open_loop_tracking(object):
 
 
     # Sun declination
+    # return rad
     def _sun_declination_rad (self):
+        sd = asin(sin(self._oblique_correction_rad())*sin(self._apparent_sun_long_rad()))
+        return sd
+
+
+    # sun declination
+    # return deg
+    def _sun_declination_deg (self):
+        return self._sun_declination_rad()*180/pi
+
+
+    # sun variance
+    def _sun_variance (self):
+        return tan(self._oblique_correction_rad()/2)**2
+
+
+    ''' Equation of Time
+    '''
