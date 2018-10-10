@@ -2,7 +2,8 @@
 This is the the repository for our solar tracking capstone project.
 
 # Raspberry Pi Setup
-To set up the Raspberry pi, perform the following steps
+To set up the Raspberry pi, perform the following steps after updating:
+>>> sudo apt-get update
 
 ## Install dependencies
 To install dependencies for the python code base and creating egg info for the python interpreter, run the 
@@ -32,6 +33,65 @@ Begin by opening a termineal and performing the following steps:
 
 You should now see something come up. You can also do the following to see devices:
 >>> sudo i2cdetect -y 1
+
+## Installing avrdude and Configuration
+Reference https://learn.adafruit.com/program-an-avr-or-arduino-using-raspberry-pi-gpio-pins/installation
+
+Install AVR dude so that .hex files can be programmed to the uC in charge of the power circuit (recommend install in step 1a).
+
+### 1a) Automatic install
+
+>>> sudo apt-get install avrdude
+
+Verify installation:
+>>> avrdude -v
+
+#### Copy .conf File for Edits
+
+>>> cp /etc/avrdude.conf ~/avrdude_gpio.conf
+
+>>> nano ~/avrdude_gpio.conf
+
+### 1b) Manual install
+
+>>> sudo apt-get install -y build-essential bison flex automake libelf-dev libusb-1.0-0-dev libusb-dev libftdi-dev libftdi1
+
+>>> wget http://download.savannah.gnu.org/releases/avrdude/avrdude-6.1.tar.gz
+
+>>> tar xvfz avrdude-6.1.tar.gz
+
+>>> cd avrdude-6.1
+
+>>> ./configure --enable-linuxgpio
+
+>>> make
+
+>>> sudo make install
+
+Verify installation:
+>>> avrdude -v
+
+#### Copy .conf File for Edits
+
+>>> cp /usr/local/etc/avrdude.conf ~/avrdude_gpio.conf
+
+>>> nano ~/avrdude_gpio.conf
+
+### Configure GPIO
+
+'''
+# Linux GPIO configuration for avrdude.
+# Change the lines below to the GPIO pins connected to the AVR.
+programmer
+  id    = "pi_1";
+  desc  = "Use the Linux sysfs interface to bitbang GPIO lines";
+  type  = "linuxgpio";
+  reset = 26;
+  sck   = 23;
+  mosi  = 19;
+  miso  = 21;
+;
+'''
 
 No further configuration is required.
 
