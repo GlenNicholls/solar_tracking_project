@@ -87,86 +87,89 @@ Copy .conf File for Edits
 Append the following to the end of the file:
 
 '''
-  # Linux GPIO configuration for avrdude.
-  # Change the lines below to the GPIO pins connected to the AVR.
-  programmer
-    id    = "pi_1";
-    desc  = "Use the Linux sysfs interface to bitbang GPIO lines";
-    type  = "linuxgpio";
-    reset = 23;
-    sck   = 17;
-    mosi  = 22;
-    miso  = 27;
-;
+
+    # Linux GPIO configuration for avrdude.
+    # Change the lines below to the GPIO pins connected to the AVR.
+    programmer
+        id    = "pi_1";
+        desc  = "Use the Linux sysfs interface to bitbang GPIO lines";
+        type  = "linuxgpio";
+        reset = 23;
+        sck   = 17;
+        mosi  = 22;
+        miso  = 27;
+    ;
+
 '''
 
 #### Verify Output of Command
 you should now see something like the following:
 
 '''
-  avrdude: Version 6.1, compiled on Oct 10 2018 at 01:07:09                                   
-           Copyright (c) 2000-2005 Brian Dean, http://www.bdmicro.com/                        
-           Copyright (c) 2007-2014 Joerg Wunsch                                               
-                                                                                              
-           System wide configuration file is "/home/pi/avrdude_gpio.conf"                     
-           User configuration file is "/root/.avrduderc"                                      
-           User configuration file does not exist or is not a regular file, skipping          
-                                                                                              
-           Using Port                    : unknown                                            
-           Using Programmer              : pi_1                                               
-           AVR Part                      : ATtiny84                                           
-           Chip Erase delay              : 4500 us                                            
-           PAGEL                         : P00                                                
-           BS2                           : P00                                                
-           RESET disposition             : possible i/o                                       
-           RETRY pulse                   : SCK                                                
-           serial program mode           : yes                                                
-           parallel program mode         : yes                                                
-           Timeout                       : 200                                                
-           StabDelay                     : 100                                                
-           CmdexeDelay                   : 25                                                 
-           SyncLoops                     : 32                                                 
-           ByteDelay                     : 0                                                  
-           PollIndex                     : 3                                                  
-           PollValue                     : 0x53                                               
-           Memory Detail                 :                                                    
-                                                                                              
-                                    Block Poll               Page                       Polled
-             Memory Type Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack
-             ----------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------
-             eeprom        65     6     4    0 no        512    4      0  4000  4500 0xff 0xff
-             flash         65     6    32    0 yes      8192   64    128  4500  4500 0xff 0xff
-             signature      0     0     0    0 no          3    0      0     0     0 0x00 0x00
-             lock           0     0     0    0 no          1    0      0  9000  9000 0x00 0x00
-             lfuse          0     0     0    0 no          1    0      0  9000  9000 0x00 0x00
-             hfuse          0     0     0    0 no          1    0      0  9000  9000 0x00 0x00
-             efuse          0     0     0    0 no          1    0      0  9000  9000 0x00 0x00
-             calibration    0     0     0    0 no          1    0      0     0     0 0x00 0x00
-                                                                                              
-           Programmer Type : linuxgpio                                                        
-           Description     : Use the Linux sysfs interface to bitbang GPIO lines              
-           Pin assignment  : /sys/class/gpio/gpio{n}                                          
-             RESET   =  23                                                                    
-             SCK     =  17                                                                    
-             MOSI    =  22                                                                    
-             MISO    =  27                                                                    
-                                                                                              
-  avrdude: AVR device initialized and ready to accept instructions                            
-                                                                                              
-  Reading | ################################################## | 100% 0.00s                   
-                                                                                              
-  avrdude: Device signature = 0x1e930c                                                        
-  avrdude: safemode: lfuse reads as 62                                                        
-  avrdude: safemode: hfuse reads as DF                                                        
-  avrdude: safemode: efuse reads as FF                                                        
-  avrdude: erasing chip                                                                       
-                                                                                              
-  avrdude: safemode: lfuse reads as 62                                                        
-  avrdude: safemode: hfuse reads as DF                                                        
-  avrdude: safemode: efuse reads as FF                                                        
-  avrdude: safemode: Fuses OK (E:FF, H:DF, L:62)                                              
-                                                                                              
-  avrdude done.  Thank you.                                                                   
+
+    avrdude: Version 6.1, compiled on Oct 10 2018 at 01:07:09                                   
+             Copyright (c) 2000-2005 Brian Dean, http://www.bdmicro.com/                        
+             Copyright (c) 2007-2014 Joerg Wunsch                                               
+                                                                                                
+             System wide configuration file is "/home/pi/avrdude_gpio.conf"                     
+             User configuration file is "/root/.avrduderc"                                      
+             User configuration file does not exist or is not a regular file, skipping          
+                                                                                                
+             Using Port                    : unknown                                            
+             Using Programmer              : pi_1                                               
+             AVR Part                      : ATtiny84                                           
+             Chip Erase delay              : 4500 us                                            
+             PAGEL                         : P00                                                
+             BS2                           : P00                                                
+             RESET disposition             : possible i/o                                       
+             RETRY pulse                   : SCK                                                
+             serial program mode           : yes                                                
+             parallel program mode         : yes                                                
+             Timeout                       : 200                                                
+             StabDelay                     : 100                                                
+             CmdexeDelay                   : 25                                                 
+             SyncLoops                     : 32                                                 
+             ByteDelay                     : 0                                                  
+             PollIndex                     : 3                                                  
+             PollValue                     : 0x53                                               
+             Memory Detail                 :                                                    
+                                                                                                
+                                      Block Poll               Page                       Polled
+               Memory Type Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack
+               ----------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------
+               eeprom        65     6     4    0 no        512    4      0  4000  4500 0xff 0xff
+               flash         65     6    32    0 yes      8192   64    128  4500  4500 0xff 0xff
+               signature      0     0     0    0 no          3    0      0     0     0 0x00 0x00
+               lock           0     0     0    0 no          1    0      0  9000  9000 0x00 0x00
+               lfuse          0     0     0    0 no          1    0      0  9000  9000 0x00 0x00
+               hfuse          0     0     0    0 no          1    0      0  9000  9000 0x00 0x00
+               efuse          0     0     0    0 no          1    0      0  9000  9000 0x00 0x00
+               calibration    0     0     0    0 no          1    0      0     0     0 0x00 0x00
+                                                                                                
+             Programmer Type : linuxgpio                                                        
+             Description     : Use the Linux sysfs interface to bitbang GPIO lines              
+             Pin assignment  : /sys/class/gpio/gpio{n}                                          
+               RESET   =  23                                                                    
+               SCK     =  17                                                                    
+               MOSI    =  22                                                                    
+               MISO    =  27                                                                    
+                                                                                                
+    avrdude: AVR device initialized and ready to accept instructions                            
+                                                                                                
+    Reading | ################################################## | 100% 0.00s                   
+                                                                                                
+    avrdude: Device signature = 0x1e930c                                                        
+    avrdude: safemode: lfuse reads as 62                                                        
+    avrdude: safemode: hfuse reads as DF                                                        
+    avrdude: safemode: efuse reads as FF                                                        
+    avrdude: erasing chip                                                                       
+                                                                                                
+    avrdude: safemode: lfuse reads as 62                                                        
+    avrdude: safemode: hfuse reads as DF                                                        
+    avrdude: safemode: efuse reads as FF                                                        
+    avrdude: safemode: Fuses OK (E:FF, H:DF, L:62)                                              
+                                                                                                
+    avrdude done.  Thank you.                                                                   
 '''
 
 No further configuration is required.
