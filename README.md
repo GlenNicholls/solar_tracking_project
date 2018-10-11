@@ -86,7 +86,6 @@ Copy .conf File for Edits
 
 Append the following to the end of the file:
 
-'''
 
     # Linux GPIO configuration for avrdude.
     # Change the lines below to the GPIO pins connected to the AVR.
@@ -100,12 +99,10 @@ Append the following to the end of the file:
         miso  = 27;
     ;
 
-'''
 
 #### Verify Output of Command
 you should now see something like the following:
 
-'''
 
     avrdude: Version 6.1, compiled on Oct 10 2018 at 01:07:09                                   
              Copyright (c) 2000-2005 Brian Dean, http://www.bdmicro.com/                        
@@ -170,7 +167,6 @@ you should now see something like the following:
     avrdude: safemode: Fuses OK (E:FF, H:DF, L:62)                                              
                                                                                                 
     avrdude done.  Thank you.                                                                   
-'''
 
 No further configuration is required.
 
