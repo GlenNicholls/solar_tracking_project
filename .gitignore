@@ -1,4 +1,16 @@
 *.[sb]#[0-9]*
+
+# Python
 *.egg-info/
 *.pyc
+
+# Misc
 *.old
+
+# AVR
+*.eep
+*.lss
+*.map
+*.srec
+*.d
+*.o
