@@ -57,7 +57,7 @@ class DS3231(object):
     # addr should not change as this is embedded in RTC
     def __init__(self, i2c_port  = 1,
                        i2c_addr  = 0x68,
-                       latitude  = 0.00
+                       latitude  = 0.00,
                        longitude = 0.00
                        ):
         
@@ -322,7 +322,7 @@ class DS3231(object):
         if (alrm_type & 0x08): # A1M4
             daydate |= 0b1<<7
 
-        if !(alrm_type & 0x80): # alarm 1
+        if ~(alrm_type & 0x80): # alarm 1
             data = (seconds, minutes, hours, daydate)
             for i, reg in enumerate(self._reg_alrm_1_addrs):
                 self.__write(reg, data[i])
@@ -433,13 +433,13 @@ class DS3231(object):
     # Get Power Lost
     # Returns boolean
     def get_power_lost(self):
-        return (self.__get_status() & self._MASK_power_lost) == self._MASK_power_lost
+        return bool(self.__get_status() & self._MASK_power_lost)
 
 
     # Get alarm 1 flag
     # Returns boolean
     def get_alarm_1_flag():
-        return (self.__get_status() & self._MASK_alrm_1_flag) == self._MASK_alrm_1_flag
+        return bool(self.__get_status() & self._MASK_alrm_1_flag)
 
 
     # Clear alarm 1 flag
@@ -452,7 +452,7 @@ class DS3231(object):
     # Get alarm 2 flag
     # Returns boolean
     def get_alarm_2_flag():
-        return (self.__get_status() & self._MASK_alrm_2_flag) == self._MASK_alrm_2_flag
+        return bool(self.__get_status() & self._MASK_alrm_2_flag)
 
 
     # Clear alarm 2 flag
@@ -479,7 +479,7 @@ class DS3231(object):
     # Get temperature conversion busy state
     # Returns boolean
     def get_temp_conversion_busy():
-        return (self.__get_status() & self._MASK_busy) == self._MASK_busy
+        return bool(self.__get_status() & self._MASK_busy)
 
 
     # Get temp of DS3231
