@@ -1,5 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
+import astral
 import smbus
 from enum import Enum, unique
 
@@ -51,8 +52,10 @@ class DS3231(object):
 
     # change port to 0 if old gen 1 pi, else leave default
     # addr should not change as this is embedded in RTC
-    def __init__(self, i2c_port=1,
-                       i2c_addr=0x68,
+    def __init__(self, i2c_port  = 1,
+                       i2c_addr  = 0x68,
+                       latitude  = 0.00
+                       longitude = 0.00
                        ):
         
         # constants
@@ -67,6 +70,10 @@ class DS3231(object):
         # i2c object
         self._bus  = smbus.SMBus(i2c_port)
         self._addr = i2c_addr
+
+        # coordinates
+        self._latitude  = latitude
+        self._longitude = longitude
 
         # masks
         self._MASK_oscillator_on = 0b1<<7 
@@ -103,18 +110,18 @@ class DS3231(object):
             self._REG_DATE,
             self._REG_MONTH,
             self._REG_YR,
-        )
+            )
         self._reg_alrm_1_addrs = (
             self._REG_ALRM_1_SEC,
             self._REG_ALRM_1_MIN,
             self._REG_ALRM_1_HRS,
             self._REG_ALRM_1_DAY_DATE,
-        )
+            )
         self._reg_alrm_2_addrs = (
             self._REG_ALRM_2_MIN,
             self._REG_ALRM_2_HRS,
             self._REG_ALRM_2_DAY_DATE,
-        )
+            )
 
 
     ''' Helper functions
@@ -283,12 +290,9 @@ class DS3231(object):
 
     ''' Alarm Registers
     '''
-    # todo: add alarm set functionality
-
-
     # set the alarm
     # has_seconds should be false for alarm 2
-    def _set_alrm(self, alrm_type=None, sec=None, mins=None, hrs=None, daydate=None):
+    def _set_alrm_regs(self, alrm_type=None, sec=None, mins=None, hrs=None, daydate=None):
         if alrm_type not in AlarmType_t:
             raise ValueError('Alarm Type is not in enumerate')
 
@@ -308,8 +312,9 @@ class DS3231(object):
             hours   = self._int_to_bcd(hrs)
 
         if daydate is not None:
-            # How about a more sophisticated check?
-            if not 1 <= date <= self._MAX_DAYS_PER_MONTH:
+            # todo: create better check here
+            #if not 1 <= date <= self._MAX_DAYS_PER_MONTH:
+            if False:
                 raise ValueError('Date is out of range [1,31].')
             daydate = self._int_to_bcd(daydate)
         
@@ -331,31 +336,37 @@ class DS3231(object):
         else: # alarm 2
             data = (minutes, hours, daydate)
             for i, reg in enumerate(self._reg_alrm_2_addrs):
-                self._write(reg, data[i])
+                self._write(reg, data[i])    
 
 
-    # set seconds
-    # sets seconds reg
-    def _set_secs(self, register, data):
-        self._write(register, data)
+    # Set alarm with datetime object
+    def _set_alrm_datetime(self, dt):
+        self._set_alrm_regs(AlrmType_t.ALM1_MATCH_DATE, dt.second, dt.minute,
+                            dt.hour, dt.day)
 
 
-    def _set_mins(self, register, data):
-        self._write(register, data)
+    # Set alarm
+    # sets an alarm for the specified number of days, hours, minutes, and seconds
+    def set_alarm(self, days=0, hours=0, minutes=0, seconds=0):
+        if type(seconds) != int:
+            raise ValueError('Seconds must be of type integer')
+        if type(minutes) != int:
+            raise ValueError('Minutes must be of type integer')
+        if type(hours) != int:
+            raise ValueError('Hours must be of type integer')
+        if type(days) != int:
+            raise ValueError('Days must be of type integer')
+
+        time = datetime.now() + timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
+        self._set_alrm_datetime(time)
 
 
-    def _set_hr(self, register, data):
-        self._write(register, data)
-
-
-    def _set_day(self, register, data):
-        self._write(register, data)
-
-
-    def _set_date(self, register, data):
-        self._write(register, data)
-
-    
+    # set alarm sunrise
+    # sets an alarm for the sunrise date/time
+    def set_alarm_sunrise(self):
+        next_day = datetime.now() + timedelta(days=1)
+        time = astral.Astral.sunrise_utc(next_day.date, self._latitude, self._longitude)
+        self._set_alrm_datetime(time)
 
 
     ''' Status Register
