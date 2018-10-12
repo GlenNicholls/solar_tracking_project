@@ -1,25 +1,16 @@
 from __future__ import division
 from datetime import datetime
+from time import localtime
 import time
 # import jdcal # Julian dates from proleptic Gregorian and Julian calenders.
-from math import pi, atan2
-from math import sin
-from math import cos
-from math import tan
-from math import radians
-from math import degrees
-from math import fmod
-from math import asin
-from math import acos
-from math import pow
-
+from math import pi, atan2, sin, cos, tan, radian, degrees, fmod, asin, acos, pow
 
 # REFERENCES: 
 
 
 class open_loop_tracking(object):
-    def __init__(self, latitude=34.6401861,
-                       longitude=39.0494106,
+    def __init__(self, latitude=38.89,
+                       longitude=104.5,
                        local_time_zone='west'
                        ):
 
@@ -132,8 +123,6 @@ def AZELCalculator(JDN,time,Lat,Long,TZ):
 
     return(AZ,EL,sn,sr,ss)
 
-from time import localtime
-import time
 
 H = (int)(time.strftime('%H',localtime()))
 M = (int)(time.strftime('%M',localtime()))
