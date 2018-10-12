@@ -3,7 +3,8 @@ This is the the repository for our solar tracking capstone project.
 
 # Raspberry Pi Setup
 To set up the Raspberry pi, perform the following steps after updating:
->>> sudo apt-get update
+
+    sudo apt-get update
 
 ## Install dependencies
 To install dependencies for the python code base and creating egg info for the python interpreter, run the 
@@ -12,27 +13,31 @@ following commands, (recommend install in step 1b):
 ### 1a)
 If you would like to develop on the device, run this command to ensure symbolic links point to the source code in this repository.
 This allows the developer to make changes here without having to re-install the python repository
->>> sudo python setup.py developer
+
+    sudo python setup.py developer
 
 ### 1b)
 If you would like to perform a fresh system install, perform this command. This will generate egg info under site-packages, meaning 
 src files are copied
->>> sudo python setup.py install
+
+    sudo python setup.py install
  
 ## Enable I2C and SPI
 Begin by opening a termineal and performing the following steps:
->>> sudo raspi-config
 
->>> Interfacing Options > I2C > Yes
-
->>> Interfacing Options > SPI > Yes
-
->>> sudo reboot
-
->>> lsmod | grep i2c_
+    sudo raspi-config
+    
+    Interfacing Options > I2C > Yes
+    
+    Interfacing Options > SPI > Yes
+    
+    sudo reboot
+    
+    lsmod | grep i2c_
 
 You should now see something come up. You can also do the following to see devices:
->>> sudo i2cdetect -y 1
+
+    sudo i2cdetect -y 1
 
 ## Installing avrdude and Configuration
 Reference https://learn.adafruit.com/program-an-avr-or-arduino-using-raspberry-pi-gpio-pins/installation
@@ -41,48 +46,47 @@ Install AVR dude so that .hex files can be programmed to the uC in charge of the
 
 ### 1a) Automatic install
 
->>> sudo apt-get install avrdude
-
-Verify installation:
->>> avrdude -v
+    sudo apt-get install avrdude
 
 Copy .conf File for Edits
 
->>> cp /etc/avrdude.conf ~/avrdude_gpio.conf
-
->>> nano ~/avrdude_gpio.conf
+    cp /etc/avrdude.conf ~/avrdude_gpio.conf
+    
+    nano ~/avrdude_gpio.conf
 
 ### 1b) Manual install
 
->>> sudo apt-get install -y build-essential bison flex automake libelf-dev libusb-1.0-0-dev libusb-dev libftdi-dev libftdi1
+    sudo apt-get install -y build-essential bison flex automake libelf-dev libusb-1.0-0-dev libusb-dev libftdi-dev libftdi1
+    
+    wget http://download.savannah.gnu.org/releases/avrdude/avrdude-6.1.tar.gz
+    
+    tar xvfz avrdude-6.1.tar.gz
+    
+    cd avrdude-6.1
+    
+    ./configure --enable-linuxgpio
+    
+    make
+    
+    sudo make install
 
->>> wget http://download.savannah.gnu.org/releases/avrdude/avrdude-6.1.tar.gz
+## Verify installation:
 
->>> tar xvfz avrdude-6.1.tar.gz
+    avrdude -v
 
->>> cd avrdude-6.1
-
->>> ./configure --enable-linuxgpio
-
->>> make
-
->>> sudo make install
-
-Verify installation:
->>> avrdude -v
 
 #### 1a) Automatic configuration
 Use the file inside the repository.
 Check using this command that you can talk to ATTiny85A:
 
->>> sudo avrdude -p t84 -C ~/solar_tracking_project/misc_dev/avrdude_gpio.conf -c pi_1 -e -v
+    sudo avrdude -p t84 -C ~/solar_tracking_project/misc_dev/avrdude_gpio.conf -c pi_1 -e -v
 
 #### 1b) Configure avrdude_gpio.conf Manually
 Copy .conf File for Edits
 
->>> cp /usr/local/etc/avrdude.conf ~/avrdude_gpio.conf
-
->>> nano ~/avrdude_gpio.conf
+    cp /usr/local/etc/avrdude.conf ~/avrdude_gpio.conf
+    
+    nano ~/avrdude_gpio.conf
 
 Append the following to the end of the file:
 
@@ -173,16 +177,12 @@ No further configuration is required.
 
 # TODO:
 * Install new caps based on ACS712 NF. We will be doing less than 1k samples per second for current measurements, so we should prioritize lower NF
-* Set up software for the DS3231 package, dynamic control based on WIFI to synchronize RTC and/or switch to RTC for timekeeping
-* Logging/database
 * voltage sense for panel, load, pi, battery (for safe shutdown)
-* setup script to configure system entirely along with reboot schemes where required (don't want set up anything noted below in the other sections)
+* Logging/database
+* REST API support
 * unit test/regression test framework
-* Circuit for the power/timer: https://www.allaboutcircuits.com/projects/build-programmable-time-based-switches-using-a-real-time-clock/
+* Makefile for avrdude loading of .hex to uC
 * High level web server for simple control
-* SW alg from Josh/Brad for the light sensors
-* SW for the motor control from Mike
-* pulling information from web regarding sun position
 
 
 

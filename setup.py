@@ -37,14 +37,19 @@ setup(
     license           = '',
     classifiers       = classifiers,
     url               = 'https://github.com/GlenNicholls/solar_tracking_project',
-    dependency_links  = ['https://github.com/adafruit/Adafruit_Python_GPIO/tarball/master#egg=Adafruit-GPIO-0.6.5',
+    dependency_links  = [
+                         'https://github.com/adafruit/Adafruit_Python_GPIO/tarball/master#egg=Adafruit-GPIO-0.6.5',
                          'https://github.com/adafruit/Adafruit_Python_MCP3008/tarball/master#egg=Adafruit-MCP3008-1.0.2'],
-                         # 'https://github.com/adafruit/Adafruit_CircuitPython_DS3231/tarball/master#egg=Adafruit_CircuitPython_DS3231-2.1.0',],
-    install_requires  = ['Adafruit-GPIO>=0.6.5',
+    install_requires  = [
+                         'Adafruit-GPIO>=0.6.5',
                          'Adafruit-MCP3008>=1.0.2',
                          'RPI.GPIO>=0.6.3',
                          'astral>=1.2',
                          'python-dateutil>=2.7.3'],
+    setup_requires    = [
+                         'pytest-runner>=4.2',],
+    tests_require     = [
+                         'pytest>=3.8.2',],
     packages          = find_packages('src'), # can also leave blank (empty parameters) to declare anything below, don't need src/ top level in setup.py loc
     package_dir       = {'':'src'},
     package_data      = {'':['__init__.py']} # ['' : ['*.data', '*.rst'],] -- include packages with these file delimeters in all sub dirs from package_dir
