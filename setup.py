@@ -43,8 +43,8 @@ setup(
     install_requires  = ['Adafruit-GPIO>=0.6.5',
                          'Adafruit-MCP3008>=1.0.2',
                          'RPI.GPIO>=0.6.3',
-                         'jdcal>=1.4',  # todo: figure out if we can remove this for AZ/EL motor ctrl
-                         'astral>=1.2'],
+                         'astral>=1.2',
+                         'python-dateutil>=2.7.3'],
                          # 'adafruit-circuitpython-ds3231>=2.1.0'], # doesn't work
     packages          = find_packages('src'), # can also leave blank (empty parameters) to declare anything below, don't need src/ top level in setup.py loc
     package_dir       = {'':'src'},
