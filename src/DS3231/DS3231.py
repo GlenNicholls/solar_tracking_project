@@ -1,4 +1,6 @@
-from datetime import datetime, timedelta
+# from datetime import datetime, timedelta
+import datetime
+from datetime import timedelta
 from dateutil import tz 
 import time
 import astral
@@ -381,11 +383,11 @@ class DS3231(object):
 
 
     # Read string
-    # Return a string such as 'YY-MM-DD,HH-MM-SS'.
-    def get_time_str(self):
+    # Return a string such as 'YY-MM-DD HH:MM:SS'.
+    def get_datetime_str(self):
         yrs, month, date, _, hrs, mins, sec = self.__get_all_time_regs()
         return (
-            '%02d-%02d-%02d,%02d:%02d:%02d' %
+            '%02d-%02d-%02d %02d:%02d:%02d' %
             (yrs, month, date, hrs, mins, sec)
         )
 
@@ -393,17 +395,27 @@ class DS3231(object):
     # Read datetime
     # Return the datetime.datetime object.
     def get_datetime(self, century=21, tzinfo=None):
-        yrs, month, date, _, hrs, mins, sec = self.__get_all_time_regs()
-        yrs = self._YRS_PER_CENTURY * (century - 1) + yrs
-        return datetime(
-            yrs, month, date, hrs, mins, sec,
-            0, tzinfo=tzinfo)
+        # yrs, month, date, _, hrs, mins, sec = self.__get_all_time_regs()
+        # yrs = self._YRS_PER_CENTURY * (century - 1) + yrs
+        #return datetime(
+        #    yrs, month, date, hrs, mins, sec,
+        #    0, tzinfo=tzinfo)
+        time_str = self.get_datetime_str()
+        return datetime.datetime.strptime(time_str, "%y-%m-%d %H:%M:%S")
+
+
+    # get datetime timedelta
+    # return tuple of difference between RTC datetime and datetime.datetime.now
+    def get_datetime_delta(self):
+        rtc_datetime = self.get_datetime()
+        local_now = datetime.datetime.now()
+        return local_now - rtc_datetime
 
 
     # write datetime.now
     # Write from a datetime.datetime object.
     def set_datetime_now(self):
-        self.__set_datetime(datetime.now())
+        self.__set_datetime(datetime.datetime.now())
 
 
     # Set alarm
@@ -412,7 +424,7 @@ class DS3231(object):
         if days == hours == minutes == seconds == 0:
             raise ValueError('Due to time passing, not entering any timedelta might cause RTC to become unstable')
 
-        time = datetime.now() + timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
+        time = datetime.datetime.now() + timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
         self.__set_alrm_datetime(time)
 
 
@@ -420,7 +432,7 @@ class DS3231(object):
     # sets an alarm for the sunrise date/time
     def set_alarm_sunrise(self):
         # todo: convert from utc to local unless full system uses utc
-        next_day = datetime.now() + timedelta(days=1)
+        next_day = datetime.datetime.now() + timedelta(days=1)
         next_day_date = next_day.date()
         time_utc = astral.Astral.sunrise_utc(next_day_date, self._latitude, self._longitude)
         time_local = self.__utc_to_local(time_utc)

@@ -1,5 +1,6 @@
 import sys
 import time
+#from datetime import datetime
 import datetime
 import DS3231
 import system_monitor
@@ -28,28 +29,34 @@ rtc.configure_rtc()
 def configure_rtc():
     # Initial checks for time accuracy
     print('-I- Checking time')
-    print('-I- RTCs current time: {}'.format(rtc.get_time_str()))
+    print('-I- RTCs current time: {}'.format(rtc.get_datetime_str()))
     print('-I- Current NTP time: {}'.format(datetime.datetime.now()))
 
     # update RTC if power was lost or if we have internet connection
     print('-I- Checking to see if power was lost or if there is an internet connection')
     if rtc.get_power_lost() and sys_mon.is_wlan_connected():
         rtc.set_datetime_now()
-        print('-I- Power was lost, time updated to: {}'.format(rtc.get_time_str()))
+        print('-I- Power was lost, time updated to: {}'.format(rtc.get_datetime_str()))
     elif rtc.get_power_lost() and not sys_mon.is_wlan_connected():
         print('-E- Power was lost and no internet connection, cannot update time!')
     elif not rtc.get_power_lost() and sys_mon.is_wlan_connected():
         rtc.set_datetime_now()
         print('-I- There is an internet connection and power was not lost')
-        print('-I- Time updated to: {}'.format(rtc.get_time_str()))
+        print('-I- Time updated to: {}'.format(rtc.get_datetime_str()))
     else:
         print('-I- Power was not lost and no connection to update time')
-    return (rtc.get_datetime, datetime.datetime.now())
 
+    return rtc.get_datetime_delta()
 
 def test_configure_rtc():
-    rtc_time, current_time = configure_rtc()
-    print(current_time-rtc_time)
+    time_delta = configure_rtc()
+    #hours, remainder = divmod(time_delta, 3600)
+    #minutes, seconds = divmod(remainder, 60)
+    hours, minutes, seconds = str(time_delta).split(':')
+    print('-I- Time difference between RTC and NTP: {}'.format(time_delta))
+    
+    assert not float(hours) and not float(minutes) and float(seconds) <= 2.0
+
 
 
 test_configure_rtc()
