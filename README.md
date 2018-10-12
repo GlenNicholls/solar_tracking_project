@@ -172,7 +172,18 @@ you should now see something like the following:
                                                                                                 
     avrdude done.  Thank you.                                                                   
 
-No further configuration is required.
+
+
+
+
+## Final Test TBD
+Connect the Raspberry Pi to the provided pi hat expansion along with wiring the unit. Run the following to test the system:
+
+    cd ~/solar_tracking_project
+
+    sudo python setup.py test
+
+After the tests have passed, no further configuration is required and the system is ready
 
 
 # TODO:
