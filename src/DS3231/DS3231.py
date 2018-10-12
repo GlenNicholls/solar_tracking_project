@@ -1,10 +1,25 @@
 from datetime import datetime
 import time
-
 import smbus
+from enum import Enum, unique
 
 # REFERENCES: https://github.com/switchdoclabs/RTC_SDL_DS3231
 # datasheet: https://datasheets.maximintegrated.com/en/ds/DS3231.pdf
+
+
+@unique
+class AlrmType_t(Enum):
+    ALM1_EVERY_SECOND  = 0x0F,
+    ALM1_MATCH_SECONDS = 0x0E,
+    ALM1_MATCH_MINUTES = 0x0C,     #  match minutes *and* seconds
+    ALM1_MATCH_HOURS   = 0x08,     #  match hours *and* minutes, seconds
+    ALM1_MATCH_DATE    = 0x00,     #  match date *and* hours, minutes, seconds
+    ALM1_MATCH_DAY     = 0x10,     #  match day *and* hours, minutes, seconds
+    ALM2_EVERY_MINUTE  = 0x8E, 
+    ALM2_MATCH_MINUTES = 0x8C,     #  match minutes
+    ALM2_MATCH_HOURS   = 0x88,     #  match hours *and* minutes
+    ALM2_MATCH_DATE    = 0x80,     #  match date *and* hours, minutes
+    ALM2_MATCH_DAY     = 0x90,     #  match day *and* hours, minutes
 
 
 class DS3231(object):
@@ -75,6 +90,10 @@ class DS3231(object):
         self._MASK_alrm_1_flag  = 0x01
         self._CONFIG_REG_STATUS = 0x00
 
+        # _REG_ALRM 
+        # todo: add tuple masks for alarm table in datasheet
+        #self._MASK_alrm
+
         # reg map tuples for DS3231
         self._reg_time_addrs = (
             self._REG_SEC,
@@ -85,11 +104,13 @@ class DS3231(object):
             self._REG_MONTH,
             self._REG_YR,
         )
-        self._reg_alrm_addrs = (
+        self._reg_alrm_1_addrs = (
             self._REG_ALRM_1_SEC,
             self._REG_ALRM_1_MIN,
             self._REG_ALRM_1_HRS,
             self._REG_ALRM_1_DAY_DATE,
+        )
+        self._reg_alrm_2_addrs = (
             self._REG_ALRM_2_MIN,
             self._REG_ALRM_2_HRS,
             self._REG_ALRM_2_DAY_DATE,
@@ -265,15 +286,80 @@ class DS3231(object):
     # todo: add alarm set functionality
 
 
+    # set the alarm
+    # has_seconds should be false for alarm 2
+    def _set_alrm(self, alrm_type=None, sec=None, mins=None, hrs=None, daydate=None):
+        if alrm_type not in AlarmType_t:
+            raise ValueError('Alarm Type is not in enumerate')
+
+        if sec is not None:
+            if not 0 <= sec < self._SEC_PER_MIN:
+                raise ValueError('sec is out of range [0,59].')
+            seconds = self._int_to_bcd(sec)
+
+        if mins is not None:
+            if not 0 <= mins < self._MIN_PER_HR:
+                raise ValueError('mins is out of range [0,59].')
+            minutes = self._int_to_bcd(mins)
+
+        if hrs is not None:
+            if not 0 <= hrs < self._HR_PER_DAY:
+                raise ValueError('hrs is out of range [0,23].')
+            hours   = self._int_to_bcd(hrs)
+
+        if daydate is not None:
+            # How about a more sophisticated check?
+            if not 1 <= date <= self._MAX_DAYS_PER_MONTH:
+                raise ValueError('Date is out of range [1,31].')
+            daydate = self._int_to_bcd(daydate)
+        
+        if (alrm_type & 0x01): # A1M1
+            seconds |= 0b1<<7  
+        if (alrm_type & 0x02): # A1M2
+            minutes |= 0b1<<7
+        if (alrm_type & 0x04): # A1M3
+            hours |= 0b1<<7
+        if (alrm_type & 0x10): # DYDT
+            daydate |= 0b1<<6
+        if (alrm_type & 0x08): # A1M4
+            daydate |= 0b1<<7
+
+        if !(alrm_type & 0x80): # alarm 1
+            data = (seconds, minutes, hours, daydate)
+            for i, reg in enumerate(self._reg_alrm_1_addrs):
+                self._write(reg, data[i])
+        else: # alarm 2
+            data = (minutes, hours, daydate)
+            for i, reg in enumerate(self._reg_alrm_2_addrs):
+                self._write(reg, data[i])
+
+
+    # set seconds
+    # sets seconds reg
+    def _set_secs(self, register, data):
+        self._write(register, data)
+
+
+    def _set_mins(self, register, data):
+        self._write(register, data)
+
+
+    def _set_hr(self, register, data):
+        self._write(register, data)
+
+
+    def _set_day(self, register, data):
+        self._write(register, data)
+
+
+    def _set_date(self, register, data):
+        self._write(register, data)
+
+    
+
 
     ''' Status Register
     '''
-    # todo: get OSF
-    # todo: get EN32KHZ
-    # todo: get BSY
-    # todo: get A2F
-    # todo: get A1F
-
     # get status register data
     # Returns byte
     def _get_status(self):
@@ -311,6 +397,20 @@ class DS3231(object):
     def clear_alarm_2_flag():
         current_status = self._get_status() & 0xFD
         self._write(self._REG_STATUS, current_status)
+
+
+    # Check and clear both alarms
+    # return boolean
+    # asserts true if either alarm was set
+    def check_and_clear_alarms(self):
+        is_alarm = False
+        if self.get_alarm_1_flag():
+            is_alarm = True
+            self.clear_alarm_1_flag()
+        if self.get_alarm_2_flag():
+            is_alarm = True
+            self.clear_alarm_2_flag()
+        return is_alarm
 
 
     # Get temperature conversion busy state
@@ -357,4 +457,12 @@ class DS3231(object):
         byte_tlsb = bin(self._bus.read_byte_data(self._addr, self._REG_TMP_LSB))[2:].zfill(8)
         return byte_tmsb + int(byte_tlsb[0]) * 2**(-1) + \
                int(byte_tlsb[1]) * 2**(-2)
+
+
+    ''' Surise/Sunset
+    '''
+    # REFERENCES: https://pypi.org/project/astral/1.2/
+    #             
+    # todo: add function for astral to set alarm for sunrise
+    # todo: add function for checking when sunset is
 
