@@ -5,7 +5,9 @@ import smbus
 from enum import Enum, unique
 
 # REFERENCES: https://github.com/switchdoclabs/RTC_SDL_DS3231
-# datasheet: https://datasheets.maximintegrated.com/en/ds/DS3231.pdf
+#             https://pypi.org/project/astral/1.2/
+#
+# datasheet:  https://datasheets.maximintegrated.com/en/ds/DS3231.pdf
 
 
 @unique
@@ -364,9 +366,14 @@ class DS3231(object):
     # set alarm sunrise
     # sets an alarm for the sunrise date/time
     def set_alarm_sunrise(self):
+        # todo: convert from utc to local unless full system uses utc
         next_day = datetime.now() + timedelta(days=1)
-        time = astral.Astral.sunrise_utc(next_day.date, self._latitude, self._longitude)
+        next_day_date = next_day.date()
+        time = astral.Astral.sunrise_utc(next_day_date, self._latitude, self._longitude)
         self._set_alrm_datetime(time)
+
+    # todo: add function for checking when sunset is
+
 
 
     ''' Status Register
@@ -468,12 +475,4 @@ class DS3231(object):
         byte_tlsb = bin(self._bus.read_byte_data(self._addr, self._REG_TMP_LSB))[2:].zfill(8)
         return byte_tmsb + int(byte_tlsb[0]) * 2**(-1) + \
                int(byte_tlsb[1]) * 2**(-2)
-
-
-    ''' Surise/Sunset
-    '''
-    # REFERENCES: https://pypi.org/project/astral/1.2/
-    #             
-    # todo: add function for astral to set alarm for sunrise
-    # todo: add function for checking when sunset is
 
