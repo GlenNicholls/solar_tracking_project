@@ -91,8 +91,9 @@ class ACS712(object):
 
     # todo: pass in channel as variable
     def get_current_DC(self):
-        I = 1.0 * (self._zero - self._read_adc_raw()) * self._ADC_scale 
-        return float(I)
+        adc_raw = self._read_adc_raw() 
+        I = 1.0 * (self._zero - adc_raw) * self._ADC_scale 
+        return (float(I), adc_raw)
 
 
     # todo: refactor below to read adc based on port
