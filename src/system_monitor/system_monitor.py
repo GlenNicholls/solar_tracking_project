@@ -67,6 +67,7 @@ class system_monitor(object):
     # get ram usage in %
     def get_ram_use_perc(self):
         self._ram_use = self.get_ram_info()[1] / self.get_ram_info()[0] * 100  
+        self._ram_use = '{:.2f}'.format(self._ram_use)
         return self._ram_use
 
     # get disk information                     
