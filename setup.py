@@ -9,7 +9,8 @@ except ImportError:
 from setuptools import setup, find_packages
 
 # REFERENCE: https://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-dependencies
-# REFERENCE: https://pypi.org/
+#            https://pypi.org/
+#            https://docs.pytest.org/en/latest/index.html
 
 ''' TODO:
     integrate:
@@ -46,7 +47,10 @@ setup(
                          'Adafruit-MCP3008>=1.0.2',
                          'RPI.GPIO>=0.6.3',
                          'astral>=1.2',
-                         'python-dateutil>=2.7.3'],
+                         'python-dateutil>=2.7.3',
+                         'pytest-timeout>=1.3.2',
+                         'pytest-runner>=4.2',
+                         'pytest>=3.8.2'],
     setup_requires    = [
                          'pytest-runner>=4.2',],
     tests_require     = [

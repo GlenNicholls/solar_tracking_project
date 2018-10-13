@@ -65,14 +65,13 @@ def test_configure_rtc():
     time_delta = configure_rtc()
     hours, minutes, seconds = str(time_delta).split(':')
     print('-I- Time difference between RTC and NTP: {}'.format(time_delta))
-    
-    assert not float(hours) and not float(minutes) and float(seconds) <= 2.0, \
-        'Time difference too large! Hours: {}, Minutes: {}, seconds: {}'.format(hours, minutes, seconds)
+
+    assert not float(hours) and not float(minutes) and float(seconds) <= 2.0
 
 def test_configure_rtc_alarm():
     print('-I- Testing alarm for RTC')
     test_fail = True
-    secs_range = 10
+    secs_range = 5
     for alrm_in_x_secs in range(1, secs_range + 1):
         print('-I- Setting alarm for: {} s'.format(alrm_in_x_secs))
 
@@ -84,18 +83,17 @@ def test_configure_rtc_alarm():
             test_fail = rtc.check_and_clear_alarms() # did we clear alarm flags?
         else:
             test_fail = True
-        assert not test_fail, \
-            'Could not clear alarm flag. Alarm was to set flag in: {} s'.format(alrm_in_x_secs)
+        assert not test_fail
 
 def test_monitor_rtc_temp():
     print('-I- Testing RTC temperature')
-    for i in range(30):
+    for i in range(10):
         temp = monitor_rtc_temp()
         print('-I- RTC temperature: {}'.format(temp))
-        time.sleep(1)
+        time.sleep(0.5)
     assert True
 
 
-test_configure_rtc()
-test_configure_rtc_alarm()
-test_monitor_rtc_temp()
+# test_configure_rtc()
+# test_configure_rtc_alarm()
+# test_monitor_rtc_temp()

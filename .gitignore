@@ -16,3 +16,6 @@
 *.d
 *.o
 *.vs
+
+# test suite
+*.xml
