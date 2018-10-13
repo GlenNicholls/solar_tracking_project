@@ -2,6 +2,7 @@
 
 # Python
 *.egg-info/
+*.egg*
 *.pyc
 
 # Misc
