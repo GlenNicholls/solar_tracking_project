@@ -26,6 +26,9 @@ print('-I- Monitoring DS3231 Information')
 # Configure RTC
 rtc.configure_rtc()
 
+
+''' Functionality Helper Functions
+'''
 def configure_rtc():
     # Initial checks for time accuracy
     print('-I- Checking time')
@@ -48,15 +51,51 @@ def configure_rtc():
 
     return rtc.get_datetime_delta()
 
+def configure_rtc_alarm(alarm_in_x_secs):
+    rtc.set_alarm_now_delta(seconds=alarm_in_x_secs)
+
+def monitor_rtc_temp():
+    temp = rtc.get_temp()
+    return temp
+
+
+''' Test Routine
+'''
 def test_configure_rtc():
     time_delta = configure_rtc()
-    #hours, remainder = divmod(time_delta, 3600)
-    #minutes, seconds = divmod(remainder, 60)
     hours, minutes, seconds = str(time_delta).split(':')
     print('-I- Time difference between RTC and NTP: {}'.format(time_delta))
     
-    assert not float(hours) and not float(minutes) and float(seconds) <= 2.0
+    assert not float(hours) and not float(minutes) and float(seconds) <= 2.0, \
+        'Time difference too large! Hours: {}, Minutes: {}, seconds: {}'.format(hours, minutes, seconds)
 
+def test_configure_rtc_alarm():
+    print('-I- Testing alarm for RTC')
+    test_fail = True
+    secs_range = 10
+    for alrm_in_x_secs in range(1, secs_range + 1):
+        print('-I- Setting alarm for: {} s'.format(alrm_in_x_secs))
+
+        configure_rtc_alarm(alrm_in_x_secs)      # configure alarm for x seconds from now
+        time.sleep(alrm_in_x_secs + 1)               # give enough wait time for alarm
+        alrm_flag = rtc.check_and_clear_alarms()     # if true, make sure we cleared alarm
+
+        if alrm_flag:                                # we saw alarm which is good
+            test_fail = rtc.check_and_clear_alarms() # did we clear alarm flags?
+        else:
+            test_fail = True
+        assert not test_fail, \
+            'Could not clear alarm flag. Alarm was to set flag in: {} s'.format(alrm_in_x_secs)
+
+def test_monitor_rtc_temp():
+    print('-I- Testing RTC temperature')
+    for i in range(30):
+        temp = monitor_rtc_temp()
+        print('-I- RTC temperature: {}'.format(temp))
+        time.sleep(1)
+    assert True
 
 
 test_configure_rtc()
+test_configure_rtc_alarm()
+test_monitor_rtc_temp()

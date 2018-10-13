@@ -15,17 +15,17 @@ from enum import Enum, unique
 
 @unique
 class AlrmType_t(Enum):
-    ALM1_EVERY_SECOND  = 0x0F,
-    ALM1_MATCH_SECONDS = 0x0E,
-    ALM1_MATCH_MINUTES = 0x0C,     #  match minutes *and* seconds
-    ALM1_MATCH_HOURS   = 0x08,     #  match hours *and* minutes, seconds
-    ALM1_MATCH_DATE    = 0x00,     #  match date *and* hours, minutes, seconds
-    ALM1_MATCH_DAY     = 0x10,     #  match day *and* hours, minutes, seconds
-    ALM2_EVERY_MINUTE  = 0x8E, 
-    ALM2_MATCH_MINUTES = 0x8C,     #  match minutes
-    ALM2_MATCH_HOURS   = 0x88,     #  match hours *and* minutes
-    ALM2_MATCH_DATE    = 0x80,     #  match date *and* hours, minutes
-    ALM2_MATCH_DAY     = 0x90,     #  match day *and* hours, minutes
+    ALM1_EVERY_SECOND  = 0x0F
+    ALM1_MATCH_SECONDS = 0x0E
+    ALM1_MATCH_MINUTES = 0x0C #  match minutes *and* seconds
+    ALM1_MATCH_HOURS   = 0x08 #  match hours *and* minutes, seconds
+    ALM1_MATCH_DATE    = 0x00 #  match date *and* hours, minutes, seconds
+    ALM1_MATCH_DAY     = 0x10 #  match day *and* hours, minutes, seconds
+    ALM2_EVERY_MINUTE  = 0x8E
+    ALM2_MATCH_MINUTES = 0x8C #  match minutes
+    ALM2_MATCH_HOURS   = 0x88 #  match hours *and* minutes
+    ALM2_MATCH_DATE    = 0x80 #  match date *and* hours, minutes
+    ALM2_MATCH_DAY     = 0x90 #  match day *and* hours, minutes
 
 
 class DS3231(object):
@@ -288,7 +288,7 @@ class DS3231(object):
     # set the alarm
     # has_seconds should be false for alarm 2
     def __set_alrm_regs(self, alrm_type=None, sec=None, mins=None, hrs=None, daydate=None):
-        if alrm_type not in AlarmType_t:
+        if not isinstance(alrm_type, AlrmType_t): #alrm_type not in AlrmType_t:
             raise ValueError('Alarm Type is not in enumerate')
 
         if sec is not None:
@@ -313,18 +313,21 @@ class DS3231(object):
                 raise ValueError('Date is out of range [1,31].')
             daydate = self.__int_to_bcd(daydate)
         
-        if (alrm_type & 0x01): # A1M1
+        print('-I- Alarm Type: {}'.format(alrm_type.name))
+        print('-I- Alarm Value: {}'.format(alrm_type.value))
+
+        if (alrm_type.value & 0x01): # A1M1
             seconds |= 0b1<<7  
-        if (alrm_type & 0x02): # A1M2
+        if (alrm_type.value & 0x02): # A1M2
             minutes |= 0b1<<7
-        if (alrm_type & 0x04): # A1M3
+        if (alrm_type.value & 0x04): # A1M3
             hours |= 0b1<<7
-        if (alrm_type & 0x10): # DYDT
+        if (alrm_type.value & 0x10): # DYDT
             daydate |= 0b1<<6
-        if (alrm_type & 0x08): # A1M4
+        if (alrm_type.value & 0x08): # A1M4
             daydate |= 0b1<<7
 
-        if ~(alrm_type & 0x80): # alarm 1
+        if ~(alrm_type.value & 0x80): # alarm 1
             data = (seconds, minutes, hours, daydate)
             for i, reg in enumerate(self._reg_alrm_1_addrs):
                 self.__write(reg, data[i])
@@ -395,11 +398,6 @@ class DS3231(object):
     # Read datetime
     # Return the datetime.datetime object.
     def get_datetime(self, century=21, tzinfo=None):
-        # yrs, month, date, _, hrs, mins, sec = self.__get_all_time_regs()
-        # yrs = self._YRS_PER_CENTURY * (century - 1) + yrs
-        #return datetime(
-        #    yrs, month, date, hrs, mins, sec,
-        #    0, tzinfo=tzinfo)
         time_str = self.get_datetime_str()
         return datetime.datetime.strptime(time_str, "%y-%m-%d %H:%M:%S")
 
@@ -450,20 +448,20 @@ class DS3231(object):
 
     # Get alarm 1 flag
     # Returns boolean
-    def get_alarm_1_flag():
+    def get_alarm_1_flag(self):
         return bool(self.__get_status() & self._MASK_alrm_1_flag)
 
 
     # Clear alarm 1 flag
     # clears alarm 1 flag without modifying anything in register
-    def clear_alarm_1_flag():
+    def clear_alarm_1_flag(self):
         current_status = self.__get_status() & 0xFE
         self.__write(self._REG_STATUS, current_status)
 
 
     # Get alarm 2 flag
     # Returns boolean
-    def get_alarm_2_flag():
+    def get_alarm_2_flag(self):
         return bool(self.__get_status() & self._MASK_alrm_2_flag)
 
 
@@ -495,6 +493,8 @@ class DS3231(object):
 
 
     # Get temp of DS3231
+    # todo: add support for starting a new conversion, this doesn't appear to 
+    #       update the value, either that or it is very stable where I'm testing
     def get_temp(self):
         byte_tmsb = self._bus.read_byte_data(self._addr, self._REG_TMP_MSB)
         byte_tlsb = bin(self._bus.read_byte_data(self._addr, self._REG_TMP_LSB))[2:].zfill(8)
