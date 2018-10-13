@@ -96,6 +96,6 @@ def test_monitor_rtc_temp():
     assert True
 
 
-test_configure_rtc()
-test_configure_rtc_alarm()
-test_monitor_rtc_temp()
+# test_configure_rtc()
+# test_configure_rtc_alarm()
+# test_monitor_rtc_temp()
