@@ -45,7 +45,9 @@ class system_monitor(object):
 
     # get current cpu usage in %
     def get_cpu_use_perc(self):
-        self._cpu_use = float( os.popen("top -n1 | awk '/Cpu\(s\):/ {print $2}'").readline().strip('\\') )
+        cpu_use = os.popen("top -n1 | awk '/Cpu\(s\):/ {print $2}'").readline().strip('\\')
+        print('-DBG- CPU Use call from terminal returns: {}'.format(cpu_use))
+        self._cpu_use = float(cpu_use)
         return self._cpu_use
 
 
