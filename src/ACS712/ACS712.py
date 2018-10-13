@@ -4,6 +4,8 @@ import time
 import Adafruit_GPIO.SPI as SPI
 import Adafruit_MCP3008 as ADC
 
+# todo: refactor this to something like adc_monitor
+#       and use enums for the device on each adc channel
 class ACS712(object):
     ''' Class to represent ACS712 current sensor
     '''
@@ -19,8 +21,8 @@ class ACS712(object):
                        num_adc_bits = 10, 
                        adc_channel  = 0,
                        num_cal_avgs = 20,
-                       hardware_spi = True, 
-                       ):
+                       hardware_spi = True, # todo: add ability to define GPIO if not using HW spi 
+                       ):                   #       also add ability to select which SPI port we're using
 
         self._ADC_res = 2.0**num_adc_bits
 
@@ -55,6 +57,7 @@ class ACS712(object):
             self.SPI_PORT   = 0
             self.SPI_DEVICE = 0
             self._mcp = ADC.MCP3008(spi=SPI.SpiDev(self.SPI_PORT, self.SPI_DEVICE))
+        # todo: make this a tuple or something that is passed in
         else:
             CLK  = 18
             MISO = 23
@@ -76,7 +79,7 @@ class ACS712(object):
 
     # don't need to run calibration routine, if this is the case, zero will be set to 0 for unidirectional
     # and Fs/2 for bidirectional
-    def _calibrate(self):
+    def calibrate_current_sensor(self):
         # ensure that nothing is connected to the current sensor when running this
         # even better, tie input to ground
         for i in range(self._Num_cal_avgs - 1):
@@ -86,17 +89,20 @@ class ACS712(object):
         print('-I- current sensor calibrated successfully')
 
 
+    # todo: pass in channel as variable
     def get_current_DC(self):
         I = 1.0 * (self._zero - self._read_adc_raw()) * self._ADC_scale 
         return float(I)
 
 
-    def get_voltage_DC(self):
+    # todo: refactor below to read adc based on port
+    # todo: pass in channel as variable
+    def __get_voltage_DC(self):
         V = 1.0 * self._sensitivity * self.get_current_DC()
         return float(V)
 
 
-    def get_power_DC(self):
+    def __get_power_DC(self):
         P = 1.0 * self.get_voltage_DC() * self.get_current_DC()
         return float(P)
 
