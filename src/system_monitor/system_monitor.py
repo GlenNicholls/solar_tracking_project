@@ -136,7 +136,7 @@ class system_monitor(object):
         for i, line in enumerate(self._wlan_out):
             if line.find('Link Quality') > -1:
                 tmp = float(re.split('=|/', line)[1]) / float(re.split('=|/', line)[2])
-                link_quality = '{:.2f}'.format(float(tmp) * 100.0 ) + ' %'
+                link_quality = '{:.2f}'.format(float(tmp) * 100.0 )
                 break
             else:
                 link_quality = None
