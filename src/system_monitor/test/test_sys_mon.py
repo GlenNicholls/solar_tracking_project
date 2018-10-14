@@ -109,7 +109,7 @@ def test_cpu_temp(num_checks=20):
 
         write_table(string=data, max_str_len=max_str_len, header=False)
 
-        assert -40.0 < temp_C < 82.0 # tested operating range check
+        assert -40.0 < temp_C < 80.0 # tested operating range check
 
         time.sleep(0.5)
 
