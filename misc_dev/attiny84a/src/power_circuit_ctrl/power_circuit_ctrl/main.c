@@ -10,7 +10,7 @@
  *    external device such as a Raspberry Pi or other uC that consumes too much
  *    power.
  *
- *    Goal #1: DON'T KILL THE FUCKING BROCCOLI, RICHARD!!!
+ *    Goal #1: DON'T KILL THE BROCCOLI!!!
  *
  * Input Pins:
  * -----------
@@ -119,54 +119,108 @@
 #define F_CPU 8000000
 //#define F_CPU 1000000UL
 
+
+// todo: do we need this at all??
+// void WDT_off(void)
+// {
+//     _WDR();
+//
+//     // CLR WDRF in MCUSR
+//     MCUSR |= 0x00;
+//
+//     // Write 1 to WDCE and WDE
+//     WDTCSR |= (1 << WDCE);
+//     WDTCSR |= (1 << WDE);
+//
+//     // Turn off WDT
+//     WDTCSR = 0x00;
+// }
+
+
 int main(void)
 {
-    /* Set Inputs
-     *
-     * PB0: active low input from DS3231
-     * PB1: active low input from push button (debounced in analog)
-     * PB2: active high/low(??) input from pi_tx_hold_on
-     * todo: set as interrupt pins
-     */
-    DDRB |= (1 << PB0); // PCINT8
-    DDRB |= (1 << PB1); // PCINT9
-    DDRB |= (1 << PB2); // PCINT10
+    // Set Inputs
+    //
+    // PB1 (PCINT9 on PCIE1) : active low input from DS3231
+    // PB2 (INT0)            : active low input from push button (debounced in analog)
+    // PA7 (PCINT7 on PCIE0) : active high/low(??) input from pi_tx_hold_on
+    //
+    DDRB |= (1 << PB1);
+    DDRB |= (1 << PB2);
 
-    /* Set Outputs
-     *
-     * PA0: (Active High) EN for TPS22958 Load Switch
-     * PA1: (Active High) SW FAULT for error checking
-     * PA3: (Active High) pi_rx_dev_mode flag for kernel during bootup to state that
-     *                    there was push button over-ride. Will not run main
-     *                    application code and will require user to issue shutdown
-     */
+    DDRA |= (1 << PA7);
+
+
+    // Set Outputs
+    //
+    // PA0:  EN for TPS22958 Load Switch
+    // PA1:  SW FAULT pi_rx_FAULT for error checking
+    // PA3:  pi_rx_dev_mode flag for kernel during bootup to state that
+    //       there was push button over-ride. Will not run main
+    //       application code and will require user to issue shutdown
+    //
     DDRA &= ~(1 << PA0);
     DDRA &= ~(1 << PA1);
     DDRA &= ~(1 << PA3);
 
-    // Enable pin change int on PCIE1 (PCINT[8:10])
+
+    //
+    //
+    // PCIE1 (PCINT9): Enable pin change INT
+    // PCIE0 (PCINT7): Enable pin change INT
+    // INT0: Enable external interrupt
     // and set I-bit in SREG to one
+    GIMSK |= (1 << INT0);
+    GIMSK |= (1 << PCIE0);
     GIMSK |= (1 << PCIE1);
     sei();
 
+
+    //
+    //
     // Enable specific pin change interrupts in the
     // pin change mask reg
-    PCMSK1 |= (1 << PCINT8);
+    PCMSK0 |= (1 << PCINT7);
     PCMSK1 |= (1 << PCINT9);
-    PCMSK1 |= (1 << PCINT10);
 
-    // loop
+
+    // Configure MCU Control Register
+    //
+    // BODS  : disable BOD during low-power?
+    // PUD   : ??
+    // SE    : 1 Enable sleep enable
+    // SM1   : 1
+    // SM0   : 1 Enable standby sleep mode
+    // ISC00 : 1
+    // ISC01 : 0 Any INT0 level change generates INT
+    // BODSE : ??
+    // would power-down be better since it halts clocks and only wakes on async events??
+    MCUCR |=  (1 << SE); // todo: only enable when desired, then clear after wakeup??
+    MCUCR |=  (1 << SM1);
+    MCUCR |=  (1 << SM0);
+    MCUCR |=  (1 << ISC00);
+    MCUCR &= ~(1 << ISC01);
+
+
+    // Configure the Power Reduction Register
+    //
+    // PRTIM1 : ??
+    // PRTIM0 : ??
+    // PRUSI  : ??
+    // PRADC  : 1 to disable ADC
+    PRR |= (1 << PRADC);
+
+
+    // Configure Analog Comparator Control/Status Register
+    //
+    // ACD: 1 switch off analog comparator
+    ACSR |= (1 << ACD);
+
+
     while (1)
     {
-        // set PB1 high
-        PORTA = (1 << PA3);
-
-        _delay_ms(200);
-
-        // set PB1 low
-        PORTA &= ~(1 << PA3); // or PORTA = 0 for all low
-
-        _delay_ms(200);
+        sleep();
+        //_delay_ms(200);
     }
 }
 
