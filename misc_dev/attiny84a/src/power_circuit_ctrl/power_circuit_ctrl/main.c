@@ -14,6 +14,8 @@
  *
  * Input Pins:
  * -----------
+ *    Reference schematic for specific net names
+ *
  *    DS3231 INT_N (RTC):
  *        The RTC is used to maintain time while the raspberry pi or other device
  *        is turned off and does not have power. Before shutdowns, the device on
@@ -142,9 +144,16 @@ int main(void)
     DDRA &= ~(1 << PA1);
     DDRA &= ~(1 << PA3);
 
-    // Enable pin change int on both PCIE0 and PCIE1
-    GIMSK |= (1 << PCIE0);
+    // Enable pin change int on PCIE1 (PCINT[8:10])
+    // and set I-bit in SREG to one
     GIMSK |= (1 << PCIE1);
+    sei();
+
+    // Enable specific pin change interrupts in the
+    // pin change mask reg
+    PCMSK1 |= (1 << PCINT8);
+    PCMSK1 |= (1 << PCINT9);
+    PCMSK1 |= (1 << PCINT10);
 
     // loop
     while (1)
