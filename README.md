@@ -187,12 +187,35 @@ After the tests have passed, no further configuration is required and the system
 
 
 # TODO:
+* Update all docstrings to following format:
+
+        def function(arg1, arg2):
+            '''
+            Summary line.
+            
+            Extended description of function.
+            
+            Parameters
+            ----------
+            arg1 : int
+                Description of arg1
+            arg2 : str
+                Description of arg2
+            
+            Returns
+            -------
+            int
+                Description of return value
+            
+            '''
+
 * Install new caps based on ACS712 NF. We will be doing less than 1k samples per second for current measurements, so we should prioritize lower NF
 * voltage sense for panel, load, pi, battery (for safe shutdown)
 * Logging/database
 * REST API support
-* unit test/regression test framework
+* Add dev_*.py in test/ directories to be able to run test_* cases for development so we don't have to deal with delay of py.test to run
 * Makefile for avrdude loading of .hex to uC
+* Update MANIFEST.ini file
 * High level web server for simple control
 
 
