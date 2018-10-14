@@ -91,7 +91,7 @@ def test_monitor_rtc_temp():
         temp = monitor_rtc_temp()
         print('-I- RTC temperature: {}'.format(temp))
         time.sleep(0.5)
-    assert True
+        assert -40 < temp < 80
 
 
 # test_configure_rtc()
