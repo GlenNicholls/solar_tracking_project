@@ -126,9 +126,9 @@ int main(void)
      * PB2: active high/low(??) input from pi_tx_hold_on
      * todo: set as interrupt pins
      */
-    DDRB |= (1 << PB0);
-    DDRB |= (1 << PB1);
-    DDRB |= (1 << PB2);
+    DDRB |= (1 << PB0); // PCINT8
+    DDRB |= (1 << PB1); // PCINT9
+    DDRB |= (1 << PB2); // PCINT10
 
     /* Set Outputs
      *
@@ -138,7 +138,13 @@ int main(void)
      *                    there was push button over-ride. Will not run main
      *                    application code and will require user to issue shutdown
      */
-    DDRA = (1 << PA0) | (1 << PA1) | (1 << PA3);
+    DDRA &= ~(1 << PA0);
+    DDRA &= ~(1 << PA1);
+    DDRA &= ~(1 << PA3);
+
+    // Enable pin change int on both PCIE0 and PCIE1
+    GIMSK |= (1 << PCIE0);
+    GIMSK |= (1 << PCIE1);
 
     // loop
     while (1)
