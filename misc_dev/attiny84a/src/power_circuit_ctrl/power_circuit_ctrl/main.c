@@ -112,8 +112,9 @@
  */
 
 #include <avr/io.h>
-#include <util/delay.h>
 #include <avr/interrupt.h>
+#include <avr/sleep.h>
+#include <util/delay.h>
 
 
 #define F_CPU 8000000
@@ -219,18 +220,42 @@ static inline void initMCU(void)
   // Enable global interrupts by set I-bit in SREG to 1
   sei();
 }
-// todo: Complete GIFR ISR Routines
+
+// todo: Complete GIFR clear here
+// todo: wait on this until blink is accomplished first
+// ISR(PCINT1_vect)
+// {
+//
+// }
+//
+// ISR(PCINT0_vect)
+// {
+//
+// }
+
+ISR(EXT_INT0_vect)
+{
+  if ( (PINB & (1 << PINB2)) == 0 )
+  {
+    PORTA |= (1 << PA0); // turn LED on
+  }
+  else
+  {
+    PORTA &= ~(1 << PA0); // turn LED off
+  }
+}
 
 
 int main(void)
 {
   initMCU();
 
-
   while (1)
   {
-      sleep();
-      //_delay_ms(200);
+    sleep();
+    //_delay_ms(200);
   }
+
+  return 0;
 }
 
