@@ -22,12 +22,12 @@ AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 AVRDUDE_FLAGS       = -p $(MCU) -c $(AVRDUDE_PROGRAMMER) -C $(AVRDUDE_CONF) -v
 
 all:
-    sudo $(CC) $(SRC) -o $(TARGET) $(CFLAGS)
-    sudo $(OBJCOPY) -O ihex $(TARGET) $(TARGET).hex
-    sudo rm -f $(TARGET)
+    $(CC) $(CFLAGS) $(SRC) -o $(TARGET)
+    $(OBJCOPY) -O ihex -R .eeprom $(TARGET) $(TARGET).hex
+    rm -f $(TARGET)
 
 clean:
-    sudo rm -f $(TARGET).hex
+    rm -f $(TARGET).hex
 
 install: all
     sudo $(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) 
