@@ -137,46 +137,51 @@
 // }
 
 
+// todo: Complete GIFR ISR Routines
+
+
 int main(void)
 {
-    // Set Inputs
+    // Configure DDRA Port Directions
     //
+    // DDA7: 1 input pi_tx_hold_on PCINT7
+    // DDA6: 0 DNC low-pwr
+    // DDA5: 0 DNC low-pwr
+    // DDA4: 0 DNC low-pwr
+    // DDA3: 0 output pi_rx_dev_mode
+    // DDA2: 0 DNC low-pwr
+    // DDA1: 0 FAULT output
+    // DDA0: 0 output en_power
+    DDRA |= (1 << PA7);
+    DDRA &= ~( (1 << PA6) | (1 << PA5) | (1 << PA4) | (1 << PA3) |
+               (1 << PA2) | (1 << PA1) | (1 << PA0) );
+
+
+    // Configure DDRB Port Directions
+    //
+    // DDB3: 0 DNC low-pwr
+    // DDB2: 1 input rtc_ALRM_N
+    // DDB1: 1 input psh_button
+    // DDB0: 0 DNC low-pwr
+    DDRB |= (1 << PB2) | (1 << PB1);
+
+
     // PB1 (PCINT9 on PCIE1) : active low input from DS3231
     // PB2 (INT0)            : active low input from push button (debounced in analog)
-    // PA7 (PCINT7 on PCIE0) : active high/low(??) input from pi_tx_hold_on
-    //
-    DDRB |= (1 << PB1);
-    DDRB |= (1 << PB2);
-
-    DDRA |= (1 << PA7);
 
 
-    // Set Outputs
-    //
-    // PA0:  EN for TPS22958 Load Switch
-    // PA1:  SW FAULT pi_rx_FAULT for error checking
-    // PA3:  pi_rx_dev_mode flag for kernel during bootup to state that
-    //       there was push button over-ride. Will not run main
-    //       application code and will require user to issue shutdown
-    //
-    DDRA &= ~(1 << PA0);
-    DDRA &= ~(1 << PA1);
-    DDRA &= ~(1 << PA3);
 
-
+    // Configure the General Interrupt Mask Register
     //
-    //
-    // PCIE1 (PCINT9): Enable pin change INT
-    // PCIE0 (PCINT7): Enable pin change INT
-    // INT0: Enable external interrupt
+    // PCIE1 : 1 Enable pin change INT
+    // PCIE0 : 1 Enable pin change INT
+    // INT0  : 1 Enable external interrupt
     // and set I-bit in SREG to one
-    GIMSK |= (1 << INT0);
-    GIMSK |= (1 << PCIE0);
-    GIMSK |= (1 << PCIE1);
+    GIMSK |= (1 << INT0) | (1 << PCIE0) | (1 << PCIE1);
     sei();
 
 
-    //
+    // Configure the Pin Change Mask Registers
     //
     // Enable specific pin change interrupts in the
     // pin change mask reg
@@ -194,11 +199,9 @@ int main(void)
     // ISC00 : 1
     // ISC01 : 0 Any INT0 level change generates INT
     // BODSE : ??
-    // would power-down be better since it halts clocks and only wakes on async events??
-    MCUCR |=  (1 << SE); // todo: only enable when desired, then clear after wakeup??
-    MCUCR |=  (1 << SM1);
-    MCUCR |=  (1 << SM0);
-    MCUCR |=  (1 << ISC00);
+    // todo: would power-down be better since it halts clocks and only wakes on async events??
+    // todo: should SE only be enabled when desired and cleared upon wakeup??
+    MCUCR |=  (1 << SE) | (1 << SM1) | (1 << SM0) | (1 << ISC00);
     MCUCR &= ~(1 << ISC01);
 
 
