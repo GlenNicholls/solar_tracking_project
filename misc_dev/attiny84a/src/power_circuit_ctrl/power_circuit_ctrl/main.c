@@ -114,7 +114,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
-#include <util/delay.h>
+//#include <util/delay.h>
 
 
 #define F_CPU 8000000
@@ -167,9 +167,9 @@ static inline void initMCU(void)
   // DDA2: 0 DNC low-power
   // DDA1: 0 FAULT output
   // DDA0: 0 output en_power
-  DDRA |= (1 << PA7);
-  DDRA &= ~( (1 << PA6) | (1 << PA5) | (1 << PA4) | (1 << PA3) |
-             (1 << PA2) | (1 << PA1) | (1 << PA0) );
+  DDRA &= ~(1 << PA7);
+  DDRA |= (1 << PA6) | (1 << PA5) | (1 << PA4) | (1 << PA3) |
+          (1 << PA2) | (1 << PA1) | (1 << PA0);
 
   // Enable pullups on PA[7] input
   // Enable pullups on PA[6:0] for low-power
@@ -194,15 +194,15 @@ static inline void initMCU(void)
 
   // todo: not sure how to configure clocks yet
 
+  // Analog Comparator Control/Status Register
+  ACSR |= (1 << ACD); // disable
+
   // Power Reduction Register
   //
   // PRTIM1 : ??
   // PRTIM0 : ??
   // PRUSI  : ??
   PRR |= (1 << PRADC); // disable ADC
-
-  // Analog Comparator Control/Status Register
-  ACSR |= (1 << ACD); // disable
 
   // Sleep Mode
   //
@@ -252,7 +252,7 @@ int main(void)
 
   while (1)
   {
-    sleep();
+    sleep_cpu();
     //_delay_ms(200);
   }
 
