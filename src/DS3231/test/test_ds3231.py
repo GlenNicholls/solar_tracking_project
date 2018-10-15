@@ -76,7 +76,7 @@ def test_configure_rtc_alarm():
         print('-I- Setting alarm for: {} s'.format(alrm_in_x_secs))
 
         configure_rtc_alarm(alrm_in_x_secs)      # configure alarm for x seconds from now
-        time.sleep(alrm_in_x_secs + 1)               # give enough wait time for alarm
+        time.sleep(alrm_in_x_secs + 1.5)               # give enough wait time for alarm
         alrm_flag = rtc.check_and_clear_alarms()     # if true, make sure we cleared alarm
 
         if alrm_flag:                                # we saw alarm which is good
