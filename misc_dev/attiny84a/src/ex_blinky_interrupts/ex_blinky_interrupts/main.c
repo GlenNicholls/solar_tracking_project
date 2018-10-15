@@ -94,7 +94,7 @@ static inline void initMCU(void)
 
   // Analog Comparator Control/Status Register
   ACSR |= (1 << ACD); // disable
-  
+
   // Power Reduction Register
   //
   // PRTIM1 : ??
@@ -121,19 +121,9 @@ static inline void initMCU(void)
 
 // todo: Complete GIFR clear here
 // todo: wait on this until blink is accomplished first
-// ISR(PCINT1_vect)
-// {
-//
-// }
-//
-// ISR(PCINT0_vect)
-// {
-//
-// }
-
-ISR(EXT_INT0_vect)
+ISR(PCINT1_vect)
 {
-  if (PINB & (1 << PB2)) // pb2 high
+  if (PINB & (1 << PB1)) // pb2 high
   {
     PORTA |= (1 << PA0); // turn LED on
   }
@@ -143,16 +133,33 @@ ISR(EXT_INT0_vect)
   }
 }
 
+// ISR(PCINT0_vect)
+// {
+//
+// }
+
+ISR(EXT_INT0_vect)
+{
+  //if (PINB & (1 << PB2)) // pb2 high
+  //{
+  //  PORTA |= (1 << PA0); // turn LED on
+  //}
+  //else
+  //{
+  //  PORTA &= ~(1 << PA0); // turn LED off
+  //}
+}
+
 
 int main(void)
 {
   initMCU();
-  
+
   while (1)
   {
     sleep_cpu();
   }
-  
+
   return 0;
 }
 
