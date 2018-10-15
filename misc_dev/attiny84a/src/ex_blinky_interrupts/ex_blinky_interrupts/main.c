@@ -126,14 +126,14 @@ static inline void initMCU(void)
 // todo: will an interrupt while another interrupt is being serviced cause contention on en_power??
 ISR(EXT_INT0_vect)
 {
-  //if (PINB & (1 << PB2)) // pb2 high
-  //{
-  //  PORTA |= (1 << PA0); // turn LED on
-  //}
-  //else
-  //{
-  //  PORTA &= ~(1 << PA0); // turn LED off
-  //}
+  if (PINB & (1 << PB2)) // pb2 high
+  {
+    PORTA |= (1 << PA0); // turn LED on
+  }
+  else
+  {
+    PORTA &= ~(1 << PA0); // turn LED off
+  }
 }
 
 ISR(PCINT0_vect)
