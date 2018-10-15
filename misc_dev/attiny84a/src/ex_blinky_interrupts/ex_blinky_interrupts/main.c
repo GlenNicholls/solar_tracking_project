@@ -15,7 +15,7 @@
 //#include <util/delay.h>
 
 
-#define F_CPU 8000000
+//#define F_CPU 8000000
 //#define F_CPU 1000000UL
 
 
@@ -57,17 +57,17 @@ static inline void initMCU(void)
 {
   // DDRA Port Directions
   //
-  // DDA7: 1 input pi_tx_hold_on PCINT7
-  // DDA6: 0 DNC low-power
-  // DDA5: 0 DNC low-power
-  // DDA4: 0 DNC low-power
-  // DDA3: 0 output pi_rx_dev_mode
-  // DDA2: 0 DNC low-power
-  // DDA1: 0 FAULT output
-  // DDA0: 0 output en_power
-  DDRA |= (1 << PA7);
-  DDRA &= ~( (1 << PA6) | (1 << PA5) | (1 << PA4) | (1 << PA3) |
-             (1 << PA2) | (1 << PA1) | (1 << PA0) );
+  // DDA7: 0 input pi_tx_hold_on PCINT7
+  // DDA6: 1 DNC low-power
+  // DDA5: 1 DNC low-power
+  // DDA4: 1 DNC low-power
+  // DDA3: 1 output pi_rx_dev_mode
+  // DDA2: 1 DNC low-power
+  // DDA1: 1 FAULT output
+  // DDA0: 1 output en_power
+  DDRA &= ~(1 << PA7);
+  DDRA |= (1 << PA6) | (1 << PA5) | (1 << PA4) | (1 << PA3) |
+          (1 << PA2) | (1 << PA1) | (1 << PA0);
 
   // Enable pullups on PA[7] input
   // Enable pullups on PA[6:0] for low-power
@@ -76,10 +76,10 @@ static inline void initMCU(void)
 
   // DDRB Port Directions
   //
-  // DDB3: 0 DNC low-power
-  // DDB2: 1 input rtc_ALRM_N
-  // DDB1: 1 input psh_button
-  // DDB0: 0 DNC low-power
+  // DDB3: 1 DNC low-power
+  // DDB2: 0 input rtc_ALRM_N
+  // DDB1: 0 input psh_button
+  // DDB0: 1 DNC low-power
   // DDRB |= (1 << PB2) | (1 << PB1);
   DDRB &= ~( (1 << PB3) | (1 << PB0) );
 
@@ -92,15 +92,15 @@ static inline void initMCU(void)
 
   // todo: not sure how to configure clocks yet
 
+  // Analog Comparator Control/Status Register
+  ACSR |= (1 << ACD); // disable
+  
   // Power Reduction Register
   //
   // PRTIM1 : ??
   // PRTIM0 : ??
   // PRUSI  : ??
   PRR |= (1 << PRADC); // disable ADC
-
-  // Analog Comparator Control/Status Register
-  ACSR |= (1 << ACD); // disable
 
   // Sleep Mode
   //
@@ -133,7 +133,7 @@ static inline void initMCU(void)
 
 ISR(EXT_INT0_vect)
 {
-  if ( (PINB & (1 << PINB2)) == 0 )
+  if (PINB & (1 << PB2)) // pb2 high
   {
     PORTA |= (1 << PA0); // turn LED on
   }
@@ -147,11 +147,10 @@ ISR(EXT_INT0_vect)
 int main(void)
 {
   initMCU();
-
+  
   while (1)
   {
-    sleep_mode();
-    //_delay_ms(200);
+    sleep_cpu();
   }
   
   return 0;
