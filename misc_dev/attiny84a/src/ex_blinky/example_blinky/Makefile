@@ -1,8 +1,8 @@
 # ======================================================================
 #  Makefile for AVRDude
 # ======================================================================
-TARGET = example
-SRC    = example.c
+TARGET = main
+SRC    = main.c
 
 MCU    = attiny84 # change device if using different
 

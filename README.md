@@ -6,23 +6,23 @@ To set up the Raspberry pi, perform the following steps after updating:
 
     sudo apt-get update
 
-## Install dependencies
+# Install dependencies
 To install dependencies for the python code base and creating egg info for the python interpreter, run the 
 following commands, (recommend install in step 1b):
 
-### 1a)
+## 1a)
 If you would like to develop on the device, run this command to ensure symbolic links point to the source code in this repository.
 This allows the developer to make changes here without having to re-install the python repository
 
     sudo python setup.py developer
 
-### 1b)
+## 1b)
 If you would like to perform a fresh system install, perform this command. This will generate egg info under site-packages, meaning 
 src files are copied
 
     sudo python setup.py install
  
-## Enable I2C and SPI
+# Enable I2C and SPI
 Begin by opening a termineal and performing the following steps:
 
     sudo raspi-config
@@ -39,56 +39,61 @@ You should now see something come up. You can also do the following to see devic
 
     sudo i2cdetect -y 1
 
-## Installing avrdude and Configuration
+You should only see a single I2C device at address `0x68`
+
+         0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+    00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+    10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    60: -- -- -- -- -- -- -- -- 68 -- -- -- -- -- -- --
+    70: -- -- -- -- -- -- -- --
+
+# Installing avrdude
 Reference https://learn.adafruit.com/program-an-avr-or-arduino-using-raspberry-pi-gpio-pins/installation
+
+NOTE: If the uC is swapped or the pins are changed from those delivered with the schematic, the `Makefile`
+along with the programmer `pi_1` in the `avrdude_gpio.conf` file will need to be adjusted.
+
+## 1) Install AVR toolchain:
+    
+    sudo apt-get install gcc-avr binutils-avr avr-libc
 
 Install AVR dude so that .hex files can be programmed to the uC in charge of the power circuit (recommend install in step 1a).
 
-### 1a) Automatic install
+## 2) Automatic install of AVRDude
 
     sudo apt-get install avrdude
 
-Copy .conf File for Edits
-
-    cp /etc/avrdude.conf ~/avrdude_gpio.conf
-    
-    nano ~/avrdude_gpio.conf
-
-### 1b) Manual install
-
-    sudo apt-get install -y build-essential bison flex automake libelf-dev libusb-1.0-0-dev libusb-dev libftdi-dev libftdi1
-    
-    wget http://download.savannah.gnu.org/releases/avrdude/avrdude-6.1.tar.gz
-    
-    tar xvfz avrdude-6.1.tar.gz
-    
-    cd avrdude-6.1
-    
-    ./configure --enable-linuxgpio
-    
-    make
-    
-    sudo make install
-
-## Verify installation:
+## 3) Verify installation:
 
     avrdude -v
 
+You should see an output similar to this:
 
-#### 1a) Automatic configuration
-Use the file inside the repository.
+    avrdude: Version 6.1, compiled on Oct 10 2018 at 01:07:09
+         Copyright (c) 2000-2005 Brian Dean, http://www.bdmicro.com/
+         Copyright (c) 2007-2014 Joerg Wunsch
+
+         System wide configuration file is "/usr/local/etc/avrdude.conf"
+         User configuration file is "/home/pi/.avrduderc"
+         User configuration file does not exist or is not a regular file, skipping
+
+
+    avrdude: no programmer has been specified on the command line or the config file
+         Specify a programmer using the -c option and try again
+
+## 4) Check wiring of programming wires and the clock fuses of device
 Check using this command that you can talk to ATTiny85A:
 
-    sudo avrdude -p t84 -C ~/solar_tracking_project/misc_dev/avrdude_gpio.conf -c pi_1 -e -v
+    cd misc_dev/
 
-#### 1b) Configure avrdude_gpio.conf Manually
-Copy .conf File for Edits
+    sudo avrdude -p t84 -C avrdude_gpio.conf -c pi_1 -e -v
 
-    cp /usr/local/etc/avrdude.conf ~/avrdude_gpio.conf
-    
-    nano ~/avrdude_gpio.conf
-
-Append the following to the end of the file:
+If this does not work, double check that the pins used below match the Pi's BCM pin numbers. Double check schematic
+and wiring as well:
 
 
     # Linux GPIO configuration for avrdude.
@@ -103,10 +108,7 @@ Append the following to the end of the file:
         miso  = 27;
     ;
 
-
-#### Verify Output of Command
-you should now see something like the following:
-
+When it works, you should now see something like the following:
 
     avrdude: Version 6.1, compiled on Oct 10 2018 at 01:07:09                                   
              Copyright (c) 2000-2005 Brian Dean, http://www.bdmicro.com/                        
@@ -172,11 +174,56 @@ you should now see something like the following:
                                                                                                 
     avrdude done.  Thank you.                                                                   
 
+## 5) Build a clean .hex file and load it to the device
+
+    cd misc_dev/
+
+    make clean
+
+    make install
+
+Make sure that you see a similar success reported like so:
+
+    avrdude: AVR device initialized and ready to accept instructions
+    
+    Reading | ################################################## | 100% 0.00s
+    
+    avrdude: Device signature = 0x1e930c
+    avrdude: safemode: lfuse reads as 62
+    avrdude: safemode: hfuse reads as DF
+    avrdude: safemode: efuse reads as FF
+    avrdude: NOTE: "flash" memory has been specified, an erase cycle will be performed
+             To disable this feature, specify the -D option.
+    avrdude: erasing chip
+    avrdude: reading input file "blinky.hex"
+    avrdude: input file blinky.hex auto detected as Intel Hex
+    avrdude: writing flash (68 bytes):
+    
+    Writing | ################################################## | 100% 0.13s
+    
+    avrdude: 68 bytes of flash written
+    avrdude: verifying flash memory against blinky.hex:
+    avrdude: load data flash data from input file blinky.hex:
+    avrdude: input file blinky.hex auto detected as Intel Hex
+    avrdude: input file blinky.hex contains 68 bytes
+    avrdude: reading on-chip flash data:
+    
+    Reading | ################################################## | 100% 0.10s
+    
+    avrdude: verifying ...
+    avrdude: 68 bytes of flash verified
+    
+    avrdude: safemode: lfuse reads as 62
+    avrdude: safemode: hfuse reads as DF
+    avrdude: safemode: efuse reads as FF
+    avrdude: safemode: Fuses OK (E:FF, H:DF, L:62)
+    
+    avrdude done.  Thank you.
+
+The board is now programmed.
 
 
-
-
-## Final Test TBD
+# Final Test TBD
 Connect the Raspberry Pi to the provided pi hat expansion along with wiring the unit. Run the following to test the system:
 
     cd ~/solar_tracking_project
