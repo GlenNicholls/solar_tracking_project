@@ -56,7 +56,9 @@
  *        todo: this should be implemented as dev_mode and power on as those states
  *              from pi perspective should be the same. Don't want to interrupt
  *              software operation, should just tell pi that algorithm can't initiate
- *              shutdown...
+ *              shutdown if it periodically shuts down. If so, need to ensure that the
+ *              pi recognizes shutdown command to set next alarm as previous one may
+ *              have passed, or will pass while pi is in the middle of shutting down.
  *
  *        1. This pin is normally pulled high
  *        2. Push button is debounced in analog, but will smooth just in case
@@ -84,6 +86,9 @@
  *        properly operate, it is entirely possible that cutting power would
  *        interrupt application code which could be detrimental.
  *
+ *        todo: software on pi should have this as interrupt to log the event
+ *        todo: should this ever be cleared by uC or user intervention and reboot?
+ *
  *        1. This output pin will be driven high during any fault conditions to
  *           light an LED for the user if anything doesn't work.
  *        2. If the pi does not assert the pi_tx_hold_on after a certain amount of time
@@ -95,9 +100,9 @@
  *        5. the uC will continue monitoring the pin for a long time. If after this time the
  *           pin is never driven high, the uC will then assume the pi has safely shutdown
  *           and drive the en_power low.
- *        6. During this FAULT condition, the uC will NOT enter a low-power sleep to wait
+ *        6. todo: During this FAULT condition, the uC will NOT enter a low-power sleep to wait
  *           for an interrupt, it will continue to hold this pin high and will pseudo-
- *           take over for the RTC.
+ *           take over for the RTC??
  *        7. SW in the Pi or other nevice needs a way to notify the user to analyze
  *           what went wrong and test all startup functionality.
  *
@@ -113,7 +118,7 @@
  *           if it wasn't already.
  *        2. This pin will then be driven high to notify the pi that it needs to
  *           enter a development mode; i.e. the pi should not shutdown unless the
- *           user specifies it do so.
+ *           user specifies it do so. Reference todo:
  */
 
 #include <avr/io.h>
@@ -266,6 +271,8 @@ ISR(EXT_INT0_vect)
 /*
  * pi_tx_hold_on ISR
  */
+// todo: how to incorporate check for if this condition never happens when push button or
+//       RTC alarm event occur??
 ISR(PCINT0_vect)
 {
   if (PINA & (1 << PA7)) // Pi has turned on
