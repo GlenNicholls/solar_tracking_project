@@ -50,11 +50,16 @@
  *        This is a manual override by the user that development will commence on
  *        the device.
  *
- *        todo: solidify whether pi will be off during the day as this may influence
- *        the algorithm and checks during this stage!
+ *        todo: solidify whether pi will be off periodically throughout the day as
+ *        this may influence the algorithm and checks during this stage!
+ *
+ *        todo: this should be implemented as dev_mode and power on as those states
+ *              from pi perspective should be the same. Don't want to interrupt
+ *              software operation, should just tell pi that algorithm can't initiate
+ *              shutdown...
  *
  *        1. This pin is normally pulled high
- *        2. Push button is debounced externally
+ *        2. Push button is debounced in analog, but will smooth just in case
  *        3. When there is a low-going edge, an interrupt will be issued.
  *        4. The uC will service this interrupt by driving the pi_rx_dev_mode
  *           pin high, driving en_power high, and waiting for the Pi to assert
@@ -120,8 +125,11 @@
 #define F_CPU 8000000
 //#define F_CPU 1000000UL
 
+// used for a very short delay
+#define _NOP() do { __asm__ __volatile__ ("nop"); } while (0)
 
-// todo: do we need this at all??
+
+// todo: implement this when the time comes
 // void WDT_off(void)
 // {
 //     _WDR();
@@ -159,31 +167,31 @@ static inline void initMCU(void)
 {
   // DDRA Port Directions
   //
-  // DDA7: 1 input pi_tx_hold_on PCINT7
-  // DDA6: 0 DNC low-power
-  // DDA5: 0 DNC low-power
-  // DDA4: 0 DNC low-power
-  // DDA3: 0 output pi_rx_dev_mode
+  // DDA7: 0 input pi_tx_hold_on PCINT7
+  // DDA6: 0 input MOSI low-power
+  // DDA5: 0 input MISO low-power
+  // DDA4: 0 input SCK  low-power
+  // DDA3: 1 output pi_rx_dev_mode
   // DDA2: 0 DNC low-power
-  // DDA1: 0 FAULT output
-  // DDA0: 0 output en_power
-  DDRA &= ~(1 << PA7);
-  DDRA |= (1 << PA6) | (1 << PA5) | (1 << PA4) | (1 << PA3) |
-    (1 << PA2) | (1 << PA1) | (1 << PA0);
+  // DDA1: 1 output FAULT
+  // DDA0: 1 output en_power
+  DDRA &= ~( (1 << PA7) | (1 << PA6) | (1 << PA5) | (1 << PA4) | (1 << PA2) );
+  DDRA |=    (1 << PA3) | (1 << PA1) | (1 << PA0);
 
   // Enable pullups on PA[7] input
   // Enable pullups on PA[6:0] for low-power
+  PORTA &= ~( (1 << PA3) | (1 << PA1) ); // first time power, don't want fault or dev-mode asserted
   PORTA |= (1 << PA7) | (1 << PA6) | (1 << PA5) | (1 << PA4) |
-           (1 << PA3) | (1 << PA2) | (1 << PA1) | (1 << PA0);
+           (1 << PA2) | (1 << PA0);
 
   // DDRB Port Directions
   //
-  // DDB3: 1 DNC low-power
+  // DDB3: 0 input RESET_N
   // DDB2: 0 input rtc_ALRM_N
   // DDB1: 0 input psh_button
   // DDB0: 1 DNC low-power
-  DDRB &= ~( (1 << PB2) | (1 << PB1) );
-  //DDRB |= (1 << PB3) | (1 << PB0);
+  DDRB &= ~( (1 << PB3) | (1 << PB2) | (1 << PB1) );
+  DDRB |=    (1 << PB0);
 
   // Enable pullups on PB[2:1] input
   // Enable pullups on PB[3,0] for low-power
@@ -223,43 +231,97 @@ static inline void initMCU(void)
   sei();
 }
 
-// todo: Complete GIFR clear here
-// todo: wait on this until blink is accomplished first
 // todo: will an interrupt while another interrupt is being serviced cause contention on en_power??
+
+/*
+ * RTC Alarm ISR
+ */
 ISR(EXT_INT0_vect)
 {
-  if (PINB & (1 << PB2)) // pb2 high
+  if ~(PINB & (1 << PB2)) // Alarm has occured
   {
-    PORTA |= (1 << PA0); // turn LED on
+    if (PINA & (1 << PA0)) // Checking to see if load switch already on
+    {
+      // todo: Should FAULTS ever be cleared before user intervention??
+      PORTA |= (1 << PA1); // raise FAULT as this shouldn't happen, but maintain power to device
+    }
+    else
+    {
+      PORTA |= (1 << PA0); // Turn load switch on
+    }
   }
-  else
+  else //
   {
-    PORTA &= ~(1 << PA0); // turn LED off
+    // todo: find out if any error checking needs to be done when alarm is cleared
+    //       should be branching back to service other interrupts or sleep
   }
+
+  // Insert nop for synchronization
+  _NOP();
+
+  // Clear interrupt flag
+  GIFR |= (1 << INTF0);
 }
 
+/*
+ * pi_tx_hold_on ISR
+ */
 ISR(PCINT0_vect)
 {
+  if (PINA & (1 << PA7)) // Pi has turned on
+  {
+    while ~(PINB & (1 << PB2)) // while alarm not cleared, check until cleared
+    {
+      // todo: sleep for some time
+      // todo: what happens when alarm on INT0 gets cleared? does that get serviced before coming back here?
+      // todo: add _WDT(), timer, or variable so we don't get stuck
+    }
+  }
+  else // Pi has turned off
+  {
+    // todo: sleep here for ~30s-45s and error-check
+    if (PINA & (1 << PA0)) // done sleeping, make sure load switch is on
+    {
+      PORTA &= ~(1 << PA0); // Turn load switch off
+    }
+    else
+    {
+      PORTA |= (1 << PA1); // Raise FAULT as this should never happen
+    }
+    PORTA &= ~(1 << PA3); // Turn dev mode off
+  }
 
+  // Insert nop for synchronization
+  _NOP();
+
+  // Clear interrupt flag
+  GIFR |= (1 << PCIF0);
+}
+
+/*
+ * Push Button ISR
+ */
+// __debounced in analog__
+ISR(PCINT1_vect)
+{
+  // todo: sleep debounce alg here to remove res/cap
+  if ~(PINB & (1 << PB1)) // seeing dev-mode req
+  {
+    if ~(PINA & (1 << PA0)) // if power is off, turn it on
+    {
+      PORTA |= (1 << PA0);
+    } // else do nothing
+    PORTA |= (1 << PA3); // assert dev mode
+  }
+  // else do nothing
+
+  // Insert nop for synchronization
+  _NOP();
 
   // Clear interrupt flag
   GIFR |= (1 << PCIF1);
 }
 
-ISR(PCINT1_vect)
-{
-  if (PINB & (1 << PB1)) // pb2 high
-  {
-    PORTA |= (1 << PA0); // turn LED on
-  }
-  else
-  {
-    PORTA &= ~(1 << PA0); // turn LED off
-  }
-
-  // Clear interrupt flag
-  GIFR |= (1 << INTF0);
-}
 
 
 int main(void)
