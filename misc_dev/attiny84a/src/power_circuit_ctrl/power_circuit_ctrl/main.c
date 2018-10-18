@@ -126,7 +126,8 @@
 #include <avr/sleep.h>
 //#include <util/delay.h>
 
-
+// todo: what does the F_CPU do hardware wise? Does changing this value use hardware freq. synth. or
+//       is it simply a software definition for something that is embedded??
 #define F_CPU 8000000 // todo: lower clock... dummy
 //#define F_CPU 1000000UL
 
@@ -134,6 +135,7 @@
 #define _NOP() do { __asm__ __volatile__ ("nop"); } while (0)
 
 // define pins for readability
+// todo: put this junk into .h file
 #define POWER_ON_PIN   PA0
 #define FAULT_PIN      PA1
 #define DEV_MODE_PIN   PA3
