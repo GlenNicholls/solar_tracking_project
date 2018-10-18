@@ -127,11 +127,65 @@
 //#include <util/delay.h>
 
 
-#define F_CPU 8000000
+#define F_CPU 8000000 // todo: lower clock... dummy
 //#define F_CPU 1000000UL
 
 // used for a very short delay
 #define _NOP() do { __asm__ __volatile__ ("nop"); } while (0)
+
+// define pins for readability
+#define POWER_ON_PIN   PA0
+#define FAULT_PIN      PA1
+#define DEV_MODE_PIN   PA3
+#define DEVICE_ACK_PIN PA7
+#define BUTTON_PIN     PB1
+#define RTC_ALARM_PIN  PB2
+
+#define POWER_ON_PORT   PORTA
+#define FAULT_PORT      PORTA
+#define DEV_MODE_PORT   PORTA
+#define DEVICE_ACK_PORT PORTA
+#define BUTTON_PORT     PORTB
+#define RTC_ALARM_PORT  PORTB
+
+#define TURN_POWER_ON     SET_BIT(POWER_ON_PORT, POWER_ON_PIN)
+#define TURN_POWER_OFF    CLR_BIT(POWER_ON_PORT, POWER_ON_PIN)
+#define TURN_FAULT_ON     SET_BIT(FAULT_PORT, FAULT_PIN)
+#define TURN_FAULT_OFF    CLR_BIT(FAULT_PORT, FAULT_PIN)
+#define TURN_DEV_MODE_ON  SET_BIT(DEV_MODE_PORT, DEV_MODE_PIN)
+#define TURN_DEV_MODE_OFF CLR_BIT(DEV_MODE_PORT, DEV_MODE_PIN)
+
+// functions for checking pin states
+// todo: should getSomething convention be used instead??
+static inline bool isPowerOn(void)
+{
+  return (POWER_ON_PORT & (1 << POWER_ON_PIN)) > 0;
+}
+
+static inline bool isFaultOn(void)
+{
+  return (FAULT_PORT & (1 << FAULT_PIN)) > 0;
+}
+
+static inline bool isDevModeOn(void)
+{
+  return (DEV_MODE_PORT & (1 << DEV_MODE_PIN)) > 0;
+}
+
+static inline bool isDeviceAckOn(void)
+{
+  return (DEVICE_ACK_PORT & (1 << DEVICE_ACK_PIN)) > 0;
+}
+
+static inline bool isButtonOn(void) // look for low-going edge (active low)
+{
+  return (BUTTON_PORT & (1 << BUTTON_PIN)) == 0;
+}
+
+static inline bool isRTCAlarmOn(void) // look for low-going edge (active low)
+{
+  return (RTC_ALARM_PORT & (1 << RTC_ALARM_PIN)) == 0;
+}
 
 
 // todo: implement this when the time comes
@@ -150,6 +204,46 @@
 //     WDTCSR = 0x00;
 // }
 
+// todo: should I use SET_BITS() and concatenate what I want??
+static inline void initPortA(void)
+{
+  // DDRA Port Directions
+  //
+  // DDA7: 0 input pi_tx_hold_on PCINT7
+  // DDA6: 0 input MOSI low-power
+  // DDA5: 0 input MISO low-power
+  // DDA4: 0 input SCK  low-power
+  // DDA3: 1 output pi_rx_dev_mode
+  // DDA2: 0 DNC low-power
+  // DDA1: 1 output FAULT
+  // DDA0: 1 output en_power
+  DDRA &= ~( (1 << PA7) | (1 << PA6) | (1 << PA5) | (1 << PA4) | (1 << PA2) );
+  DDRA |=    (1 << DEV_MODE_PIN) | (1 << FAULT_PIN) | (1 << POWER_ON_PIN);
+
+  // Enable pullups on PA[7] input
+  // Enable pullups on PA[6:0] for low-power
+  PORTA &= ~((1 << DEV_MODE_PIN) | (1 << FAULT_PIN)); // first time power, don't want fault or dev-mode asserted
+  PORTA |= (1 << PA7) | (1 << PA6) | (1 << PA5) | (1 << PA4) |
+           (1 << PA2) | (1 << PA0);
+}
+
+static inline void initPortB(void)
+{
+  // DDRB Port Directions
+  //
+  // DDB3: 0 input RESET_N
+  // DDB2: 0 input rtc_ALRM_N
+  // DDB1: 0 input psh_button
+  // DDB0: 1 DNC low-power
+  DDRB &= ~((1 << PB3) | (1 << RTC_ALARM_PIN) | (1 << BUTTON_PIN)); // don't want to mess with RESET_N
+  DDRB |=    (1 << PB0);
+
+  // Enable pullups on PB[2:1] input
+  // Enable pullups on PB[3,0] for low-power
+  //PORTB |= (1 << PB3) | (1 << PB2) | (1 << PB1) | (1 << PB0);
+  PORTB |= (1 << PB3) | (1 << BUTTON_PIN) | (1 << PB0);
+  PORTB &= ~(1 << RTC_ALARM_PIN); // debug
+}
 
 static inline void initInterrupts(void)
 {
@@ -168,104 +262,88 @@ static inline void initInterrupts(void)
   PCMSK1 |= (1 << PCINT9);
 }
 
+// configure clocks
+// static inline initClocks(void)
+// {
+//   // todo: not sure how to configure clocks yet
+// }
+
+// configure low-power
+// static inline initLowPowerMode(void)
+// {
+//   // todo: not sure how to configure clocks yet
+//
+//   // Analog Comparator Control/Status Register
+//   ACSR |= (1 << ACD); // disable
+//
+//   // Power Reduction Register
+//   //
+//   // PRTIM1 : ??
+//   // PRTIM0 : ??
+//   // PRUSI  : ??
+//   PRR |= (1 << PRADC); // disable ADC
+//
+//   // Sleep Mode
+//   //
+//   // BODS  : disable BOD during low-power?
+//   // PUD   : ??
+//   // BODSE : ??
+//   // todo: would power-down be better since it halts clocks and only wakes on async events??
+//   // todo: should SE only be enabled when desired and cleared upon wakeup??
+//   MCUCR |= (1 << SE);     // Enable sleep
+//   MCUCR |= (0b11 << SM0); // Mode: standby
+// }
+
 static inline void initMCU(void)
 {
-  // DDRA Port Directions
-  //
-  // DDA7: 0 input pi_tx_hold_on PCINT7
-  // DDA6: 0 input MOSI low-power
-  // DDA5: 0 input MISO low-power
-  // DDA4: 0 input SCK  low-power
-  // DDA3: 1 output pi_rx_dev_mode
-  // DDA2: 0 DNC low-power
-  // DDA1: 1 output FAULT
-  // DDA0: 1 output en_power
-  DDRA &= ~( (1 << PA7) | (1 << PA6) | (1 << PA5) | (1 << PA4) | (1 << PA2) );
-  DDRA |=    (1 << PA3) | (1 << PA1) | (1 << PA0);
+  // init directions and pullups on port A
+  initPortA();
 
-  // Enable pullups on PA[7] input
-  // Enable pullups on PA[6:0] for low-power
-  PORTA &= ~( (1 << PA3) | (1 << PA1) ); // first time power, don't want fault or dev-mode asserted
-  PORTA |= (1 << PA7) | (1 << PA6) | (1 << PA5) | (1 << PA4) |
-           (1 << PA2) | (1 << PA0);
-
-  // DDRB Port Directions
-  //
-  // DDB3: 0 input RESET_N
-  // DDB2: 0 input rtc_ALRM_N
-  // DDB1: 0 input psh_button
-  // DDB0: 1 DNC low-power
-  DDRB &= ~( (1 << PB3) | (1 << PB2) | (1 << PB1) );
-  DDRB |=    (1 << PB0);
-
-  // Enable pullups on PB[2:1] input
-  // Enable pullups on PB[3,0] for low-power
-  //PORTB |= (1 << PB3) | (1 << PB2) | (1 << PB1) | (1 << PB0);
-  PORTB |= (1 << PB3) | (1 << PB1) | (1 << PB0);
-  PORTB &= ~(1 << PB2); // debugging pullup
+  // init directions and pullups on port B
+  initPortB();
 
   // Enable the MCUCR pullups
   MCUCR &= ~(1 << PUD);
 
-  // todo: not sure how to configure clocks yet
-//
-//  // Analog Comparator Control/Status Register
-//  ACSR |= (1 << ACD); // disable
-//
-//  // Power Reduction Register
-//  //
-//  // PRTIM1 : ??
-//  // PRTIM0 : ??
-//  // PRUSI  : ??
-//  PRR |= (1 << PRADC); // disable ADC
-//
-//  // Sleep Mode
-//  //
-//  // BODS  : disable BOD during low-power?
-//  // PUD   : ??
-//  // BODSE : ??
-//  // todo: would power-down be better since it halts clocks and only wakes on async events??
-//  // todo: should SE only be enabled when desired and cleared upon wakeup??
-//  MCUCR |= (1 << SE);     // Enable sleep
-//  MCUCR |= (0b11 << SM0); // Mode: standby
-
   // Configure INT
   initInterrupts();
+
+  // Configure clocks
+//  initClocks()
+  // Configure low-power mode
+//  initLowPowerMode();
 
   // Enable global interrupts by set I-bit in SREG to 1
   sei();
 }
 
-// todo: will an interrupt while another interrupt is being serviced cause contention on en_power??
+// todo: implicit mutex using function for error checking
+
+
 
 /*
  * RTC Alarm ISR
  */
 ISR(EXT_INT0_vect)
 {
-  if ~(PINB & (1 << PB2)) // Alarm has occured
+  if isAlarmOn() // Alarm has occured
   {
-    if (PINA & (1 << PA0)) // Checking to see if load switch already on
+    if isPowerOn() // Checking to see if load switch already on
     {
       // todo: Should FAULTS ever be cleared before user intervention??
-      PORTA |= (1 << PA1); // raise FAULT as this shouldn't happen, but maintain power to device
+      TURN_FAULT_ON; // raise FAULT as this shouldn't happen, but maintain power to device
     }
     else
     {
-      PORTA |= (1 << PA0); // Turn load switch on
+      TURN_POWER_ON; // Turn load switch on
     }
   }
-  else //
-  {
-    // todo: find out if any error checking needs to be done when alarm is cleared
-    //       should be branching back to service other interrupts or sleep
-  }
+  // todo: find out if any error checking needs to be done when alarm is cleared
+  //       should be branching back to service other interrupts or sleep
+  // else {}
 
   // Insert nop for synchronization
   _NOP();
-
-  // Clear interrupt flag
-  GIFR |= (1 << INTF0);
 }
 
 /*
@@ -275,9 +353,9 @@ ISR(EXT_INT0_vect)
 //       RTC alarm event occur??
 ISR(PCINT0_vect)
 {
-  if (PINA & (1 << PA7)) // Pi has turned on
+  if isDeviceAckOn() // Pi has turned on
   {
-    while ~(PINB & (1 << PB2)) // while alarm not cleared, check until cleared
+    while isAlarmOn() // while alarm not cleared, check until cleared
     {
       // todo: sleep for some time
       // todo: what happens when alarm on INT0 gets cleared? does that get serviced before coming back here?
@@ -287,22 +365,19 @@ ISR(PCINT0_vect)
   else // Pi has turned off
   {
     // todo: sleep here for ~30s-45s and error-check
-    if (PINA & (1 << PA0)) // done sleeping, make sure load switch is on
+    if isPowerOn() // done sleeping, make sure load switch is on
     {
-      PORTA &= ~(1 << PA0); // Turn load switch off
+      TURN_POWER_OFF; // Turn load switch off
     }
     else
     {
-      PORTA |= (1 << PA1); // Raise FAULT as this should never happen
+      TURN_FAULT_ON; // Raise FAULT as this should never happen
     }
-    PORTA &= ~(1 << PA3); // Turn dev mode off
+    TURN_DEV_MODE_OFF; // Turn dev mode off
   }
 
   // Insert nop for synchronization
   _NOP();
-
-  // Clear interrupt flag
-  GIFR |= (1 << PCIF0);
 }
 
 /*
@@ -311,22 +386,19 @@ ISR(PCINT0_vect)
 // __debounced in analog__
 ISR(PCINT1_vect)
 {
-  // todo: sleep debounce alg here to remove res/cap
-  if ~(PINB & (1 << PB1)) // seeing dev-mode req
+  // todo: debounce timer here to remove res/cap
+  if isButtonOn() // seeing dev-mode req
   {
-    if ~(PINA & (1 << PA0)) // if power is off, turn it on
+    if ~isPowerOn() // if power is off, turn it on
     {
-      PORTA |= (1 << PA0);
+      TURN_POWER_ON;
     } // else do nothing
-    PORTA |= (1 << PA3); // assert dev mode
+    TURN_DEV_MODE_ON; // assert dev mode
   }
-  // else do nothing
+  // else {} do nothing
 
   // Insert nop for synchronization
   _NOP();
-
-  // Clear interrupt flag
-  GIFR |= (1 << PCIF1);
 }
 
 
