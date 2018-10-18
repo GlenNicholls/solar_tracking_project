@@ -1,8 +1,8 @@
 # ======================================================================
 #  Makefile for AVRDude
 # ======================================================================
-TARGET = main
-SRC    = main.c
+TARGET = pi_hat_ctrl
+SRC    = pi_hat_ctrl.c
 
 MCU    = attiny84 # change device if using different
 
@@ -16,7 +16,7 @@ OBJCOPY = avr-objcopy
 
 CFLAGS = -Wall -Os -std=gnu99 -mmcu=$(MCU) -I.
 
-AVRDUDE_CONF        = ../../../../avrdude_gpio.conf
+AVRDUDE_CONF        = ../../../avrdude_gpio.conf
 AVRDUDE_PROGRAMMER  = pi_1
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 AVRDUDE_FLAGS       = -p $(MCU) -c $(AVRDUDE_PROGRAMMER) -C $(AVRDUDE_CONF) -v
