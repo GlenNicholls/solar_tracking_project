@@ -158,7 +158,7 @@ static inline void initPortA(void)
   // DDA1: 1 output FAULT
   // DDA0: 1 output en_power
   DDRA &= ~( (1 << PA7) | (1 << PA6) | (1 << PA5) | (1 << PA4) | (1 << PA2) );
-  DDRA |=    (1 << DEV_MODE_PIN) | (1 << FAULT_PIN) | (1 << POWER_ON_PIN);
+  DDRA |=    (1 << DEV_MODE_PIN) | (1 << FAULT_PIN) | (1 << POWER_PIN);
 
   // Enable pullups on PA[7] input
   // Enable pullups on PA[6:0] for low-power
@@ -176,13 +176,13 @@ static inline void initPortB(void)
   // DDB1: 0 input psh_button
   // DDB0: 1 DNC low-power
   DDRB &= ~((1 << PB3) | (1 << RTC_ALARM_PIN) | (1 << BUTTON_PIN)); // don't want to mess with RESET_N
-  DDRB |=    (1 << PB0);
+  DDRB |=   (1 << PB0);
 
   // Enable pullups on PB[2:1] input
   // Enable pullups on PB[3,0] for low-power
-  //PORTB |= (1 << PB3) | (1 << PB2) | (1 << PB1) | (1 << PB0);
-  PORTB |= (1 << PB3) | (1 << BUTTON_PIN) | (1 << PB0);
-  PORTB &= ~(1 << RTC_ALARM_PIN); // debug
+  PORTB |= (1 << PB3) | (1 << RTC_ALARM_PIN) | (1 << BUTTON_PIN) | (1 << PB0);
+  //PORTB |= (1 << PB3) | (1 << BUTTON_PIN) | (1 << PB0);
+  //PORTB &= ~(1 << RTC_ALARM_PIN); // debug
 }
 
 static inline void initInterrupts(void)
@@ -266,7 +266,7 @@ static inline void initMCU(void)
  */
 // ISR(EXT_INT0_vect)
 // {
-//   if isAlarmOn() // Alarm has occured
+//   if isRTCAlarmOn() // Alarm has occured
 //   {
 //     if isPowerOn() // Checking to see if load switch already on
 //     {
@@ -288,16 +288,22 @@ static inline void initMCU(void)
 
 ISR(EXT_INT0_vect)
 {
-  if isAlarmOn() // Alarm has occured
+  if (PORTB & (1 << PB2))//(isRTCAlarmOn()) // Alarm has occured
   {
-    TURN_POWER_ON; // Turn load switch on
+    //TURN_POWER_ON; // Turn load switch on
+    PORTA |= (1 << PA0);
   }
   else
   {
-    TURN_POWER_OFF;
+    //TURN_POWER_OFF;
+    PORTA &= ~(1 << PA0);
   }
+
   // Insert nop for synchronization
   _NOP();
+
+  // Clear interrupt flag
+  GIFR |= (1 << INTF0);
 }
 
 
@@ -308,19 +314,19 @@ ISR(EXT_INT0_vect)
 //       RTC alarm event occur??
 ISR(PCINT0_vect)
 {
-  if isDeviceAckOn() // Pi has turned on
+  if (isDeviceAckOn()) // Pi has turned on
   {
-    while isAlarmOn() // while alarm not cleared, check until cleared
-    {
-      // todo: sleep for some time
-      // todo: what happens when alarm on INT0 gets cleared? does that get serviced before coming back here?
-      // todo: add _WDT(), timer, or variable so we don't get stuck
-    }
+    // while (isRTCAlarmOn()) // while alarm not cleared, check until cleared
+    // {
+    //   // todo: sleep for some time
+    //   // todo: what happens when alarm on INT0 gets cleared? does that get serviced before coming back here?
+    //   // todo: add _WDT(), timer, or variable so we don't get stuck
+    // }
   }
   else // Pi has turned off
   {
     // todo: sleep here for ~30s-45s and error-check
-    if isPowerOn() // done sleeping, make sure load switch is on
+    if (isPowerOn()) // done sleeping, make sure load switch is on
     {
       TURN_POWER_OFF; // Turn load switch off
     }
@@ -342,9 +348,9 @@ ISR(PCINT0_vect)
 ISR(PCINT1_vect)
 {
   // todo: debounce timer here to remove res/cap
-  if isButtonOn() // seeing dev-mode req
+  if (isButtonOn()) // seeing dev-mode req
   {
-    if ~isPowerOn() // if power is off, turn it on
+    if (~isPowerOn()) // if power is off, turn it on
     {
       TURN_POWER_ON;
     } // else do nothing
