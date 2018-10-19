@@ -196,12 +196,19 @@ static inline void initInterrupts(void)
   // PCIE1 : 1 Enable pin change INT
   // PCIE0 : 1 Enable pin change INT
   // INT0  : 1 Enable external interrupt
-  GIMSK |= (1 << INT0);// | (1 << PCIE0) | (1 << PCIE1);
+  GIMSK |= (1 << INT0) | (1 << PCIE0) | (1 << PCIE1);
 
   // Pin Change Mask Registers
-  //PCMSK0 |= (1 << PCINT7);
-  //PCMSK1 |= (1 << PCINT9);
+  PCMSK0 |= (1 << PCINT7);
+  PCMSK1 |= (1 << PCINT9);
 }
+
+// Configure timer(s)
+// F_CPU/(prescaler*(timer_max_val - timer_preset)) = num_timer_OVF_per_sec
+// static inline void initTimers(void)
+// {
+//
+// }
 
 // configure clocks
 // static inline initClocks(void)
@@ -267,9 +274,9 @@ static inline void initMCU(void)
 //  */
 // ISR(EXT_INT0_vect)
 // {
-//   if isRTCAlarmOn() // Alarm has occured
+//   if (isRTCAlarmOn()) // Alarm has occured
 //   {
-//     if isPowerOn() // Checking to see if load switch already on
+//     if (isPowerOn()) // Checking to see if load switch already on
 //     {
 //       // todo: Should FAULTS ever be cleared before user intervention??
 //       TURN_FAULT_ON; // raise FAULT as this shouldn't happen, but maintain power to device
@@ -287,67 +294,67 @@ static inline void initMCU(void)
 //   _NOP();
 // }
 
-// /*
-//  * pi_tx_hold_on ISR
-//  */
-// // todo: how to incorporate check for if this condition never happens when push button or
-// //       RTC alarm event occur??
-// ISR(PCINT0_vect)
-// {
-//   if (isDeviceAckOn()) // Pi has turned on
-//   {
-//     // while (isRTCAlarmOn()) // while alarm not cleared, check until cleared
-//     // {
-//     //   // todo: sleep for some time
-//     //   // todo: what happens when alarm on INT0 gets cleared? does that get serviced before coming back here?
-//     //   // todo: add _WDT(), timer, or variable so we don't get stuck
-//     // }
-//   }
-//   else // Pi has turned off
-//   {
-//     // todo: sleep here for ~30s-45s and error-check
-//     if (isPowerOn()) // done sleeping, make sure load switch is on
-//     {
-//       TURN_POWER_OFF; // Turn load switch off
-//     }
-//     else
-//     {
-//       TURN_FAULT_ON; // Raise FAULT as this should never happen
-//     }
-//     TURN_DEV_MODE_OFF; // Turn dev mode off
-//   }
-//
-//   // Insert nop for synchronization
-//   _NOP();
-// }
-//
-// /*
-//  * Push Button ISR
-//  */
-// // __debounced in analog__
-// ISR(PCINT1_vect)
-// {
-//   // todo: debounce timer here to remove res/cap
-//   if (isButtonOn()) // seeing dev-mode req
-//   {
-//     if (~isPowerOn()) // if power is off, turn it on
-//     {
-//       TURN_POWER_ON;
-//     } // else do nothing
-//     TURN_DEV_MODE_ON; // assert dev mode
-//   }
-//   // else {} do nothing
-//
-//   // Insert nop for synchronization
-//   _NOP();
-// }
+/*
+ * pi_tx_hold_on ISR
+ */
+// todo: how to incorporate check for if this condition never happens when push button or
+//       RTC alarm event occur??
+ISR(PCINT0_vect)
+{
+  if (isDeviceAckOn()) // Pi has turned on
+  {
+    // while (isRTCAlarmOn()) // while alarm not cleared, check until cleared
+    // {
+    //   // todo: sleep for some time
+    //   // todo: what happens when alarm on INT0 gets cleared? does that get serviced before coming back here?
+    //   // todo: add _WDT(), timer, or variable so we don't get stuck
+    // }
+  }
+  else // Pi has turned off
+  {
+    // todo: sleep here for ~30s-45s and error-check
+    if (isPowerOn()) // done sleeping, make sure load switch is on
+    {
+      TURN_POWER_OFF; // Turn load switch off
+    }
+    else
+    {
+      TURN_FAULT_ON; // Raise FAULT as this should never happen
+    }
+    TURN_DEV_MODE_OFF; // Turn dev mode off
+  }
+
+  // Insert nop for synchronization
+  _NOP();
+}
+
+/*
+ * Push Button ISR
+ */
+// __debounced in analog__
+ISR(PCINT1_vect)
+{
+  // todo: debounce timer here to remove res/cap
+  if (isButtonOn()) // seeing dev-mode req
+  {
+    if (~isPowerOn()) // if power is off, turn it on
+    {
+      TURN_POWER_ON;
+    } // else do nothing
+    TURN_DEV_MODE_ON; // assert dev mode
+  }
+  // else {} do nothing
+
+  // Insert nop for synchronization
+  _NOP();
+}
 
 
 
 // todo: test code below
 ISR(EXT_INT0_vect)
 {
-  if (PINB & (1 << PB2))//(isRTCAlarmOn()) // Alarm has occured
+  if (isRTCAlarmOn()) // Alarm has occured
   {
     TURN_POWER_ON; // Turn load switch on
   }
