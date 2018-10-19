@@ -148,58 +148,59 @@
 static inline void initPortA(void)
 {
   // DDRA Port Directions
-  //
-  // DDA7: 0 input pi_tx_hold_on PCINT7
-  // DDA6: 0 input MOSI low-power
-  // DDA5: 0 input MISO low-power
-  // DDA4: 0 input SCK  low-power
-  // DDA3: 1 output pi_rx_dev_mode
-  // DDA2: 0 DNC low-power
-  // DDA1: 1 output FAULT
-  // DDA0: 1 output en_power
-  DDRA &= ~( (1 << PA7) | (1 << PA6) | (1 << PA5) | (1 << PA4) | (1 << PA2) );
-  DDRA |=    (1 << DEV_MODE_PIN) | (1 << FAULT_PIN) | (1 << POWER_PIN);
+  SET_INPUT(DDRA, DEVICE_ACK_PIN);
+  SET_INPUT(DDRA, PA6); // DNC
+  SET_INPUT(DDRA, PA5); // DNC
+  SET_INPUT(DDRA, PA4); // DNC
+  SET_INPUT(DDRA, PA2); // DNC
 
-  // Enable pullups on PA[7] input
-  // Enable pullups on PA[6:0] for low-power
-  PORTA &= ~((1 << DEV_MODE_PIN) | (1 << FAULT_PIN)); // first time power, don't want fault or dev-mode asserted
-  PORTA |= (1 << PA7) | (1 << PA6) | (1 << PA5) | (1 << PA4) |
-           (1 << PA2) | (1 << PA0);
+  SET_OUTPUT(DDRA, DEV_MODE_PIN);
+  SET_OUTPUT(DDRA, FAULT_PIN);
+  SET_OUTPUT(DDRA, POWER_PIN);
+
+  // Enable pullups
+  SET_PULLUP_ON(PORTA, DEVICE_ACK_PIN);
+  SET_PULLUP_ON(PORTA, PA6);
+  SET_PULLUP_ON(PORTA, PA5);
+  SET_PULLUP_ON(PORTA, PA4);
+  SET_PULLUP_ON(PORTA, PA2);
+  SET_PULLUP_ON(PORTA, POWER_PIN);
+
+  SET_PULLUP_OFF(PORTA, DEV_MODE_PIN); // don't want enabled when first powered on
+  SET_PULLUP_OFF(PORTA, FAULT_PIN);    // don't want enabled when first powered on
 }
 
 static inline void initPortB(void)
 {
   // DDRB Port Directions
-  //
-  // DDB3: 0 input RESET_N
-  // DDB2: 0 input rtc_ALRM_N
-  // DDB1: 0 input psh_button
-  // DDB0: 1 DNC low-power
-  DDRB &= ~((1 << PB3) | (1 << RTC_ALARM_PIN) | (1 << BUTTON_PIN)); // don't want to mess with RESET_N
-  DDRB |=   (1 << PB0);
+  SET_INPUT(DDRB, PA3);
+  SET_INPUT(DDRB, RTC_ALARM_PIN);
+  SET_INPUT(DDRB, BUTTON_PIN);
 
-  // Enable pullups on PB[2:1] input
-  // Enable pullups on PB[3,0] for low-power
-  PORTB |= (1 << PB3) | (1 << RTC_ALARM_PIN) | (1 << BUTTON_PIN) | (1 << PB0);
-  //PORTB |= (1 << PB3) | (1 << BUTTON_PIN) | (1 << PB0);
-  //PORTB &= ~(1 << RTC_ALARM_PIN); // debug
+  SET_OUTPUT(DDRB, PB0);
+
+  // Enable pullups
+  SET_PULLUP_ON(PORTB, PB3);
+  SET_PULLUP_ON(PORTB, RTC_ALARM_PIN);
+  SET_PULLUP_ON(PORTB, BUTTON_PIN);
+  SET_PULLUP_ON(PORTB, PB0);
 }
 
 static inline void initInterrupts(void)
 {
   // Configure INT0 interrupt mode
-  MCUCR |= (0b01 << ISC00); // Mode: logic change
+  SET_BITS(MCUCR, LOGIC_CHANGE, ISC00);
 
   // General Interrupt Mask Register
   //
   // PCIE1 : 1 Enable pin change INT
   // PCIE0 : 1 Enable pin change INT
   // INT0  : 1 Enable external interrupt
-  GIMSK |= (1 << INT0) | (1 << PCIE0) | (1 << PCIE1);
+  GIMSK |= (1 << INT0);// | (1 << PCIE0) | (1 << PCIE1);
 
   // Pin Change Mask Registers
-  PCMSK0 |= (1 << PCINT7);
-  PCMSK1 |= (1 << PCINT9);
+  //PCMSK0 |= (1 << PCINT7);
+  //PCMSK1 |= (1 << PCINT9);
 }
 
 // configure clocks
@@ -261,9 +262,9 @@ static inline void initMCU(void)
 
 
 
-/*
- * RTC Alarm ISR
- */
+// /*
+//  * RTC Alarm ISR
+//  */
 // ISR(EXT_INT0_vect)
 // {
 //   if isRTCAlarmOn() // Alarm has occured
@@ -286,82 +287,78 @@ static inline void initMCU(void)
 //   _NOP();
 // }
 
+// /*
+//  * pi_tx_hold_on ISR
+//  */
+// // todo: how to incorporate check for if this condition never happens when push button or
+// //       RTC alarm event occur??
+// ISR(PCINT0_vect)
+// {
+//   if (isDeviceAckOn()) // Pi has turned on
+//   {
+//     // while (isRTCAlarmOn()) // while alarm not cleared, check until cleared
+//     // {
+//     //   // todo: sleep for some time
+//     //   // todo: what happens when alarm on INT0 gets cleared? does that get serviced before coming back here?
+//     //   // todo: add _WDT(), timer, or variable so we don't get stuck
+//     // }
+//   }
+//   else // Pi has turned off
+//   {
+//     // todo: sleep here for ~30s-45s and error-check
+//     if (isPowerOn()) // done sleeping, make sure load switch is on
+//     {
+//       TURN_POWER_OFF; // Turn load switch off
+//     }
+//     else
+//     {
+//       TURN_FAULT_ON; // Raise FAULT as this should never happen
+//     }
+//     TURN_DEV_MODE_OFF; // Turn dev mode off
+//   }
+//
+//   // Insert nop for synchronization
+//   _NOP();
+// }
+//
+// /*
+//  * Push Button ISR
+//  */
+// // __debounced in analog__
+// ISR(PCINT1_vect)
+// {
+//   // todo: debounce timer here to remove res/cap
+//   if (isButtonOn()) // seeing dev-mode req
+//   {
+//     if (~isPowerOn()) // if power is off, turn it on
+//     {
+//       TURN_POWER_ON;
+//     } // else do nothing
+//     TURN_DEV_MODE_ON; // assert dev mode
+//   }
+//   // else {} do nothing
+//
+//   // Insert nop for synchronization
+//   _NOP();
+// }
+
+
+
+// todo: test code below
 ISR(EXT_INT0_vect)
 {
-  if (PORTB & (1 << PB2))//(isRTCAlarmOn()) // Alarm has occured
+  if (PINB & (1 << PB2))//(isRTCAlarmOn()) // Alarm has occured
   {
-    //TURN_POWER_ON; // Turn load switch on
-    PORTA |= (1 << PA0);
+    TURN_POWER_ON; // Turn load switch on
   }
   else
   {
-    //TURN_POWER_OFF;
-    PORTA &= ~(1 << PA0);
-  }
-
-  // Insert nop for synchronization
-  _NOP();
-
-  // Clear interrupt flag
-  GIFR |= (1 << INTF0);
-}
-
-
-/*
- * pi_tx_hold_on ISR
- */
-// todo: how to incorporate check for if this condition never happens when push button or
-//       RTC alarm event occur??
-ISR(PCINT0_vect)
-{
-  if (isDeviceAckOn()) // Pi has turned on
-  {
-    // while (isRTCAlarmOn()) // while alarm not cleared, check until cleared
-    // {
-    //   // todo: sleep for some time
-    //   // todo: what happens when alarm on INT0 gets cleared? does that get serviced before coming back here?
-    //   // todo: add _WDT(), timer, or variable so we don't get stuck
-    // }
-  }
-  else // Pi has turned off
-  {
-    // todo: sleep here for ~30s-45s and error-check
-    if (isPowerOn()) // done sleeping, make sure load switch is on
-    {
-      TURN_POWER_OFF; // Turn load switch off
-    }
-    else
-    {
-      TURN_FAULT_ON; // Raise FAULT as this should never happen
-    }
-    TURN_DEV_MODE_OFF; // Turn dev mode off
+    TURN_POWER_OFF;
   }
 
   // Insert nop for synchronization
   _NOP();
 }
-
-/*
- * Push Button ISR
- */
-// __debounced in analog__
-ISR(PCINT1_vect)
-{
-  // todo: debounce timer here to remove res/cap
-  if (isButtonOn()) // seeing dev-mode req
-  {
-    if (~isPowerOn()) // if power is off, turn it on
-    {
-      TURN_POWER_ON;
-    } // else do nothing
-    TURN_DEV_MODE_ON; // assert dev mode
-  }
-  // else {} do nothing
-
-  // Insert nop for synchronization
-  _NOP();
-}
-
 
 
 int main(void)

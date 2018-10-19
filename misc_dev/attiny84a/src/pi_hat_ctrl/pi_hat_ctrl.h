@@ -11,8 +11,17 @@
 
 // todo: where is the header for these things??
 // define macros
-#define set_bit(port, bit) port |= (1 << bit)
-#define clr_bit(port, bit) port &= ~(1 << bit)
+#define SET_BIT(PORT, BIT)        PORT |=  (1 << BIT)
+#define CLR_BIT(PORT, BIT)        PORT &= ~(1 << BIT)
+#define SET_OUTPUT(DDRX, BIT)     DDRX |=  (1 << BIT)
+#define SET_INPUT(DDRX, BIT)      DDRX &= ~(1 << BIT)
+#define SET_PULLUP_ON(PORT, BIT)  PORT |=  (1 << BIT)
+#define SET_PULLUP_OFF(PORT, BIT) PORT &= ~(1 << BIT)
+
+#define SET_BITS(REG, VAL, BASE) REG |= (VAL << BASE)
+
+// INT values
+#define LOGIC_CHANGE 0b01
 
 // define pins for readability
 // todo: put this junk into .h file
@@ -30,12 +39,12 @@
 #define BUTTON_PORT     PORTB
 #define RTC_ALARM_PORT  PORTB
 
-#define TURN_POWER_ON     set_bit(POWER_PORT, POWER_PIN)
-#define TURN_POWER_OFF    clr_bit(POWER_PORT, POWER_PIN)
-#define TURN_FAULT_ON     set_bit(FAULT_PORT, FAULT_PIN)
-#define TURN_FAULT_OFF    clr_bit(FAULT_PORT, FAULT_PIN)
-#define TURN_DEV_MODE_ON  set_bit(DEV_MODE_PORT, DEV_MODE_PIN)
-#define TURN_DEV_MODE_OFF clr_bit(DEV_MODE_PORT, DEV_MODE_PIN)
+#define TURN_POWER_ON     SET_BIT(POWER_PORT, POWER_PIN)
+#define TURN_POWER_OFF    CLR_BIT(POWER_PORT, POWER_PIN)
+#define TURN_FAULT_ON     SET_BIT(FAULT_PORT, FAULT_PIN)
+#define TURN_FAULT_OFF    CLR_BIT(FAULT_PORT, FAULT_PIN)
+#define TURN_DEV_MODE_ON  SET_BIT(DEV_MODE_PORT, DEV_MODE_PIN)
+#define TURN_DEV_MODE_OFF CLR_BIT(DEV_MODE_PORT, DEV_MODE_PIN)
 
 // Timer defines
 // F_CPU/(prescaler*(timer_max_val - timer_preset)) = num_timer_OVF_per_sec
