@@ -144,45 +144,45 @@
 //     WDTCSR = 0x00;
 // }
 
-// todo: should I use SET_BITS() and concatenate what I want??
+// todo: set full register if need memory
 static inline void initPortA(void)
 {
   // DDRA Port Directions
-  SET_INPUT(DDRA, DEVICE_ACK_PIN);
+  SET_INPUT(DDRA, DEVICE_ACK_PIN_REG);
   SET_INPUT(DDRA, PA6); // DNC
   SET_INPUT(DDRA, PA5); // DNC
   SET_INPUT(DDRA, PA4); // DNC
   SET_INPUT(DDRA, PA2); // DNC
 
-  SET_OUTPUT(DDRA, DEV_MODE_PIN);
-  SET_OUTPUT(DDRA, FAULT_PIN);
-  SET_OUTPUT(DDRA, POWER_PIN);
+  SET_OUTPUT(DDRA, DEV_MODE_PIN_REG);
+  SET_OUTPUT(DDRA, FAULT_PIN_REG);
+  SET_OUTPUT(DDRA, POWER_PIN_REG);
 
   // Enable pullups
-  SET_PULLUP_ON(PORTA, DEVICE_ACK_PIN);
+  SET_PULLUP_ON(PORTA, DEVICE_ACK_PIN_REG);
   SET_PULLUP_ON(PORTA, PA6);
   SET_PULLUP_ON(PORTA, PA5);
   SET_PULLUP_ON(PORTA, PA4);
   SET_PULLUP_ON(PORTA, PA2);
-  SET_PULLUP_ON(PORTA, POWER_PIN);
+  SET_PULLUP_ON(PORTA, POWER_PIN_REG);
 
-  SET_PULLUP_OFF(PORTA, DEV_MODE_PIN); // don't want enabled when first powered on
-  SET_PULLUP_OFF(PORTA, FAULT_PIN);    // don't want enabled when first powered on
+  SET_PULLUP_OFF(PORTA, DEV_MODE_PIN_REG); // don't want enabled when first powered on
+  SET_PULLUP_OFF(PORTA, FAULT_PIN_REG);    // don't want enabled when first powered on
 }
 
 static inline void initPortB(void)
 {
   // DDRB Port Directions
   SET_INPUT(DDRB, PA3);
-  SET_INPUT(DDRB, RTC_ALARM_PIN);
-  SET_INPUT(DDRB, BUTTON_PIN);
+  SET_INPUT(DDRB, RTC_ALARM_PIN_REG);
+  SET_INPUT(DDRB, BUTTON_PIN_REG);
 
   SET_OUTPUT(DDRB, PB0);
 
   // Enable pullups
   SET_PULLUP_ON(PORTB, PB3);
-  SET_PULLUP_ON(PORTB, RTC_ALARM_PIN);
-  SET_PULLUP_ON(PORTB, BUTTON_PIN);
+  SET_PULLUP_ON(PORTB, RTC_ALARM_PIN_REG);
+  SET_PULLUP_ON(PORTB, BUTTON_PIN_REG);
   SET_PULLUP_ON(PORTB, PB0);
 }
 
@@ -301,7 +301,7 @@ static inline void initMCU(void)
 //       RTC alarm event occur??
 ISR(PCINT0_vect)
 {
-  if (isDeviceAckOn()) // Pi has turned on
+  if (IS_DEVICE_ACK_ON) // Pi has turned on
   {
     // while (isRTCAlarmOn()) // while alarm not cleared, check until cleared
     // {
@@ -313,7 +313,7 @@ ISR(PCINT0_vect)
   else // Pi has turned off
   {
     // todo: sleep here for ~30s-45s and error-check
-    if (isPowerOn()) // done sleeping, make sure load switch is on
+    if (IS_POWER_ON) // done sleeping, make sure load switch is on
     {
       TURN_POWER_OFF; // Turn load switch off
     }
@@ -335,9 +335,9 @@ ISR(PCINT0_vect)
 ISR(PCINT1_vect)
 {
   // todo: debounce timer here to remove res/cap
-  if (isButtonOn()) // seeing dev-mode req
+  if (IS_BUTTON_ON) // seeing dev-mode req
   {
-    if (~isPowerOn()) // if power is off, turn it on
+    if (~IS_POWER_ON) // if power is off, turn it on
     {
       TURN_POWER_ON;
     } // else do nothing
@@ -354,7 +354,7 @@ ISR(PCINT1_vect)
 // todo: test code below
 ISR(EXT_INT0_vect)
 {
-  if (isRTCAlarmOn()) // Alarm has occured
+  if (IS_RTC_ALARM_ON) // Alarm has occured
   {
     TURN_POWER_ON; // Turn load switch on
   }
