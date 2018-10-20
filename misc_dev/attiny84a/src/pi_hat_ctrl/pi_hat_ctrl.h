@@ -1,13 +1,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
-//#include <stdbool.h>
-
-
-// todo: what does the F_CPU do hardware wise? Does changing this value use hardware freq. synth. or
-//       is it simply a software definition for something that is embedded??
-#define F_CPU 8000000 // todo: lower clock... dummy
-//#define F_CPU 1000000UL
 
 // used for a very short delay
 #define _NOP() do { __asm__ __volatile__ ("nop"); } while (0)
@@ -16,6 +9,7 @@
 // define macros
 #define SET_BIT(PORT, BIT) ( PORT |=  (1 << BIT) )
 #define CLR_BIT(PORT, BIT) ( PORT &= ~(1 << BIT) )
+#define TGL_BIT(PORT, BIT) ( PORT ^=  (1 << BIT) )
 
 #define SET_OUTPUT(DDRX, BIT) ( DDRX |=  (1 << BIT) )
 #define SET_INPUT(DDRX, BIT)  ( DDRX &= ~(1 << BIT) )
@@ -33,7 +27,6 @@
 #define LOGIC_CHANGE 0b01
 
 // define pins for readability
-// todo: make names more clear, e.g. POWER_PIN, PORT_PIN_POWER... These might be confusing
 #define POWER_PIN_REG      PA0
 #define FAULT_PIN_REG      PA1
 #define DEV_MODE_PIN_REG   PA3
@@ -75,7 +68,7 @@
 // todo: setFlag() for checking timer in other ISR
 
 // functions for checking pin states
-// todo: should getSomething convention be used instead??
+// todo: where to put these??
 static inline int powerIsOn(void)
 {
   return (POWER_PIN & POWER_STATUS_MASK);

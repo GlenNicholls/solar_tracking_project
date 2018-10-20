@@ -142,6 +142,7 @@
 // }
 
 // todo: set full register if need memory
+// todo: put all hardware specific in attiny84a.h
 static inline void initPortA(void)
 {
   // DDRA Port Directions
@@ -201,10 +202,47 @@ static inline void initInterrupts(void)
 }
 
 // Configure timer(s)
-// F_CPU/(prescaler*(timer_max_val - timer_preset)) = num_timer_OVF_per_sec
-// static inline void initTimers(void)
+// F_CPU/(prescaler*(1 + OCR0A)) = F_num_timer_OVF
+// todo: don't be an idiot and generacize this from F_CPU and all that Jazz.
+// todo: do I need to use reg B at all?? not yet I don't think.
+
+// 8-bit timer
+// todo: configure longer timer for ~10s to turn off dev-mode
+//       the short mode below is to debounce the button to turn on
+//       dev mode... To do this, timer probably needs to be free-running I think
+static inline void initTimer0(void)
+{
+  // Clear timer on compare match
+  // com0XX just affects this pin, so don't touch right??
+  TCCR0A |= (0b10 << WGM00);
+
+  // Prescalar 1024
+  TCCR0B |= (0b101 << CS00);
+
+  // Output compare reg
+  OCR0A = 50; // 8M/(2*1024(1+50)) = 77Hz = 12ms... It's Gr8!!!
+
+  // Enable compare match INT
+  // todo: overflow INT TOIE0??
+  TIMSK0 |= (1 << OCIE0A);
+}
+
+// todo: 16-bit timer for big honking times!
+// static inline void initTimer1(void)
 // {
+//   // Clear timer on compare match
+//   // com0XX just affects this pin, so don't touch right??
+//   TCCR0A |= (0b10 << WGM00);
 //
+//   // Prescalar 1024
+//   TCCR0B |= (0b101 << CS00);
+//
+//   // Output compare reg
+//   OCR0A = 50; // 8M/(2*1024(1+50)) = 77Hz = 12ms... It's Gr8!!!
+//
+//   // Enable compare match INT
+//   // todo: overflow INT TOIE0??
+//   TIMSK0 |= (1 << OCIE0A);
 // }
 
 // configure clocks
