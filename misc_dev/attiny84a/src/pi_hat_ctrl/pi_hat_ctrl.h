@@ -1,7 +1,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
-#include <stdbool.h>
+//#include <stdbool.h>
 
 
 // todo: what does the F_CPU do hardware wise? Does changing this value use hardware freq. synth. or
@@ -26,6 +26,7 @@
 #define SET_BITS(REG, VAL, BASE) ( REG |= (VAL << BASE) )
 #define CLR_BITS(REG, VAL, BASE) ( REG &= ~(VAL << BASE))
 
+// todo: MACRO THAT WORKS GOES HERE
 #define GET_PIN_STATUS(PIN, MASK) (PIN & MASK)
 
 // INT values
@@ -69,55 +70,57 @@
 #define TURN_DEV_MODE_ON  SET_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
 #define TURN_DEV_MODE_OFF CLR_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
 
-// todo: is this what you meant by moving function to define or #define (<whatever> & SOMETHING_STATUS_MASK)
-#define IS_POWER_ON      GET_PIN_STATUS(POWER_PIN,      POWER_STATUS_MASK)
-#define IS_FAULT_ON      GET_PIN_STATUS(FAULT_PIN,      FAULT_STATUS_MASK)
-#define IS_DEV_MODE_ON   GET_PIN_STATUS(DEV_MODE_PIN,   DEV_MODE_STATUS_MASK)
-#define IS_DEVICE_ACK_ON GET_PIN_STATUS(DEVICE_ACK_PIN, DEVICE_ACK_STATUS_MASK)
-#define IS_BUTTON_OFF    GET_PIN_STATUS(BUTTON_PIN,     BUTTON_STATUS_MASK)    // inverted logic, will ~
-#define IS_RTC_ALARM_OFF GET_PIN_STATUS(RTC_ALARM_PIN,  RTC_ALARM_STATUS_MASK) // inverted logic, will ~
-
-// todo: not sure if this inverting logic is valid, I think so since it's already masked so should be 0xff when true
-#define IS_BUTTON_ON    (~IS_BUTTON_OFF)
-#define IS_RTC_ALARM_ON (~IS_RTC_ALARM_OFF)
 
 // Timer defines
 // todo: setFlag() for checking timer in other ISR
 
-// // functions for checking pin states
-// // todo: should getSomething convention be used instead??
-// static inline bool isPowerOn(void)
-// {
-//   return (POWER_PIN & (1 << POWER_PIN_REG)) > 0;
-// }
-//
-// static inline bool isFaultOn(void)
-// {
-//   return (FAULT_PIN & (1 << FAULT_PIN_REG)) > 0;
-// }
-//
-// static inline bool isDevModeOn(void)
-// {
-//   return (DEV_MODE_PIN & (1 << DEV_MODE_PIN_REG)) > 0;
-// }
-//
-// static inline bool isDeviceAckOn(void)
-// {
-//   return (DEVICE_ACK_PIN & (1 << DEVICE_ACK_PIN_REG)) > 0;
-// }
-//
-// static inline bool isButtonOn(void) // look for low-going edge (active low)
-// {
-//   return (BUTTON_PIN & (1 << BUTTON_PIN_REG)) == 0;
-// }
-//
-// static inline bool isRTCAlarmOn(void) // look for low-going edge (active low)
-// {
-//   return (RTC_ALARM_PIN & (1 << RTC_ALARM_PIN_REG)) == 0;
-// }
+// functions for checking pin states
+// todo: should getSomething convention be used instead??
+static inline int powerIsOn(void)
+{
+  return (POWER_PIN & POWER_STATUS_MASK);
+}
 
-// function prototypes
-// todo: hmmm
+static inline int faultIsOn(void)
+{
+  return (FAULT_PIN & FAULT_STATUS_MASK);
+}
+
+static inline int devModeIsOn(void)
+{
+  return (DEV_MODE_PIN & DEV_MODE_STATUS_MASK);
+}
+
+static inline int deviceAckIsOn(void)
+{
+  return (DEVICE_ACK_PIN & DEVICE_ACK_STATUS_MASK);
+}
+
+static inline int buttonIsOn(void) // look for low-going edge (active low)
+{
+  if (BUTTON_PIN & BUTTON_STATUS_MASK)
+  {
+    return 0;
+  }
+  else
+  {
+    return 1;
+  }
+}
+
+static inline int rtcAlarmIsOn(void) // look for low-going edge (active low)
+{
+  if (RTC_ALARM_PIN & RTC_ALARM_STATUS_MASK)
+  {
+    return 0;
+  }
+  else
+  {
+    return 1;
+  }
+}
+
+// function prototypes or whatever it's called here
 static inline void initPortA(void);
 static inline void initPortB(void);
 static inline void initInterrupts(void);

@@ -121,9 +121,6 @@
  *           user specifies it do so. Reference todo:
  */
 
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/sleep.h>
 #include <pi_hat_ctrl.h>
 
 
@@ -274,9 +271,9 @@ static inline void initMCU(void)
 //  */
 // ISR(EXT_INT0_vect)
 // {
-//   if (isRTCAlarmOn()) // Alarm has occured
+//   if (rtcAlarmIsOn()) // Alarm has occured
 //   {
-//     if (isPowerOn()) // Checking to see if load switch already on
+//     if (powerIsOn()) // Checking to see if load switch already on
 //     {
 //       // todo: Should FAULTS ever be cleared before user intervention??
 //       TURN_FAULT_ON; // raise FAULT as this shouldn't happen, but maintain power to device
@@ -301,7 +298,7 @@ static inline void initMCU(void)
 //       RTC alarm event occur??
 ISR(PCINT0_vect)
 {
-  if (IS_DEVICE_ACK_ON) // Pi has turned on
+  if (deviceAckIsOn()) // Pi has turned on
   {
     // while (isRTCAlarmOn()) // while alarm not cleared, check until cleared
     // {
@@ -313,7 +310,7 @@ ISR(PCINT0_vect)
   else // Pi has turned off
   {
     // todo: sleep here for ~30s-45s and error-check
-    if (IS_POWER_ON) // done sleeping, make sure load switch is on
+    if (powerIsOn()) // done sleeping, make sure load switch is on
     {
       TURN_POWER_OFF; // Turn load switch off
     }
@@ -335,9 +332,9 @@ ISR(PCINT0_vect)
 ISR(PCINT1_vect)
 {
   // todo: debounce timer here to remove res/cap
-  if (IS_BUTTON_ON) // seeing dev-mode req
+  if (buttonIsOn()) // seeing dev-mode req
   {
-    if (~IS_POWER_ON) // if power is off, turn it on
+    if (~powerIsOn()) // if power is off, turn it on
     {
       TURN_POWER_ON;
     } // else do nothing
@@ -354,7 +351,7 @@ ISR(PCINT1_vect)
 // todo: test code below
 ISR(EXT_INT0_vect)
 {
-  if (IS_RTC_ALARM_ON) // Alarm has occured
+  if (rtcAlarmIsOn()) // Alarm has occured
   {
     TURN_POWER_ON; // Turn load switch on
   }
