@@ -50,7 +50,8 @@ setup(
                          'python-dateutil>=2.7.3',
                          'pytest-timeout>=1.3.2',
                          'pytest-runner>=4.2',
-                         'pytest>=3.8.2'],
+                         'pytest>=3.8.2',
+                         'geocoder>=1.38.1'],
     setup_requires    = [
                          'pytest-runner>=4.2',],
     tests_require     = [
