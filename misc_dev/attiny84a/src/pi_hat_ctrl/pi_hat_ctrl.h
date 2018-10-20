@@ -1,3 +1,6 @@
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/sleep.h>
 #include <stdbool.h>
 
 
@@ -112,3 +115,11 @@
 // {
 //   return (RTC_ALARM_PIN & (1 << RTC_ALARM_PIN_REG)) == 0;
 // }
+
+// function prototypes
+// todo: hmmm
+static inline void initPortA(void);
+static inline void initPortB(void);
+static inline void initInterrupts(void);
+static inline void initMCU(void);
+

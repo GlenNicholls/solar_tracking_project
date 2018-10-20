@@ -2,7 +2,7 @@
 #  Makefile for AVRDude
 # ======================================================================
 TARGET = pi_hat_ctrl
-SRC    = pi_hat_ctrl.c
+SRC    = pi_hat_ctrl.c pi_hat_ctrl.h
 
 MCU    = attiny84 # change device if using different
 
