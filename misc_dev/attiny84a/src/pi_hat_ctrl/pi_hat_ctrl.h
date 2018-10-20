@@ -23,8 +23,34 @@
 // todo: MACRO THAT WORKS GOES HERE
 #define GET_PIN_STATUS(PIN, MASK) (PIN & MASK)
 
+
+// Timer configuration
+#define TIMER_OFF              0b000
+#define TIMER_PRESCALE_1       0b001
+#define TIMER_PRESCALE_8       0b010
+#define TIMER_PRESCALE_64      0b011
+#define TIMER_PRESCALE_256     0b100
+#define TIMER_PRESCALE_1024    0b101
+#define TIMER_ON_MASK          0b111
+
+#define TIMER_0_WGM_BASE         WGM00
+#define TIMER_0_WGM_MODE_NORMAL  0b10 // todo: possibly add more but probably don't need now
+#define TIMER_0_WGM_MODE_CTC     0b10
+
+// todo: devise better way for WGM here since we have to write 2 regs
+#define TIMER_1_WGM_BASE         WGM10
+#define TIMER_1_WGM_MODE_NORMAL  0b00 // todo: possibly add more but probably don't need now
+#define TIMER_1_WGM_MODE_CTC     0b100
+
+#define SET_TIMER_0_MODE_NORMAL SET_BITS(TCCR0A, TIMER_0_WGM_MODE_NORMAL, TIMER_0_WGM_BASE)
+#define SET_TIMER_0_MODE_CTC    SET_BITS(TCCR0A, TIMER_0_WGM_MODE_CTC, TIMER_0_WGM_BASE)
+#define TURN_TIMER_0_ON         SET_BITS(TCCR0B, TIMER_PRESCALE_1024, CS00)
+#define TURN_TIMER_0_OFF        SET_BITS(TCCR0B, TIMER_OFF, CS00) // todo: how do I make this generic for the prescalar and output compare reg??
+// todo: timer 1 stuff
+
 // INT values
 #define LOGIC_CHANGE 0b01
+
 
 // define pins for readability
 #define POWER_PIN_REG      PA0
@@ -113,9 +139,20 @@ static inline int rtcAlarmIsOn(void) // look for low-going edge (active low)
   }
 }
 
+static inline int timer0IsOn(void)
+{
+  return (TCCR0B & TIMER_ON_MASK);
+}
+
+static inline int timer1IsOn(void)
+{
+  return (TCCR1B & TIMER_ON_MASK);
+}
+
 // function prototypes or whatever it's called here
 static inline void initPortA(void);
 static inline void initPortB(void);
 static inline void initInterrupts(void);
 static inline void initMCU(void);
+static inline void startDebounceTimer(void);
 
