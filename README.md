@@ -14,7 +14,7 @@ following commands, (recommend install in step 1b):
 If you would like to develop on the device, run this command to ensure symbolic links point to the source code in this repository.
 This allows the developer to make changes here without having to re-install the python repository
 
-    sudo python setup.py developer
+    sudo python setup.py develop
 
 ## 1b)
 If you would like to perform a fresh system install, perform this command. This will generate egg info under site-packages, meaning 
