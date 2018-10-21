@@ -48,7 +48,7 @@
 #define SET_TIMER_0_MODE_CTC    SET_BITS(TCCR0A, TIMER_0_WGM_MODE_CTC, TIMER_0_WGM_BASE)
 #define CLR_TIMER_0_COUNT       SET_REG(TCNT0, 0x00)
 #define TURN_TIMER_0_ON         SET_BITS(TCCR0B, TIMER_PRESCALE_1024, CS00)
-#define TURN_TIMER_0_OFF        SET_BITS(TCCR0B, TIMER_OFF, CS00) // todo: how do I make this generic for the prescalar and output compare reg??
+#define TURN_TIMER_0_OFF        CLR_BITS(TCCR0B, ~TIMER_OFF, CS00) // todo: how do I make this generic for the prescalar and output compare reg??
 // todo: timer 1 stuff
 
 // INT values
