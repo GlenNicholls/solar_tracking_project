@@ -143,14 +143,15 @@
 
 // todo: set full register if need memory
 // todo: put all hardware specific in attiny84a.h
+// todo: figure out best dir/pullup state for low-power on not connected pins
 static inline void initPortA(void)
 {
   // DDRA Port Directions
   SET_INPUT(DDRA, DEVICE_ACK_PIN_REG);
-  SET_INPUT(DDRA, PA6); // DNC
-  SET_INPUT(DDRA, PA5); // DNC
-  SET_INPUT(DDRA, PA4); // DNC
-  SET_INPUT(DDRA, PA2); // DNC
+  SET_INPUT(DDRA, ISCP_MOSI);
+  SET_INPUT(DDRA, ISCP_MISO);
+  SET_INPUT(DDRA, ISCP_SCK);
+  SET_INPUT(DDRA, PA2); // not connected
 
   SET_OUTPUT(DDRA, DEV_MODE_PIN_REG);
   SET_OUTPUT(DDRA, FAULT_PIN_REG);
@@ -158,10 +159,10 @@ static inline void initPortA(void)
 
   // Enable pullups
   SET_PULLUP_ON(PORTA, DEVICE_ACK_PIN_REG);
-  SET_PULLUP_ON(PORTA, PA6);
-  SET_PULLUP_ON(PORTA, PA5);
-  SET_PULLUP_ON(PORTA, PA4);
-  SET_PULLUP_ON(PORTA, PA2);
+  SET_PULLUP_ON(PORTA, ISCP_MOSI);
+  SET_PULLUP_ON(PORTA, ISCP_MISO);
+  SET_PULLUP_ON(PORTA, ISCP_SCK);
+  SET_PULLUP_ON(PORTA, PA2); // not connected
   SET_PULLUP_ON(PORTA, POWER_PIN_REG);
 
   SET_PULLUP_OFF(PORTA, DEV_MODE_PIN_REG); // don't want enabled when first powered on
@@ -171,19 +172,20 @@ static inline void initPortA(void)
 static inline void initPortB(void)
 {
   // DDRB Port Directions
-  SET_INPUT(DDRB, PA3);
+  SET_INPUT(DDRB, ICSP_RESET_N);
   SET_INPUT(DDRB, RTC_ALARM_PIN_REG);
   SET_INPUT(DDRB, BUTTON_PIN_REG);
 
-  SET_OUTPUT(DDRB, PB0);
+  SET_OUTPUT(DDRB, PB0); // not connected
 
   // Enable pullups
-  SET_PULLUP_ON(PORTB, PB3);
+  SET_PULLUP_ON(PORTB, ICSP_RESET_N);
   SET_PULLUP_ON(PORTB, RTC_ALARM_PIN_REG);
   SET_PULLUP_ON(PORTB, BUTTON_PIN_REG);
-  SET_PULLUP_ON(PORTB, PB0);
+  SET_PULLUP_ON(PORTB, PB0); // not connected
 }
 
+// todo: abstract this in .h
 static inline void initInterrupts(void)
 {
   // Configure INT0 interrupt mode
@@ -223,7 +225,7 @@ static inline void initTimer0(void)
   TIMSK0 |= (1 << OCIE0A);
 }
 
-static inline void startDebounceTimer(void)
+static inline void startDebounceTimer_12ms(void)
 {
   // Output compare reg
   // todo: put in specific function for configuring correct period
@@ -356,19 +358,19 @@ ISR(PCINT0_vect)
 /*
  * Push Button ISR
  */
-// __debounced in analog__
+// todo: * when we enter, start timer if not already started.
+//       * let timer ISR take care of all logic to set the device reg for big func
 ISR(PCINT1_vect)
 {
-  // todo: debounce timer here to remove res/cap
-  if (buttonIsOn()) // seeing dev-mode req
+  // todo: check flag register to see if dev mode is on, then put
+  //       logic in here to account for when to start debounce timer
+  if (buttonIsOn()) // seeing dev mode req
   {
-    if (~powerIsOn()) // if power is off, turn it on
+    if (~timer0IsOn())
     {
-      TURN_POWER_ON;
-    } // else do nothing
-    TURN_DEV_MODE_ON; // assert dev mode
+      startDebounceTimer_12ms();
+    }
   }
-  // else {} do nothing
 
   // Insert nop for synchronization
   _NOP();
@@ -377,21 +379,33 @@ ISR(PCINT1_vect)
 
 
 // todo: test code below
-ISR(EXT_INT0_vect)
+/////////////////////////////////////////////////////////// TEST CODE
+ISR(EXT_INT0_vect)                                       // TEST CODE
+{                                                        // TEST CODE
+  if (rtcAlarmIsOn()) // Alarm has occured               // TEST CODE
+  {                                                      // TEST CODE
+    TURN_POWER_ON; // Turn load switch on                // TEST CODE
+  }                                                      // TEST CODE
+  else                                                   // TEST CODE
+  {                                                      // TEST CODE
+    TURN_POWER_OFF;                                      // TEST CODE
+  }                                                      // TEST CODE
+                                                         // TEST CODE
+  // Insert nop for synchronization                      // TEST CODE
+  _NOP();                                                // TEST CODE
+}                                                        // TEST CODE
+/////////////////////////////////////////////////////////// TEST CODE
+
+/*
+ * Timer 0 Compare A ISR
+ */
+ISR(TIM0_COMPA_vect)
 {
-  if (rtcAlarmIsOn()) // Alarm has occured
-  {
-    TURN_POWER_ON; // Turn load switch on
-  }
-  else
-  {
-    TURN_POWER_OFF;
-  }
+
 
   // Insert nop for synchronization
   _NOP();
 }
-
 
 int main(void)
 {

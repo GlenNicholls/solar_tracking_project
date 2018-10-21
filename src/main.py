@@ -27,6 +27,9 @@ long = ""
 elev = ""
 #End Global area
 
+# todo: do not put all verbose config in single function
+#       split out into setupPackageName(params) and define params
+#       and call function here - GN
 def setup():
   
   #Laod stored parameters
@@ -66,7 +69,17 @@ def getLocation():
   
 #End getLocation()
 
-
+'''
+todo: list for uC stuff -GN
+1) startup should drive uC ack pin high
+2) FAULT pin should be an interrupt. If this ever goes high, need to somehow
+   issue text/email/tweet notifying user that uC has experienced an issue
+3) before shutdown, need to check dev mode pin from uC. If high, needs to 
+   periodically check for this. If doesn't go low for long time, notify user
+4) once dev mode pin from uC is low, then drive ack pin to uC low and commence
+   >>> shutdown -h now immediately
+5) will think about other cases that need to be accounted for in here
+'''
 def main():
   
   utc_now = datetime.utcnow()
@@ -100,7 +113,11 @@ def main():
   solarAz = a.solar_azimuth(datetime.utcnow(), lat, long)
   solarEl = a.solar_elevation(datetime.utcnow(), lat, long)
   main_logger.info("Current Solar Azimuth: [" + str(solarAz) + "], Current Solar Elevation: [" + str(solarEl) + "]")
-  time.sleep(t)
+  time.sleep(t) # todo: instead of sleeping, should be powering down
+
+  # todo: call something here like initiateShutdownRoutine()
+  #       I can take care of writing this when I get a chance as
+  #       we have uC processes to take care of via GPIO -GN
   
 #End main()
 

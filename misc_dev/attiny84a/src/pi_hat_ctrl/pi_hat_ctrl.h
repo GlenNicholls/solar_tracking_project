@@ -56,9 +56,13 @@
 #define POWER_PIN_REG      PA0
 #define FAULT_PIN_REG      PA1
 #define DEV_MODE_PIN_REG   PA3
+#define ISCP_SCK           PA4
+#define ISCP_MISO          PA5
+#define ISCP_MOSI          PA6
 #define DEVICE_ACK_PIN_REG PA7
 #define BUTTON_PIN_REG     PB1
 #define RTC_ALARM_PIN_REG  PB2
+#define ICSP_RESET_N       PB3
 
 #define POWER_PORT      PORTA
 #define FAULT_PORT      PORTA
@@ -82,16 +86,27 @@
 #define RTC_ALARM_STATUS_MASK  (1 << RTC_ALARM_PIN_REG)
 
 // todo: abstract this to general reg and analyze in main
-#define TURN_POWER_ON     SET_BIT(POWER_PORT,    POWER_PIN_REG)
-#define TURN_POWER_OFF    CLR_BIT(POWER_PORT,    POWER_PIN_REG)
-#define TURN_FAULT_ON     SET_BIT(FAULT_PORT,    FAULT_PIN_REG)
-#define TURN_FAULT_OFF    CLR_BIT(FAULT_PORT,    FAULT_PIN_REG)
-#define TURN_DEV_MODE_ON  SET_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
-#define TURN_DEV_MODE_OFF CLR_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
+#define TURN_POWER_ON      SET_BIT(POWER_PORT,    POWER_PIN_REG)
+#define TURN_POWER_OFF     CLR_BIT(POWER_PORT,    POWER_PIN_REG)
+#define TURN_FAULT_ON      SET_BIT(FAULT_PORT,    FAULT_PIN_REG)
+#define TURN_FAULT_OFF     CLR_BIT(FAULT_PORT,    FAULT_PIN_REG)
+#define TURN_DEV_MODE_ON   SET_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
+#define TURN_DEV_MODE_OFF  CLR_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
 
 
-// Timer defines
-// todo: setFlag() for checking timer in other ISR
+// GPIO register macros
+#define GPIOR2_POWER_FLAG_REG    7
+#define GPIOR2_FAULT_FLAG_REG    6
+#define GPIOR2_DEV_MODE_FLAG_REG 5
+
+#define SET_POWER_ON_FLAG     SET_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
+#define CLR_POWER_ON_FLAG     CLR_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
+#define SET_FAULT_ON_FLAG     SET_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
+#define CLR_FAULT_ON_FLAG     CLR_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
+#define SET_DEV_MODE_ON_FLAG  SET_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
+#define CLR_DEV_MODE_ON_FLAG  CLR_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
+
+
 
 // functions for checking pin states
 // todo: where to put these??
@@ -141,12 +156,27 @@ static inline int rtcAlarmIsOn(void) // look for low-going edge (active low)
 
 static inline int timer0IsOn(void)
 {
-  return (TCCR0B & TIMER_ON_MASK);
+  if (TCCR0B & TIMER_ON_MASK)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
 }
+
 
 static inline int timer1IsOn(void)
 {
-  return (TCCR1B & TIMER_ON_MASK);
+  if (TCCR1B & TIMER_ON_MASK)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 // function prototypes or whatever it's called here
@@ -154,5 +184,5 @@ static inline void initPortA(void);
 static inline void initPortB(void);
 static inline void initInterrupts(void);
 static inline void initMCU(void);
-static inline void startDebounceTimer(void);
+static inline void startDebounceTimer_12ms(void);
 
