@@ -218,11 +218,12 @@ static inline void initTimer0(void)
 }
 
 // todo: how to make this generic
+// spec of push button is 3ms, but the one I'm debugging with is awful
 static inline void startDebounceTimer(void)
 {
   // Output compare reg
   // todo: put in specific function for configuring correct period
-  OCR0A = 100; // 8M/(2*1024(1+50)) = 77Hz = 12ms... It's Gr8!!!
+  OCR0A = 150; // 8M/(2*1024(1+50)) = 77Hz = 12ms... It's Gr8!!!
 
   // Activate timer with prescalar 1024
   TURN_TIMER_0_ON;
