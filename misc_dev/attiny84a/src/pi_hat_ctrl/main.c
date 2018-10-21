@@ -418,19 +418,16 @@ ISR(TIM0_COMPA_vect)
   // if power is off and button pressed, turn power on and enter dev mode
   // if power is on and button is pressed, leave power on and check dev mode
   //    if dev mode is active, deactivate. else turn dev mode on
-  //if (powerIsOn())
-  if (buttonIsOn()) // DBG
+  if (powerIsOn())
   {
     // todo: toggling flag should be safe as long as we're properly debounced. will
     //       be testing with scope on friday
-    //TGL_DEV_MODE_FLAG;
-    SET_DEV_MODE_FLAG; // DBG
+    TGL_DEV_MODE_FLAG;
   }
   else
   {
-    //SET_POWER_FLAG;
-    //SET_DEV_MODE_FLAG;
-    CLR_DEV_MODE_FLAG; // DBG
+    SET_POWER_FLAG;
+    SET_DEV_MODE_FLAG;
   }
 
 
