@@ -226,5 +226,7 @@ static inline void initPortA(void);
 static inline void initPortB(void);
 static inline void initInterrupts(void);
 static inline void initMCU(void);
-static inline void startDebounceTimer_12ms(void);
+static inline void startDebounceTimer(void);
+static inline void stopDebounceTimer(void);
+static inline void serviceGpioRegFlags(void);
 

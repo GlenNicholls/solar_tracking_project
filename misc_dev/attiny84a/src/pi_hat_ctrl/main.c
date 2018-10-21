@@ -225,7 +225,8 @@ static inline void initTimer0(void)
   TIMSK0 |= (1 << OCIE0A);
 }
 
-static inline void startDebounceTimer_12ms(void)
+// todo: how to make this generic
+static inline void startDebounceTimer(void)
 {
   // Output compare reg
   // todo: put in specific function for configuring correct period
@@ -233,6 +234,12 @@ static inline void startDebounceTimer_12ms(void)
 
   // Activate timer with prescalar 1024
   TURN_TIMER_0_ON;
+}
+
+static inline void stopDebounceTimer(void)
+{
+  // Disable timer
+  TURN_TIMER_0_OFF;
 }
 
 // configure clocks
@@ -339,7 +346,7 @@ ISR(PCINT0_vect)
   }
   else // Pi has turned off
   {
-    // todo: sleep here for ~30s-45s and error-check
+    // todo: start timer1 here for ~30s-45s and error-check
     if (powerIsOn()) // done sleeping, make sure load switch is on
     {
       TURN_POWER_OFF; // Turn load switch off
@@ -366,9 +373,9 @@ ISR(PCINT1_vect)
   //       logic in here to account for when to start debounce timer
   if (buttonIsOn()) // seeing dev mode req
   {
-    if (~timer0IsOn())
+    if (~timer0IsOn()) // if timer is alreay on we're going, "hey, wire"!!!
     {
-      startDebounceTimer_12ms();
+      startDebounceTimer();
     }
   }
 
@@ -384,11 +391,11 @@ ISR(EXT_INT0_vect)                                       // TEST CODE
 {                                                        // TEST CODE
   if (rtcAlarmIsOn()) // Alarm has occured               // TEST CODE
   {                                                      // TEST CODE
-    TURN_POWER_ON; // Turn load switch on                // TEST CODE
+    SET_POWER_FLAG; // Turn load switch on               // TEST CODE
   }                                                      // TEST CODE
   else                                                   // TEST CODE
   {                                                      // TEST CODE
-    TURN_POWER_OFF;                                      // TEST CODE
+    CLR_POWER_FLAG;                                      // TEST CODE
   }                                                      // TEST CODE
                                                          // TEST CODE
   // Insert nop for synchronization                      // TEST CODE
@@ -429,9 +436,36 @@ ISR(TIM0_COMPA_vect)
     SET_DEV_MODE_FLAG;
   }
 
+  // Disable timer now as it has served heroically
+  stopDebounceTimer();
+
   // Insert nop for synchronization
   _NOP();
 }
+
+// todo: will be making this more much better later
+static inline void serviceGpioRegFlags(void)
+{
+  // disable interrupts to prevent flags changing
+  cli();
+
+  if (powerFlagIsSet())
+  {
+    TURN_POWER_ON;
+  }
+  if (faultFlagIsSet())
+  {
+    TURN_FAULT_ON;
+  }
+  if (devModeFlagIsSet())
+  {
+    TURN_DEV_MODE_ON;
+  }
+
+  // re-enable interrupts
+  sei();
+}
+
 
 int main(void)
 {
@@ -439,6 +473,7 @@ int main(void)
 
   while (1)
   {
+    serviceGpioRegFlags();
     //sleep_cpu();
   }
 
