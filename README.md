@@ -256,6 +256,8 @@ After the tests have passed, no further configuration is required and the system
             
             '''
 
+* order test PCB from advanced circuits for quick turn around to test with
+* order parts for pi hat PCB
 * voltage sense for panel, load, pi, battery (for safe shutdown)
 * Logging/database
 * REST API support
