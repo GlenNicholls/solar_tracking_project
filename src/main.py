@@ -86,6 +86,10 @@ todo: list for uC stuff -GN
 5) will think about other cases that need to be accounted for in here
 '''
 def main():
+  # todo: very first step should be using the check_and_clear_alarms() from DS3231
+  #       and verifying again that the alarms were cleared. If not, user needs to 
+  #       be notified and some checks about if we can talk to the device should be done.
+  #       if this happens, system cannot shutdown
   
   utc_now = datetime.utcnow()
   mm = str(utc_now.month)
