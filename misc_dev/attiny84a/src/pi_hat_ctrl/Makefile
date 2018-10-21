@@ -24,7 +24,7 @@ AVRDUDE_FLAGS       = -p $(MCU) -c $(AVRDUDE_PROGRAMMER) -C $(AVRDUDE_CONF) -v
 all:
 	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
 	$(OBJCOPY) -O ihex -R .eeprom $(TARGET) $(TARGET).hex
-	avr-size -C --mcu=$(MCU) $(TARGET).hex
+	avr-size -C --mcu=$(MCU) $(TARGET)
 
 clean:
 	rm -f $(TARGET) $(TARGET).hex
