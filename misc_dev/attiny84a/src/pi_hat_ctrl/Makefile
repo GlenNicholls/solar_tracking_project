@@ -24,10 +24,10 @@ AVRDUDE_FLAGS       = -p $(MCU) -c $(AVRDUDE_PROGRAMMER) -C $(AVRDUDE_CONF) -v
 all:
 	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
 	$(OBJCOPY) -O ihex -R .eeprom $(TARGET) $(TARGET).hex
-	rm -f $(TARGET)
+	avr-size -C --mcu=$(MCU) $(TARGET)
 
 clean:
-	rm -f $(TARGET).hex
+	rm -f $(TARGET) $(TARGET).hex
 
 install: all
 	sudo $(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH)
