@@ -6,6 +6,10 @@ import geocoder
 
 #NOTE: indentation is 2 spaces
   
+# TODO: Need to set up pi to add this routine to startup -GN
+# TODO: Need to find way to save state for periodically shutting down -GN
+# TODO: Pass logger class or however you do it to sub-packages
+
 #Global area
 #wait time for easy readout of algorithm, will remove once everythin is implemented
 t = 2
@@ -53,6 +57,7 @@ def setup():
   
 #End setup()
 
+# todo: possibly abstract some astral wrappers elsewhere -GN
 def getLocation():
   global lat, long, elev
   try:
@@ -91,7 +96,10 @@ def main():
   ss = str(utc_now.second)
   
   #US/Mountain  = timezone
-
+  # todo: not sure we want to use utc time per mike's suggestions a couple weeks back
+  #       ds3231 package converts to local, so logging time might be confusing and miss-aligned -GN
+  # todo: For this, since you have datetime object, can use .strptime() or whatever the other one
+  #       is to return utc time as specified parsed-order string -GN
   main_logger.info("Current UTC time: [" + mm + "/" + dd + "/" + yyyy + " " + hour + ":" + mi + ":" + ss + "]")
 
   #Run setup
