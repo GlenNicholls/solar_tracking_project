@@ -20,6 +20,8 @@
 #define SET_BITS(REG, VAL, BASE) ( REG |= (VAL << BASE) )
 #define CLR_BITS(REG, VAL, BASE) ( REG &= ~(VAL << BASE))
 
+#define SET_REG(REG, VAL) (REG = VAL)
+
 // todo: MACRO THAT WORKS GOES HERE
 #define GET_PIN_STATUS(PIN, MASK) (PIN & MASK)
 
@@ -44,6 +46,7 @@
 
 #define SET_TIMER_0_MODE_NORMAL SET_BITS(TCCR0A, TIMER_0_WGM_MODE_NORMAL, TIMER_0_WGM_BASE)
 #define SET_TIMER_0_MODE_CTC    SET_BITS(TCCR0A, TIMER_0_WGM_MODE_CTC, TIMER_0_WGM_BASE)
+#define CLR_TIMER_0_COUNT       SET_REG(TCNT0, 0x00)
 #define TURN_TIMER_0_ON         SET_BITS(TCCR0B, TIMER_PRESCALE_1024, CS00)
 #define TURN_TIMER_0_OFF        SET_BITS(TCCR0B, TIMER_OFF, CS00) // todo: how do I make this generic for the prescalar and output compare reg??
 // todo: timer 1 stuff
@@ -108,6 +111,7 @@
 #define CLR_POWER_FLAG     CLR_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
 #define SET_FAULT_FLAG     SET_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
 #define CLR_FAULT_FLAG     CLR_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
+#define TGL_DEV_MODE_FLAG  TGL_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
 #define SET_DEV_MODE_FLAG  SET_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
 #define CLR_DEV_MODE_FLAG  CLR_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
 
@@ -123,14 +127,7 @@ static inline int powerIsOn(void)
 
 static inline int powerFlagIsSet(void)
 {
-  if (GPIOR2 & GPIOR2_POWER_FLAG_MASK)
-  {
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
+  return (GPIOR2 & GPIOR2_POWER_FLAG_MASK);
 }
 
 static inline int faultIsOn(void)
@@ -140,14 +137,7 @@ static inline int faultIsOn(void)
 
 static inline int faultFlagIsSet(void)
 {
-  if (GPIOR2 & GPIOR2_FAULT_FLAG_MASK)
-  {
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
+  return (GPIOR2 & GPIOR2_FAULT_FLAG_MASK);
 }
 
 static inline int devModeIsOn(void)
@@ -157,14 +147,7 @@ static inline int devModeIsOn(void)
 
 static inline int devModeFlagIsSet(void)
 {
-  if (GPIOR2 & GPIOR2_DEV_MODE_FLAG_MASK)
-  {
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
+  return (GPIOR2 & GPIOR2_DEV_MODE_FLAG_MASK);
 }
 
 static inline int deviceAckIsOn(void)
@@ -174,51 +157,23 @@ static inline int deviceAckIsOn(void)
 
 static inline int buttonIsOn(void) // look for low-going edge (active low)
 {
-  if (BUTTON_PIN & BUTTON_STATUS_MASK)
-  {
-    return 0;
-  }
-  else
-  {
-    return 1;
-  }
+  return !(BUTTON_PIN & BUTTON_STATUS_MASK);
 }
 
 static inline int rtcAlarmIsOn(void) // look for low-going edge (active low)
 {
-  if (RTC_ALARM_PIN & RTC_ALARM_STATUS_MASK)
-  {
-    return 0;
-  }
-  else
-  {
-    return 1;
-  }
+  return !(RTC_ALARM_PIN & RTC_ALARM_STATUS_MASK);
 }
 
 static inline int timer0IsOn(void)
 {
-  if (TCCR0B & TIMER_ON_MASK)
-  {
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
+  return (TCCR0B & TIMER_ON_MASK);
 }
 
 
 static inline int timer1IsOn(void)
 {
-  if (TCCR1B & TIMER_ON_MASK)
-  {
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
+  return (TCCR1B & TIMER_ON_MASK);
 }
 
 // function prototypes or whatever it's called here

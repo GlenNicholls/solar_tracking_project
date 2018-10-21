@@ -162,11 +162,11 @@ static inline void initPortA(void)
   SET_PULLUP_ON(PORTA, ISCP_MOSI);
   SET_PULLUP_ON(PORTA, ISCP_MISO);
   SET_PULLUP_ON(PORTA, ISCP_SCK);
-  SET_PULLUP_ON(PORTA, PA2); // not connected
+  SET_PULLUP_ON(PORTA, DEV_MODE_PIN_REG); // Make sure to turn off during initMCU
+  SET_PULLUP_ON(PORTA, PA2);              // not connected
+  SET_PULLUP_ON(PORTA, FAULT_PIN_REG);    // Make sure to turn off during initMCU
   SET_PULLUP_ON(PORTA, POWER_PIN_REG);
 
-  SET_PULLUP_OFF(PORTA, DEV_MODE_PIN_REG); // don't want enabled when first powered on
-  SET_PULLUP_OFF(PORTA, FAULT_PIN_REG);    // don't want enabled when first powered on
 }
 
 static inline void initPortB(void)
@@ -192,10 +192,6 @@ static inline void initInterrupts(void)
   SET_BITS(MCUCR, LOGIC_CHANGE, ISC00);
 
   // General Interrupt Mask Register
-  //
-  // PCIE1 : 1 Enable pin change INT
-  // PCIE0 : 1 Enable pin change INT
-  // INT0  : 1 Enable external interrupt
   GIMSK |= (1 << INT0) | (1 << PCIE0) | (1 << PCIE1);
 
   // Pin Change Mask Registers
@@ -204,24 +200,20 @@ static inline void initInterrupts(void)
 }
 
 // Configure timer(s)
-// F_CPU/(prescaler*(1 + OCR0A)) = F_num_timer_OVF
 
 // 8-bit timer
-// todo: configure longer timer for ~10s to turn off dev-mode
-//       the short mode below is to debounce the button to turn on
-//       dev mode... To do this, timer needs to be normal mode to rollover at 0xFF
 // todo: 16-bit timer for big honking times!
 static inline void initTimer0(void)
 {
+  // F_CPU/(prescaler*(1 + OCR0A)) = F_num_timer_OVF
+
   // Clear timer on compare match
-  // com0XX just affects this pin, so don't touch right??
   SET_TIMER_0_MODE_CTC;
 
   // Make sure it isn't free-running
   TURN_TIMER_0_OFF;
 
   // Enable compare match INT
-  // todo: overflow INT TOIE0??
   TIMSK0 |= (1 << OCIE0A);
 }
 
@@ -230,7 +222,7 @@ static inline void startDebounceTimer(void)
 {
   // Output compare reg
   // todo: put in specific function for configuring correct period
-  OCR0A = 50; // 8M/(2*1024(1+50)) = 77Hz = 12ms... It's Gr8!!!
+  OCR0A = 100; // 8M/(2*1024(1+50)) = 77Hz = 12ms... It's Gr8!!!
 
   // Activate timer with prescalar 1024
   TURN_TIMER_0_ON;
@@ -240,6 +232,9 @@ static inline void stopDebounceTimer(void)
 {
   // Disable timer
   TURN_TIMER_0_OFF;
+
+  // Clear timer counter
+  CLR_TIMER_0_COUNT;
 }
 
 // configure clocks
@@ -278,29 +273,33 @@ static inline void stopDebounceTimer(void)
 
 static inline void initMCU(void)
 {
-  // init directions and pullups on port A
+  // init pin directions and pullups
   initPortA();
-
-  // init directions and pullups on port B
   initPortB();
 
   // Enable the MCUCR pullups
   MCUCR &= ~(1 << PUD);
 
-  // Configure INT
+  // Set start-up state when uC first gets power
+  SET_POWER_FLAG;
+  TURN_POWER_ON;
+  CLR_DEV_MODE_FLAG;
+  TURN_DEV_MODE_OFF;
+  CLR_FAULT_FLAG;
+  TURN_FAULT_OFF;
+
+  // Configure all interrupts
   initInterrupts();
+  initTimer0();
 
   // Configure clocks
 //  initClocks()
   // Configure low-power mode
 //  initLowPowerMode();
 
-  // Enable global interrupts by set I-bit in SREG to 1
+  // Enable interrupts
   sei();
 }
-
-// todo: implicit mutex using function for error checking
-
 
 
 // /*
@@ -349,13 +348,13 @@ ISR(PCINT0_vect)
     // todo: start timer1 here for ~30s-45s and error-check
     if (powerIsOn()) // done sleeping, make sure load switch is on
     {
-      TURN_POWER_OFF; // Turn load switch off
+      CLR_POWER_FLAG; // Turn load switch off
     }
     else
     {
-      TURN_FAULT_ON; // Raise FAULT as this should never happen
+      SET_FAULT_FLAG; // Raise FAULT as this should never happen
     }
-    TURN_DEV_MODE_OFF; // Turn dev mode off
+    CLR_DEV_MODE_FLAG; // Turn dev mode off
   }
 
   // Insert nop for synchronization
@@ -373,11 +372,13 @@ ISR(PCINT1_vect)
   //       logic in here to account for when to start debounce timer
   if (buttonIsOn()) // seeing dev mode req
   {
-    if (~timer0IsOn()) // if timer is alreay on we're going, "hey, wire"!!!
+    if (!timer0IsOn()) // if timer is alreay on we're going, "hey, wire"
     {
       startDebounceTimer();
     }
+    //SET_DEV_MODE_FLAG;
   }
+  //CLR_DEV_MODE_FLAG;
 
   // Insert nop for synchronization
   _NOP();
@@ -417,24 +418,21 @@ ISR(TIM0_COMPA_vect)
   // if power is off and button pressed, turn power on and enter dev mode
   // if power is on and button is pressed, leave power on and check dev mode
   //    if dev mode is active, deactivate. else turn dev mode on
-  if (powerIsOn())
+  //if (powerIsOn())
+  if (buttonIsOn()) // DBG
   {
     // todo: toggling flag should be safe as long as we're properly debounced. will
     //       be testing with scope on friday
-    if (devModeIsOn())
-    {
-      CLR_DEV_MODE_FLAG;
-    }
-    else
-    {
-      SET_DEV_MODE_FLAG;
-    }
+    //TGL_DEV_MODE_FLAG;
+    SET_DEV_MODE_FLAG; // DBG
   }
   else
   {
-    SET_POWER_FLAG;
-    SET_DEV_MODE_FLAG;
+    //SET_POWER_FLAG;
+    //SET_DEV_MODE_FLAG;
+    CLR_DEV_MODE_FLAG; // DBG
   }
+
 
   // Disable timer now as it has served heroically
   stopDebounceTimer();
@@ -447,23 +445,40 @@ ISR(TIM0_COMPA_vect)
 static inline void serviceGpioRegFlags(void)
 {
   // disable interrupts to prevent flags changing
-  cli();
+  //cli();
 
+  // control pin
   if (powerFlagIsSet())
   {
     TURN_POWER_ON;
   }
+  else
+  {
+    TURN_POWER_OFF;
+  }
+
+  // control fault pin
   if (faultFlagIsSet())
   {
     TURN_FAULT_ON;
   }
-  if (devModeFlagIsSet())
+  else if (!faultFlagIsSet())
+  {
+    TURN_FAULT_OFF;
+  }
+
+  // control dev mode pin
+  if (devModeFlagIsSet() && !devModeIsOn())
   {
     TURN_DEV_MODE_ON;
   }
+  else if (!devModeFlagIsSet() && devModeIsOn())
+  {
+    TURN_DEV_MODE_OFF;
+  }
 
   // re-enable interrupts
-  sei();
+  //sei();
 }
 
 
