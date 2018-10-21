@@ -85,7 +85,8 @@
 #define BUTTON_STATUS_MASK     (1 << BUTTON_PIN_REG)
 #define RTC_ALARM_STATUS_MASK  (1 << RTC_ALARM_PIN_REG)
 
-// todo: abstract this to general reg and analyze in main
+// todo: this should all only be used in function inside main
+// todo: possibly change to toggling?
 #define TURN_POWER_ON      SET_BIT(POWER_PORT,    POWER_PIN_REG)
 #define TURN_POWER_OFF     CLR_BIT(POWER_PORT,    POWER_PIN_REG)
 #define TURN_FAULT_ON      SET_BIT(FAULT_PORT,    FAULT_PIN_REG)
@@ -99,20 +100,37 @@
 #define GPIOR2_FAULT_FLAG_REG    6
 #define GPIOR2_DEV_MODE_FLAG_REG 5
 
-#define SET_POWER_ON_FLAG     SET_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
-#define CLR_POWER_ON_FLAG     CLR_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
-#define SET_FAULT_ON_FLAG     SET_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
-#define CLR_FAULT_ON_FLAG     CLR_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
-#define SET_DEV_MODE_ON_FLAG  SET_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
-#define CLR_DEV_MODE_ON_FLAG  CLR_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
+#define GPIOR2_POWER_FLAG_MASK    (1 << GPIOR2_POWER_FLAG_REG)
+#define GPIOR2_FAULT_FLAG_MASK    (1 << GPIOR2_FAULT_FLAG_REG)
+#define GPIOR2_DEV_MODE_FLAG_MASK (1 << GPIOR2_DEV_MODE_FLAG_REG)
+
+#define SET_POWER_FLAG     SET_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
+#define CLR_POWER_FLAG     CLR_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
+#define SET_FAULT_FLAG     SET_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
+#define CLR_FAULT_FLAG     CLR_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
+#define SET_DEV_MODE_FLAG  SET_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
+#define CLR_DEV_MODE_FLAG  CLR_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
 
 
 
 // functions for checking pin states
 // todo: where to put these??
+// todo: better way to avoid if{} statement??
 static inline int powerIsOn(void)
 {
   return (POWER_PIN & POWER_STATUS_MASK);
+}
+
+static inline int powerFlagIsSet(void)
+{
+  if (GPIOR2 & GPIOR2_POWER_FLAG_MASK)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 static inline int faultIsOn(void)
@@ -120,9 +138,33 @@ static inline int faultIsOn(void)
   return (FAULT_PIN & FAULT_STATUS_MASK);
 }
 
+static inline int faultFlagIsSet(void)
+{
+  if (GPIOR2 & GPIOR2_FAULT_FLAG_MASK)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
+
 static inline int devModeIsOn(void)
 {
   return (DEV_MODE_PIN & DEV_MODE_STATUS_MASK);
+}
+
+static inline int devModeFlagIsSet(void)
+{
+  if (GPIOR2 & GPIOR2_DEV_MODE_FLAG_MASK)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 static inline int deviceAckIsOn(void)

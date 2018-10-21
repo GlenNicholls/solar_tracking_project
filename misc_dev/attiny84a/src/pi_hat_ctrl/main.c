@@ -401,7 +401,33 @@ ISR(EXT_INT0_vect)                                       // TEST CODE
  */
 ISR(TIM0_COMPA_vect)
 {
-
+  // todo: for all ISRs, will be checking pin states, not flags. Flag checking is
+  //       taken care of by func in main. This is safe because interrupts will be
+  //       disabled when entering func, and enabled when leaving.
+  // todo: not adding forced shutdown as this could mean that an alarm isn't set
+  //       and the pi would never wake up. Would be complicated to play games to
+  //       also schedule some variation of fault/dev mode to denote this for pi.
+  // if power is off and button pressed, turn power on and enter dev mode
+  // if power is on and button is pressed, leave power on and check dev mode
+  //    if dev mode is active, deactivate. else turn dev mode on
+  if (powerIsOn())
+  {
+    // todo: toggling flag should be safe as long as we're properly debounced. will
+    //       be testing with scope on friday
+    if (devModeIsOn())
+    {
+      CLR_DEV_MODE_FLAG;
+    }
+    else
+    {
+      SET_DEV_MODE_FLAG;
+    }
+  }
+  else
+  {
+    SET_POWER_FLAG;
+    SET_DEV_MODE_FLAG;
+  }
 
   // Insert nop for synchronization
   _NOP();
