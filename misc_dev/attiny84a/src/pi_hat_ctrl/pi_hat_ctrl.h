@@ -180,15 +180,18 @@ static inline int rtcAlarmIsOn(void) // look for low-going edge (active low)
   return bit_is_clear(RTC_ALARM_PIN, RTC_ALARM_STATUS_MASK);
 }
 
+// NOTE: Probably can't use bit_is_set since if any [2:0] are non-zero, timer is on
 static inline int timer0IsOn(void)
 {
-  return bit_is_set(TCCR0B, TIMER_ON_MASK);
+  //return bit_is_set(TCCR0B, TIMER_ON_MASK);
+    return (TCCR0B & TIMER_ON_MASK);
 }
 
 
 static inline int timer1IsOn(void)
 {
-  return bit_is_set(TCCR1B, TIMER_ON_MASK);
+  //return bit_is_set(TCCR1B, TIMER_ON_MASK);
+    return (TCCR1B & TIMER_ON_MASK);
 }
 
 // function prototypes or whatever it's called here
