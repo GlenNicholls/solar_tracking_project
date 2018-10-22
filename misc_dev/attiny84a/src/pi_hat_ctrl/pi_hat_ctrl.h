@@ -31,9 +31,9 @@ typedef enum
   Off      = 0b000,
   Div_1    = 0b001,
   Div_8    = 0b010,
-  Dev_64   = 0b011,
-  Dev_256  = 0b100,
-  Dev_1024 = 0b101
+  Div_64   = 0b011,
+  Div_256  = 0b100,
+  Div_1024 = 0b101
 } timerPrescaleT;
 #define TIMER_OFF              0b000
 #define TIMER_PRESCALE_1       0b001
