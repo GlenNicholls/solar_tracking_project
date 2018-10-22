@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/sfr_defs.h>
 #include <avr/sleep.h>
 
 // used for a very short delay
@@ -89,12 +90,12 @@
 #define BUTTON_PIN     PINB
 #define RTC_ALARM_PIN  PINB
 
-#define POWER_STATUS_MASK      (1 << POWER_PIN_REG)
-#define FAULT_STATUS_MASK      (1 << FAULT_PIN_REG)
-#define DEV_MODE_STATUS_MASK   (1 << DEV_MODE_PIN_REG)
-#define DEVICE_ACK_STATUS_MASK (1 << DEVICE_ACK_PIN_REG)
-#define BUTTON_STATUS_MASK     (1 << BUTTON_PIN_REG)
-#define RTC_ALARM_STATUS_MASK  (1 << RTC_ALARM_PIN_REG)
+#define POWER_STATUS_MASK      _BV(POWER_PIN_REG)
+#define FAULT_STATUS_MASK      _BV(FAULT_PIN_REG)
+#define DEV_MODE_STATUS_MASK   _BV(DEV_MODE_PIN_REG)
+#define DEVICE_ACK_STATUS_MASK _BV(DEVICE_ACK_PIN_REG)
+#define BUTTON_STATUS_MASK     _BV(BUTTON_PIN_REG)
+#define RTC_ALARM_STATUS_MASK  _BV(RTC_ALARM_PIN_REG)
 
 // todo: this should all only be used in function inside main
 // todo: possibly change to toggling?
