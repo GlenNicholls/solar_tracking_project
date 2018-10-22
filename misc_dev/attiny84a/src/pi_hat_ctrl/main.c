@@ -334,6 +334,9 @@ static inline initLowPowerMode(void)
 
 static inline void initMCU(void)
 {
+  // Disable interrupts for clock div just in case
+  cli();
+
   // init pin directions and pullups
   initPortA();
   initPortB();
