@@ -1,33 +1,40 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <avr/sfr_defs.h>
+//#include <avr/sfr_defs.h> // io should include this
+#include <avr/power.h>
 #include <avr/sleep.h>
 
 // used for a very short delay
 #define _NOP() do { __asm__ __volatile__ ("nop"); } while (0)
 
-// todo: where is the header for these things??
+// todo: Where are these macros defined??
 // define macros
-#define SET_BIT(PORT, BIT) ( PORT |=  (1 << BIT) )
-#define CLR_BIT(PORT, BIT) ( PORT &= ~(1 << BIT) )
-#define TGL_BIT(PORT, BIT) ( PORT ^=  (1 << BIT) )
+#define SET_BIT(PORT, BIT) ( PORT |=  _BV(BIT) )
+#define CLR_BIT(PORT, BIT) ( PORT &= ~_BV(BIT) )
+#define TGL_BIT(PORT, BIT) ( PORT ^=  _BV(BIT) )
 
-#define SET_OUTPUT(DDRX, BIT) ( DDRX |=  (1 << BIT) )
-#define SET_INPUT(DDRX, BIT)  ( DDRX &= ~(1 << BIT) )
+#define SET_OUTPUT(DDRX, BIT) ( DDRX |=  _BV(BIT) )
+#define SET_INPUT(DDRX, BIT)  ( DDRX &= ~_BV(BIT) )
 
-#define SET_PULLUP_ON(PORT, BIT)  ( PORT |=  (1 << BIT) )
-#define SET_PULLUP_OFF(PORT, BIT) ( PORT &= ~(1 << BIT) )
+#define SET_PULLUP_ON(PORT, BIT)  ( PORT |=  _BV(BIT) )
+#define SET_PULLUP_OFF(PORT, BIT) ( PORT &= ~_BV(BIT) )
 
-#define SET_BITS(REG, VAL, BASE) ( REG |= (VAL << BASE) )
+#define SET_BITS(REG, VAL, BASE) ( REG |=  (VAL << BASE) )
 #define CLR_BITS(REG, VAL, BASE) ( REG &= ~(VAL << BASE))
 
 #define SET_REG(REG, VAL) (REG = VAL)
 
-// todo: MACRO THAT WORKS GOES HERE
-#define GET_PIN_STATUS(PIN, MASK) (PIN & MASK)
-
-
 // Timer configuration
+// todo: use enum instead
+typedef enum
+{
+  Off      = 0b000,
+  Div_1    = 0b001,
+  Div_8    = 0b010,
+  Dev_64   = 0b011,
+  Dev_256  = 0b100,
+  Dev_1024 = 0b101
+} timerPrescaleT;
 #define TIMER_OFF              0b000
 #define TIMER_PRESCALE_1       0b001
 #define TIMER_PRESCALE_8       0b010
@@ -112,77 +119,76 @@
 #define GPIOR2_FAULT_FLAG_REG    6
 #define GPIOR2_DEV_MODE_FLAG_REG 5
 
-#define GPIOR2_POWER_FLAG_MASK    (1 << GPIOR2_POWER_FLAG_REG)
-#define GPIOR2_FAULT_FLAG_MASK    (1 << GPIOR2_FAULT_FLAG_REG)
-#define GPIOR2_DEV_MODE_FLAG_MASK (1 << GPIOR2_DEV_MODE_FLAG_REG)
+#define GPIOR2_POWER_FLAG_MASK    _BV(GPIOR2_POWER_FLAG_REG)
+#define GPIOR2_FAULT_FLAG_MASK    _BV(GPIOR2_FAULT_FLAG_REG)
+#define GPIOR2_DEV_MODE_FLAG_MASK _BV(GPIOR2_DEV_MODE_FLAG_REG)
 
-#define SET_POWER_FLAG     SET_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
-#define CLR_POWER_FLAG     CLR_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
-#define SET_FAULT_FLAG     SET_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
-#define CLR_FAULT_FLAG     CLR_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
+#define SET_POWER_FLAG     loop_until_bit_is_set(GPIOR2, GPIOR2_POWER_FLAG_REG)
+#define CLR_POWER_FLAG     loop_until_bit_is_clear(GPIOR2, GPIOR2_POWER_FLAG_REG)
+#define SET_FAULT_FLAG     loop_until_bit_is_set(GPIOR2, GPIOR2_FAULT_FLAG_REG)
+#define CLR_FAULT_FLAG     loop_until_bit_is_clear(GPIOR2, GPIOR2_FAULT_FLAG_REG)
 #define TGL_DEV_MODE_FLAG  TGL_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
-#define SET_DEV_MODE_FLAG  SET_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
-#define CLR_DEV_MODE_FLAG  CLR_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
+#define SET_DEV_MODE_FLAG  loop_until_bit_is_set(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
+#define CLR_DEV_MODE_FLAG  loop_until_bit_is_clear(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
 
 
 
 // functions for checking pin states
 // todo: where to put these??
-// todo: better way to avoid if{} statement??
 static inline int powerIsOn(void)
 {
-  return (POWER_PIN & POWER_STATUS_MASK);
+  return bit_is_set(POWER_PIN, POWER_STATUS_MASK);
 }
 
 static inline int powerFlagIsSet(void)
 {
-  return (GPIOR2 & GPIOR2_POWER_FLAG_MASK);
+  return bit_is_set(GPIOR2, GPIOR2_POWER_FLAG_MASK);
 }
 
 static inline int faultIsOn(void)
 {
-  return (FAULT_PIN & FAULT_STATUS_MASK);
+  return bit_is_set(FAULT_PIN, FAULT_STATUS_MASK);
 }
 
 static inline int faultFlagIsSet(void)
 {
-  return (GPIOR2 & GPIOR2_FAULT_FLAG_MASK);
+  return bit_is_set(GPIOR2, GPIOR2_FAULT_FLAG_MASK);
 }
 
 static inline int devModeIsOn(void)
 {
-  return (DEV_MODE_PIN & DEV_MODE_STATUS_MASK);
+  return bit_is_set(DEV_MODE_PIN, DEV_MODE_STATUS_MASK);
 }
 
 static inline int devModeFlagIsSet(void)
 {
-  return (GPIOR2 & GPIOR2_DEV_MODE_FLAG_MASK);
+  return bit_is_set(GPIOR2, GPIOR2_DEV_MODE_FLAG_MASK);
 }
 
 static inline int deviceAckIsOn(void)
 {
-  return (DEVICE_ACK_PIN & DEVICE_ACK_STATUS_MASK);
+  return bit_is_set(DEVICE_ACK_PIN, DEVICE_ACK_STATUS_MASK);
 }
 
 static inline int buttonIsOn(void) // look for low-going edge (active low)
 {
-  return !(BUTTON_PIN & BUTTON_STATUS_MASK);
+  return bit_is_clear(BUTTON_PIN, BUTTON_STATUS_MASK);
 }
 
 static inline int rtcAlarmIsOn(void) // look for low-going edge (active low)
 {
-  return !(RTC_ALARM_PIN & RTC_ALARM_STATUS_MASK);
+  return bit_is_clear(RTC_ALARM_PIN, RTC_ALARM_STATUS_MASK);
 }
 
 static inline int timer0IsOn(void)
 {
-  return (TCCR0B & TIMER_ON_MASK);
+  return bit_is_set(TCCR0B, TIMER_ON_MASK);
 }
 
 
 static inline int timer1IsOn(void)
 {
-  return (TCCR1B & TIMER_ON_MASK);
+  return bit_is_set(TCCR1B, TIMER_ON_MASK);
 }
 
 // function prototypes or whatever it's called here

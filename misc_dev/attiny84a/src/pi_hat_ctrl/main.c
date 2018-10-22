@@ -284,30 +284,53 @@ static inline void stopBigTimer(void)
 // configure low-power
 // todo: don't shove everything in single function, pull stuff to other functions
 //       to make code clearer
-// static inline initLowPowerMode(void)
-// {
-//   // todo: not sure how to configure clocks yet
-//
-//   // Analog Comparator Control/Status Register
-//   ACSR |= (1 << ACD); // disable
-//
-//   // Power Reduction Register
-//   //
-//   // PRTIM1 : ??
-//   // PRTIM0 : ??
-//   // PRUSI  : ??
-//   PRR |= (1 << PRADC); // disable ADC
-//
-//   // Sleep Mode
-//   //
-//   // BODS  : disable BOD during low-power?
-//   // PUD   : ??
-//   // BODSE : ??
-//   // todo: would power-down be better since it halts clocks and only wakes on async events??
-//   // todo: should SE only be enabled when desired and cleared upon wakeup??
-//   MCUCR |= (1 << SE);     // Enable sleep
-//   MCUCR |= (0b11 << SM0); // Mode: standby
-// }
+static inline initLowPowerMode(void)
+{
+  // Disable ADC
+  power_aca_disable();
+  power_adc_disable();
+
+  // todo: check datasheet to see which of these we can disable
+  // Disable EVSYS
+  //power_evsys_disable();
+  // Disable HIRES
+  //power_hiresc_disable();
+  // Disable LCD module
+  //power_lcd_disable();
+  // Disable Programmable Gain Amplifier (bet this thing is bad ass af)
+  //power_pga_disable();
+  // Enable Reduced power stage controller
+  //power_pscr_enable();
+  //power_psc0_enable();
+  // Disable RTC
+  //power_rtc_disable();
+  // Disable SPI 
+  // todo: Make sure this doesn't affect ICSP
+  //power_spi_disable();
+  // Disable USART
+  //power_usart_disable();
+  // Disable USI
+  //power_usi_disable();
+
+
+
+  // Power Reduction Register
+  //
+  // PRTIM1 : ??
+  // PRTIM0 : ??
+  // PRUSI  : ??
+  PRR |= (1 << PRADC); // disable ADC
+
+  // Sleep Mode
+  //
+  // BODS  : disable BOD during low-power?
+  // PUD   : ??
+  // BODSE : ??
+  // todo: would power-down be better since it halts clocks and only wakes on async events??
+  // todo: should SE only be enabled when desired and cleared upon wakeup??
+  MCUCR |= (1 << SE);     // Enable sleep
+  MCUCR |= (0b11 << SM0); // Mode: standby
+}
 
 static inline void initMCU(void)
 {
