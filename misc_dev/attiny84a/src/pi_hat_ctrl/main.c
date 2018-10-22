@@ -199,10 +199,9 @@ static inline void initInterrupts(void)
   PCMSK1 |= (1 << PCINT9);
 }
 
-// Configure timer(s)
 
+// Configure timer(s)
 // 8-bit timer
-// todo: 16-bit timer for big honking times!
 static inline void initTimer0(void)
 {
   // F_CPU/(prescaler*(1 + OCR0A)) = F_num_timer_OVF
@@ -212,18 +211,37 @@ static inline void initTimer0(void)
 
   // Make sure it isn't free-running
   TURN_TIMER_0_OFF;
+  CLR_TIMER_0_COUNT;
 
   // Enable compare match INT
   TIMSK0 |= (1 << OCIE0A);
 }
 
+// 16-bit timer
+static inline void initTimer1(void)
+{
+  // 1/(F_CPU/(2*prescaler*(1 + 0xFFFF))) = 16.67s
+
+  // Clear timer on compare match
+  SET_TIMER_1_REG1_MODE_NORMAL;
+  SET_TIMER_1_REG2_MODE_NORMAL;
+
+  // Make sure it isn't free-running
+  TURN_TIMER_1_OFF;
+  CLR_TIMER_1_COUNT;
+
+  // Enable compare match INT
+  TIMSK0 |= (1 << TOIE1); // will be using globals to check times
+}
+
+
 // todo: how to make this generic
-// spec of push button is 3ms, but the one I'm debugging with is awful
+// spec of push button is 13ms, but the one I'm debugging with is awful
 static inline void startDebounceTimer(void)
 {
   // Output compare reg
   // todo: put in specific function for configuring correct period
-  OCR0A = 150; // 8M/(2*1024(1+50)) = 77Hz = 12ms... It's Gr8!!!
+  OCR0A = 150;
 
   // Activate timer with prescalar 1024
   TURN_TIMER_0_ON;
@@ -236,6 +254,21 @@ static inline void stopDebounceTimer(void)
 
   // Clear timer counter
   CLR_TIMER_0_COUNT;
+}
+
+static inline void startBigTimer(void)
+{
+  // Activate timer with prescalar 1024
+  TURN_TIMER_0_ON;
+}
+
+static inline void stopBigTimer(void)
+{
+  // Disable timer
+  TURN_TIMER_1_OFF;
+
+  // Clear timer counter
+  CLR_TIMER_1_COUNT;
 }
 
 // configure clocks
@@ -292,6 +325,7 @@ static inline void initMCU(void)
   // Configure all interrupts
   initInterrupts();
   initTimer0();
+  initTimer1();
 
   // Configure clocks
 //  initClocks()
@@ -331,8 +365,6 @@ static inline void initMCU(void)
 /*
  * pi_tx_hold_on ISR
  */
-// todo: how to incorporate check for if this condition never happens when push button or
-//       RTC alarm event occur??
 ISR(PCINT0_vect)
 {
   if (deviceAckIsOn()) // Pi has turned on
@@ -410,12 +442,6 @@ ISR(EXT_INT0_vect)                                       // TEST CODE
  */
 ISR(TIM0_COMPA_vect)
 {
-  // todo: for all ISRs, will be checking pin states, not flags. Flag checking is
-  //       taken care of by func in main. This is safe because interrupts will be
-  //       disabled when entering func, and enabled when leaving.
-  // todo: not adding forced shutdown as this could mean that an alarm isn't set
-  //       and the pi would never wake up. Would be complicated to play games to
-  //       also schedule some variation of fault/dev mode to denote this for pi.
   // if power is off and button pressed, turn power on and enter dev mode
   // if power is on and button is pressed, leave power on and check dev mode
   //    if dev mode is active, deactivate. else turn dev mode on
@@ -430,7 +456,6 @@ ISR(TIM0_COMPA_vect)
     SET_POWER_FLAG;
     SET_DEV_MODE_FLAG;
   }
-
 
   // Disable timer now as it has served heroically
   stopDebounceTimer();

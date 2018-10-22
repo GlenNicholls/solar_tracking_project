@@ -35,21 +35,29 @@
 #define TIMER_PRESCALE_1024    0b101
 #define TIMER_ON_MASK          0b111
 
-#define TIMER_0_WGM_BASE         WGM00
-#define TIMER_0_WGM_MODE_NORMAL  0b10 // todo: possibly add more but probably don't need now
-#define TIMER_0_WGM_MODE_CTC     0b10
+#define TIMER_0_WGM_NORMAL  0b10 // todo: possibly add more but probably don't need now
+#define TIMER_0_WGM_CTC     0b10
 
 // todo: devise better way for WGM here since we have to write 2 regs
-#define TIMER_1_WGM_BASE         WGM10
-#define TIMER_1_WGM_MODE_NORMAL  0b00 // todo: possibly add more but probably don't need now
-#define TIMER_1_WGM_MODE_CTC     0b100
+#define TIMER_1_WGM_REG1_NORMAL  0b00
+#define TIMER_1_WGM_REG2_NORMAL  0b00
+#define TIMER_1_WGM_REG1_CTC     0b00
+#define TIMER_1_WGM_REG2_CTC     0b01
 
-#define SET_TIMER_0_MODE_NORMAL SET_BITS(TCCR0A, TIMER_0_WGM_MODE_NORMAL, TIMER_0_WGM_BASE)
-#define SET_TIMER_0_MODE_CTC    SET_BITS(TCCR0A, TIMER_0_WGM_MODE_CTC, TIMER_0_WGM_BASE)
+#define SET_TIMER_0_MODE_NORMAL SET_BITS(TCCR0A, TIMER_0_WGM_NORMAL, WGM00)
+#define SET_TIMER_0_MODE_CTC    SET_BITS(TCCR0A, TIMER_0_WGM_CTC, WGM00)
 #define CLR_TIMER_0_COUNT       SET_REG(TCNT0, 0x00)
 #define TURN_TIMER_0_ON         SET_BITS(TCCR0B, TIMER_PRESCALE_1024, CS00)
 #define TURN_TIMER_0_OFF        CLR_BITS(TCCR0B, ~TIMER_OFF, CS00) // todo: how do I make this generic for the prescalar and output compare reg??
-// todo: timer 1 stuff
+
+#define SET_TIMER_1_REG1_MODE_NORMAL SET_BITS(TCCR1A, TIMER_1_WGM_REG1_NORMAL, WGM10)
+#define SET_TIMER_1_REG2_MODE_NORMAL SET_BITS(TCCR1B, TIMER_1_WGM_REG2_NORMAL, WGM12)
+#define SET_TIMER_1_REG1_MODE_CTC    SET_BITS(TCCR1A, TIMER_1_WGM_REG1_CTC, WGM10)
+#define SET_TIMER_1_REG2_MODE_CTC    SET_BITS(TCCR1B, TIMER_1_WGM_REG2_CTC, WGM12)
+#define CLR_TIMER_1_COUNT            SET_REG(TCNT1, 0x0000) // tcnt1 gives direct access to both regs
+#define TURN_TIMER_1_ON              SET_BITS(TCCR1B, TIMER_PRESCALE_1024, CS10)
+#define TURN_TIMER_1_OFF             CLR_BITS(TCCR1B, ~TIMER_OFF, CS10)
+
 
 // INT values
 #define LOGIC_CHANGE 0b01
