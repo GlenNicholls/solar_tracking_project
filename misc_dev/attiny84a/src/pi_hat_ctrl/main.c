@@ -123,6 +123,10 @@
 
 #include <pi_hat_ctrl.h>
 
+// Global variables for ISR
+void int CheckShutdownTimeCount = 0;
+void int CheckStartupTimeCount  = 0;
+
 
 // todo: should the init functions be put into a .h as well??
 // todo: implement this when the time comes
@@ -420,22 +424,21 @@ ISR(PCINT1_vect)
 
 
 // todo: test code below
-/////////////////////////////////////////////////////////// TEST CODE
-ISR(EXT_INT0_vect)                                       // TEST CODE
-{                                                        // TEST CODE
-  if (rtcAlarmIsOn()) // Alarm has occured               // TEST CODE
-  {                                                      // TEST CODE
-    SET_POWER_FLAG; // Turn load switch on               // TEST CODE
-  }                                                      // TEST CODE
-  else                                                   // TEST CODE
-  {                                                      // TEST CODE
-    CLR_POWER_FLAG;                                      // TEST CODE
-  }                                                      // TEST CODE
-                                                         // TEST CODE
-  // Insert nop for synchronization                      // TEST CODE
-  _NOP();                                                // TEST CODE
-}                                                        // TEST CODE
-/////////////////////////////////////////////////////////// TEST CODE
+/////////////////////////////////////////////////////////
+ISR(EXT_INT0_vect)
+{
+  if (rtcAlarmIsOn()) // Alarm has occured
+  {
+    SET_POWER_FLAG; // Turn load switch on
+  }
+
+  // start timer
+  startBigTimer();
+
+  // Insert nop for synchronization
+  _NOP();
+}
+/////////////////////////////////////////////////////////
 
 /*
  * Timer 0 Compare A ISR
@@ -459,6 +462,20 @@ ISR(TIM0_COMPA_vect)
 
   // Disable timer now as it has served heroically
   stopDebounceTimer();
+
+  // Insert nop for synchronization
+  _NOP();
+}
+
+/*
+ * Timer 1 Overflow ISR
+ */
+ISR(TIM1_OVF_vect)
+{
+  // if power is on and no ack, give system ~30s to turn on
+
+  // Disable timer now as it has served heroically
+  stopBigTimer();
 
   // Insert nop for synchronization
   _NOP();
