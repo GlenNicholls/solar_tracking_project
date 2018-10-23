@@ -24,6 +24,22 @@
 
 #define SET_REG(REG, VAL) (REG = VAL)
 
+
+// Clock configuration
+typedef enum
+{
+  div_1 = 0b0000,
+  div_2 = 0b0001,
+  div_4 = 0b0010,
+  div_8 = 0b0011,
+  div_16 = 0b0100,
+  div_32 = 0b0101,
+  div_64 = 0b0110,
+  div_128 = 0b0111,
+  div_256 = 0b1000
+}clockPrescaleT;
+
+
 // Timer configuration
 // todo: use enum instead
 typedef enum
