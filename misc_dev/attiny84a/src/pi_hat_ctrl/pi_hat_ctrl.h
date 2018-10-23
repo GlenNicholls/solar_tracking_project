@@ -1,4 +1,4 @@
-#include <attiny84a.h>
+#include <attiny84.h>
 
 
 // define hardware pins

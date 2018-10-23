@@ -19,7 +19,7 @@
 static inline void initInterrupts(void);
 static inline void initTimer0(void);
 static inline void initTimer1(void);
-static inline void initLowPowerMode(void);
+static inline void initLowPowerAndSleep(void);
 static inline void initPortA(void);
 static inline void initPortB(void);
 
@@ -30,6 +30,7 @@ static inline void startBigTimer(void);
 static inline void stopBigTimer(void);
 static inline void serviceGpioRegFlags(void);
 
+// todo: is this 32-bit integer or does compiler optimize??
 static inline int powerIsOn(void);
 static inline int powerFlagIsSet(void);
 static inline int faultIsOn(void);
@@ -107,15 +108,19 @@ timerPrescaleT timerPrescale;
 #define TURN_TIMER_1_OFF             CLR_BITS(TCCR1B, ~timerPrescale.off, CS10)
 
 
-// Pin change interrupts
-#define LOGIC_CHANGE 0b01
+
+// general definitions
+#define INT0_MODE_LOGIC_CHANGE 0b01
+#define SLEEP_MODE_IDLE        0b00
+#define SLEEP_MODE_PWR_DOWN    0b10
+#define SLEEP_MODE_STAND_BY    0b11
 
 
 
 // configuration functions
 static inline void initClock(void)
 {
-  clock_prescale_set(clock_div_t.clock_div_64); // yields 125kHz clk
+  clock_prescale_set(clock_div_64); // yields 125kHz clk
 
   // synchronize
   _NOP();
@@ -141,7 +146,7 @@ static inline void initClock(void)
 static inline void initInterrupts(void)
 {
   // Configure INT0 interrupt mode
-  SET_BITS(MCUCR, LOGIC_CHANGE, ISC00);
+  SET_BITS(MCUCR, INT0_MODE_LOGIC_CHANGE, ISC00);
 
   // General Interrupt Mask Register
   GIMSK |= (1 << INT0) | (1 << PCIE0) | (1 << PCIE1);
@@ -189,47 +194,22 @@ static inline void initTimer1(void)
 //       to make code clearer
 // todo: might be beneficial to disable timers when not used. can enable them in the
 //       turn on functions
-static inline void initLowPowerMode(void)
+static inline void initLowPowerAndSleep(void)
 {
   // Disable ADC
   power_aca_disable();
   power_adc_disable();
 
-  // todo: check datasheet to see which of these we can disable
-  // Disable EVSYS
-  //power_evsys_disable();
-  // Disable HIRES
-  //power_hiresc_disable();
-  // Disable LCD module
-  //power_lcd_disable();
-  // Disable Programmable Gain Amplifier (bet this thing is bad ass af)
-  //power_pga_disable();
-  // Enable Reduced power stage controller
-  //power_pscr_enable();
-  //power_psc0_enable();
-  // Disable RTC
-  //power_rtc_disable();
-  // Disable SPI
-  // todo: Make sure this doesn't affect ICSP
-  //power_spi_disable();
-  // Disable USART
-  //power_usart_disable();
   // Disable USI
-  //power_usi_disable();
+  power_usi_disable();
 
   // todo: disable BOD for lower power
 
-  // Power Reduction Register
-  //
-  // PRTIM1 : ??
-  // PRTIM0 : ??
-  // PRUSI  : ??
-  PRR |= (1 << PRADC); // disable ADC
 
   // Sleep Mode
-  //
-  // todo: would power-down be better since it halts clocks and only wakes on async events??
-  // todo: should SE only be enabled when desired and cleared upon wakeup??
-  MCUCR |= (1 << SE);     // Enable sleep
-  MCUCR |= (0b11 << SM0); // Mode: standby
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  sleep_enable(); // todo: might not need this with sleep_mode();
+
+  //MCUCR |= (1 << SE);     // Enable sleep
+  //MCUCR |= (0b11 << SM0); // Mode: standby
 }

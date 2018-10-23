@@ -392,7 +392,8 @@ int main(void)
   while (1)
   {
     serviceGpioRegFlags();
-    //sleep_cpu();
+    // todo: sleep_bod_disable(); everytime since it gets enabled when woken up
+    //sleep_mode(); // or sleep_cpu();
   }
 
   return 0;
