@@ -147,7 +147,8 @@ void int CheckStartupTimeCount  = 0;
 
 // todo: set full register if need memory
 // todo: put all hardware specific in attiny84a.h
-// todo: figure out best dir/pullup state for low-power on not connected pins
+// todo: use pullup and figure out direction for unused pins (including ICSP)
+//       ref page 56
 static inline void initPortA(void)
 {
   // DDRA Port Directions
@@ -284,6 +285,8 @@ static inline void stopBigTimer(void)
 // configure low-power
 // todo: don't shove everything in single function, pull stuff to other functions
 //       to make code clearer
+// todo: might be beneficial to disable timers when not used. can enable them in the 
+//       turn on functions
 static inline initLowPowerMode(void)
 {
   // Disable ADC
@@ -312,7 +315,7 @@ static inline initLowPowerMode(void)
   // Disable USI
   //power_usi_disable();
 
-
+  // todo: disable BOD for lower power
 
   // Power Reduction Register
   //
@@ -323,9 +326,6 @@ static inline initLowPowerMode(void)
 
   // Sleep Mode
   //
-  // BODS  : disable BOD during low-power?
-  // PUD   : ??
-  // BODSE : ??
   // todo: would power-down be better since it halts clocks and only wakes on async events??
   // todo: should SE only be enabled when desired and cleared upon wakeup??
   MCUCR |= (1 << SE);     // Enable sleep
