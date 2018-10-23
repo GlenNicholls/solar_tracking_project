@@ -1,93 +1,7 @@
-#include <avr/io.h>
-#include <avr/interrupt.h>
-//#include <avr/sfr_defs.h> // io should include this
-#include <avr/power.h>
-#include <avr/sleep.h>
-
-// used for a very short delay
-#define _NOP() do { __asm__ __volatile__ ("nop"); } while (0)
-
-// todo: Where are these macros defined??
-// define macros
-#define SET_BIT(PORT, BIT) ( PORT |=  _BV(BIT) )
-#define CLR_BIT(PORT, BIT) ( PORT &= ~_BV(BIT) )
-#define TGL_BIT(PORT, BIT) ( PORT ^=  _BV(BIT) )
-
-#define SET_OUTPUT(DDRX, BIT) ( DDRX |=  _BV(BIT) )
-#define SET_INPUT(DDRX, BIT)  ( DDRX &= ~_BV(BIT) )
-
-#define SET_PULLUP_ON(PORT, BIT)  ( PORT |=  _BV(BIT) )
-#define SET_PULLUP_OFF(PORT, BIT) ( PORT &= ~_BV(BIT) )
-
-#define SET_BITS(REG, VAL, BASE) ( REG |=  (VAL << BASE) )
-#define CLR_BITS(REG, VAL, BASE) ( REG &= ~(VAL << BASE))
-
-#define SET_REG(REG, VAL) (REG = VAL)
+#include <attiny84a.h>
 
 
-// Clock configuration
-typedef enum
-{
-  div_1 = 0b0000,
-  div_2 = 0b0001,
-  div_4 = 0b0010,
-  div_8 = 0b0011,
-  div_16 = 0b0100,
-  div_32 = 0b0101,
-  div_64 = 0b0110,
-  div_128 = 0b0111,
-  div_256 = 0b1000
-}clockPrescaleT;
-
-
-// Timer configuration
-// todo: use enum instead
-typedef enum
-{
-  Off      = 0b000,
-  Div_1    = 0b001,
-  Div_8    = 0b010,
-  Div_64   = 0b011,
-  Div_256  = 0b100,
-  Div_1024 = 0b101
-} timerPrescaleT;
-#define TIMER_OFF              0b000
-#define TIMER_PRESCALE_1       0b001
-#define TIMER_PRESCALE_8       0b010
-#define TIMER_PRESCALE_64      0b011
-#define TIMER_PRESCALE_256     0b100
-#define TIMER_PRESCALE_1024    0b101
-#define TIMER_ON_MASK          0b111
-
-#define TIMER_0_WGM_NORMAL  0b10 // todo: possibly add more but probably don't need now
-#define TIMER_0_WGM_CTC     0b10
-
-// todo: devise better way for WGM here since we have to write 2 regs
-#define TIMER_1_WGM_REG1_NORMAL  0b00
-#define TIMER_1_WGM_REG2_NORMAL  0b00
-#define TIMER_1_WGM_REG1_CTC     0b00
-#define TIMER_1_WGM_REG2_CTC     0b01
-
-#define SET_TIMER_0_MODE_NORMAL SET_BITS(TCCR0A, TIMER_0_WGM_NORMAL, WGM00)
-#define SET_TIMER_0_MODE_CTC    SET_BITS(TCCR0A, TIMER_0_WGM_CTC, WGM00)
-#define CLR_TIMER_0_COUNT       SET_REG(TCNT0, 0x00)
-#define TURN_TIMER_0_ON         SET_BITS(TCCR0B, TIMER_PRESCALE_1024, CS00)
-#define TURN_TIMER_0_OFF        CLR_BITS(TCCR0B, ~TIMER_OFF, CS00) // todo: how do I make this generic for the prescalar and output compare reg??
-
-#define SET_TIMER_1_REG1_MODE_NORMAL SET_BITS(TCCR1A, TIMER_1_WGM_REG1_NORMAL, WGM10)
-#define SET_TIMER_1_REG2_MODE_NORMAL SET_BITS(TCCR1B, TIMER_1_WGM_REG2_NORMAL, WGM12)
-#define SET_TIMER_1_REG1_MODE_CTC    SET_BITS(TCCR1A, TIMER_1_WGM_REG1_CTC, WGM10)
-#define SET_TIMER_1_REG2_MODE_CTC    SET_BITS(TCCR1B, TIMER_1_WGM_REG2_CTC, WGM12)
-#define CLR_TIMER_1_COUNT            SET_REG(TCNT1, 0x0000) // tcnt1 gives direct access to both regs
-#define TURN_TIMER_1_ON              SET_BITS(TCCR1B, TIMER_PRESCALE_1024, CS10)
-#define TURN_TIMER_1_OFF             CLR_BITS(TCCR1B, ~TIMER_OFF, CS10)
-
-
-// INT values
-#define LOGIC_CHANGE 0b01
-
-
-// define pins for readability
+// define hardware pins
 #define POWER_PIN_REG      PA0
 #define FAULT_PIN_REG      PA1
 #define DEV_MODE_PIN_REG   PA3
@@ -120,7 +34,9 @@ typedef enum
 #define BUTTON_STATUS_MASK     _BV(BUTTON_PIN_REG)
 #define RTC_ALARM_STATUS_MASK  _BV(RTC_ALARM_PIN_REG)
 
-// todo: this should all only be used in function inside main
+
+
+// Pin assertions
 // todo: possibly change to toggling?
 #define TURN_POWER_ON      SET_BIT(POWER_PORT,    POWER_PIN_REG)
 #define TURN_POWER_OFF     CLR_BIT(POWER_PORT,    POWER_PIN_REG)
@@ -128,6 +44,7 @@ typedef enum
 #define TURN_FAULT_OFF     CLR_BIT(FAULT_PORT,    FAULT_PIN_REG)
 #define TURN_DEV_MODE_ON   SET_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
 #define TURN_DEV_MODE_OFF  CLR_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
+
 
 
 // GPIO register macros
@@ -148,6 +65,52 @@ typedef enum
 #define CLR_DEV_MODE_FLAG  loop_until_bit_is_clear(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
 
 
+
+// hardware configuration
+// todo: set full register if need memory
+// todo: put all hardware specific in attiny84a.h
+// todo: use pullup and figure out direction for unused pins (including ICSP)
+//       ref page 56
+static inline void initPortA(void)
+{
+  // DDRA Port Directions
+  SET_INPUT(DDRA, DEVICE_ACK_PIN_REG);
+  SET_INPUT(DDRA, ISCP_MOSI);
+  SET_INPUT(DDRA, ISCP_MISO);
+  SET_INPUT(DDRA, ISCP_SCK);
+  SET_INPUT(DDRA, PA2); // not connected
+
+  SET_OUTPUT(DDRA, DEV_MODE_PIN_REG);
+  SET_OUTPUT(DDRA, FAULT_PIN_REG);
+  SET_OUTPUT(DDRA, POWER_PIN_REG);
+
+  // Enable pullups
+  SET_PULLUP_ON(PORTA, DEVICE_ACK_PIN_REG);
+  SET_PULLUP_ON(PORTA, ISCP_MOSI);
+  SET_PULLUP_ON(PORTA, ISCP_MISO);
+  SET_PULLUP_ON(PORTA, ISCP_SCK);
+  SET_PULLUP_ON(PORTA, DEV_MODE_PIN_REG); // Make sure to turn off during initMCU
+  SET_PULLUP_ON(PORTA, PA2);              // not connected
+  SET_PULLUP_ON(PORTA, FAULT_PIN_REG);    // Make sure to turn off during initMCU
+  SET_PULLUP_ON(PORTA, POWER_PIN_REG);
+
+}
+
+static inline void initPortB(void)
+{
+  // DDRB Port Directions
+  SET_INPUT(DDRB, ICSP_RESET_N);
+  SET_INPUT(DDRB, RTC_ALARM_PIN_REG);
+  SET_INPUT(DDRB, BUTTON_PIN_REG);
+
+  SET_OUTPUT(DDRB, PB0); // not connected
+
+  // Enable pullups
+  SET_PULLUP_ON(PORTB, ICSP_RESET_N);
+  SET_PULLUP_ON(PORTB, RTC_ALARM_PIN_REG);
+  SET_PULLUP_ON(PORTB, BUTTON_PIN_REG);
+  SET_PULLUP_ON(PORTB, PB0); // not connected
+}
 
 // functions for checking pin states
 // todo: where to put these??
@@ -203,19 +166,9 @@ static inline int timer0IsOn(void)
     return (TCCR0B & TIMER_ON_MASK);
 }
 
-
 static inline int timer1IsOn(void)
 {
   //return bit_is_set(TCCR1B, TIMER_ON_MASK);
     return (TCCR1B & TIMER_ON_MASK);
 }
-
-// function prototypes or whatever it's called here
-static inline void initPortA(void);
-static inline void initPortB(void);
-static inline void initInterrupts(void);
-static inline void initMCU(void);
-static inline void startDebounceTimer(void);
-static inline void stopDebounceTimer(void);
-static inline void serviceGpioRegFlags(void);
 

@@ -128,118 +128,8 @@ void int CheckShutdownTimeCount = 0;
 void int CheckStartupTimeCount  = 0;
 
 
-// todo: should the init functions be put into a .h as well??
-// todo: implement this when the time comes
-// void WDT_off(void)
-// {
-//     _WDR();
-//
-//     // CLR WDRF in MCUSR
-//     MCUSR |= 0x00;
-//
-//     // Write 1 to WDCE and WDE
-//     WDTCSR |= (1 << WDCE);
-//     WDTCSR |= (1 << WDE);
-//
-//     // Turn off WDT
-//     WDTCSR = 0x00;
-// }
 
-// todo: set full register if need memory
-// todo: put all hardware specific in attiny84a.h
-// todo: use pullup and figure out direction for unused pins (including ICSP)
-//       ref page 56
-static inline void initPortA(void)
-{
-  // DDRA Port Directions
-  SET_INPUT(DDRA, DEVICE_ACK_PIN_REG);
-  SET_INPUT(DDRA, ISCP_MOSI);
-  SET_INPUT(DDRA, ISCP_MISO);
-  SET_INPUT(DDRA, ISCP_SCK);
-  SET_INPUT(DDRA, PA2); // not connected
-
-  SET_OUTPUT(DDRA, DEV_MODE_PIN_REG);
-  SET_OUTPUT(DDRA, FAULT_PIN_REG);
-  SET_OUTPUT(DDRA, POWER_PIN_REG);
-
-  // Enable pullups
-  SET_PULLUP_ON(PORTA, DEVICE_ACK_PIN_REG);
-  SET_PULLUP_ON(PORTA, ISCP_MOSI);
-  SET_PULLUP_ON(PORTA, ISCP_MISO);
-  SET_PULLUP_ON(PORTA, ISCP_SCK);
-  SET_PULLUP_ON(PORTA, DEV_MODE_PIN_REG); // Make sure to turn off during initMCU
-  SET_PULLUP_ON(PORTA, PA2);              // not connected
-  SET_PULLUP_ON(PORTA, FAULT_PIN_REG);    // Make sure to turn off during initMCU
-  SET_PULLUP_ON(PORTA, POWER_PIN_REG);
-
-}
-
-static inline void initPortB(void)
-{
-  // DDRB Port Directions
-  SET_INPUT(DDRB, ICSP_RESET_N);
-  SET_INPUT(DDRB, RTC_ALARM_PIN_REG);
-  SET_INPUT(DDRB, BUTTON_PIN_REG);
-
-  SET_OUTPUT(DDRB, PB0); // not connected
-
-  // Enable pullups
-  SET_PULLUP_ON(PORTB, ICSP_RESET_N);
-  SET_PULLUP_ON(PORTB, RTC_ALARM_PIN_REG);
-  SET_PULLUP_ON(PORTB, BUTTON_PIN_REG);
-  SET_PULLUP_ON(PORTB, PB0); // not connected
-}
-
-// todo: abstract this in .h
-static inline void initInterrupts(void)
-{
-  // Configure INT0 interrupt mode
-  SET_BITS(MCUCR, LOGIC_CHANGE, ISC00);
-
-  // General Interrupt Mask Register
-  GIMSK |= (1 << INT0) | (1 << PCIE0) | (1 << PCIE1);
-
-  // Pin Change Mask Registers
-  PCMSK0 |= (1 << PCINT7);
-  PCMSK1 |= (1 << PCINT9);
-}
-
-
-// Configure timer(s)
-// 8-bit timer
-static inline void initTimer0(void)
-{
-  // F_CPU/(prescaler*(1 + OCR0A)) = F_num_timer_OVF
-
-  // Clear timer on compare match
-  SET_TIMER_0_MODE_CTC;
-
-  // Make sure it isn't free-running
-  TURN_TIMER_0_OFF;
-  CLR_TIMER_0_COUNT;
-
-  // Enable compare match INT
-  TIMSK0 |= (1 << OCIE0A);
-}
-
-// 16-bit timer
-static inline void initTimer1(void)
-{
-  // 1/(F_CPU/(2*prescaler*(1 + 0xFFFF))) = 16.67s
-
-  // Clear timer on compare match
-  SET_TIMER_1_REG1_MODE_NORMAL;
-  SET_TIMER_1_REG2_MODE_NORMAL;
-
-  // Make sure it isn't free-running
-  TURN_TIMER_1_OFF;
-  CLR_TIMER_1_COUNT;
-
-  // Enable compare match INT
-  TIMSK0 |= (1 << TOIE1); // will be using globals to check times
-}
-
-
+// stop/start timers
 // todo: how to make this generic
 // spec of push button is 13ms, but the one I'm debugging with is awful
 static inline void startDebounceTimer(void)
@@ -264,7 +154,7 @@ static inline void stopDebounceTimer(void)
 static inline void startBigTimer(void)
 {
   // Activate timer with prescalar 1024
-  TURN_TIMER_0_ON;
+  TURN_TIMER_1_ON;
 }
 
 static inline void stopBigTimer(void)
@@ -276,62 +166,9 @@ static inline void stopBigTimer(void)
   CLR_TIMER_1_COUNT;
 }
 
-// configure clocks
-// static inline initClocks(void)
-// {
-//   // todo: not sure how to configure clocks yet
-// }
 
-// configure low-power
-// todo: don't shove everything in single function, pull stuff to other functions
-//       to make code clearer
-// todo: might be beneficial to disable timers when not used. can enable them in the 
-//       turn on functions
-static inline initLowPowerMode(void)
-{
-  // Disable ADC
-  power_aca_disable();
-  power_adc_disable();
 
-  // todo: check datasheet to see which of these we can disable
-  // Disable EVSYS
-  //power_evsys_disable();
-  // Disable HIRES
-  //power_hiresc_disable();
-  // Disable LCD module
-  //power_lcd_disable();
-  // Disable Programmable Gain Amplifier (bet this thing is bad ass af)
-  //power_pga_disable();
-  // Enable Reduced power stage controller
-  //power_pscr_enable();
-  //power_psc0_enable();
-  // Disable RTC
-  //power_rtc_disable();
-  // Disable SPI 
-  // todo: Make sure this doesn't affect ICSP
-  //power_spi_disable();
-  // Disable USART
-  //power_usart_disable();
-  // Disable USI
-  //power_usi_disable();
-
-  // todo: disable BOD for lower power
-
-  // Power Reduction Register
-  //
-  // PRTIM1 : ??
-  // PRTIM0 : ??
-  // PRUSI  : ??
-  PRR |= (1 << PRADC); // disable ADC
-
-  // Sleep Mode
-  //
-  // todo: would power-down be better since it halts clocks and only wakes on async events??
-  // todo: should SE only be enabled when desired and cleared upon wakeup??
-  MCUCR |= (1 << SE);     // Enable sleep
-  MCUCR |= (0b11 << SM0); // Mode: standby
-}
-
+// init MCU for desired operation
 static inline void initMCU(void)
 {
   // Disable interrupts for clock div just in case
@@ -358,7 +195,7 @@ static inline void initMCU(void)
   initTimer1();
 
   // Configure clocks
-//  initClocks()
+  initClock();
   // Configure low-power mode
 //  initLowPowerMode();
 
