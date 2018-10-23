@@ -124,14 +124,15 @@
 #include <pi_hat_ctrl.h>
 
 // Global variables for ISR
-void int CheckShutdownTimeCount = 0;
-void int CheckStartupTimeCount  = 0;
+//void int CheckShutdownTimeCount = 0;
+//void int CheckStartupTimeCount  = 0;
 
 
 
 // stop/start timers
 // todo: how to make this generic
 // spec of push button is 13ms, but the one I'm debugging with is awful
+// 1/(125k/(2*1024*(1 + ))) =
 static inline void startDebounceTimer(void)
 {
   // Output compare reg
@@ -172,7 +173,7 @@ static inline void stopBigTimer(void)
 static inline void initMCU(void)
 {
   // Disable interrupts for clock div just in case
-  cli();
+  //cli();
 
   // init pin directions and pullups
   initPortA();
@@ -191,11 +192,11 @@ static inline void initMCU(void)
 
   // Configure all interrupts
   initInterrupts();
-  initTimer0();
-  initTimer1();
+  //initTimer0();
+  //initTimer1();
 
   // Configure clocks
-  initClock();
+  //initClock();
   // Configure low-power mode
 //  initLowPowerMode();
 
@@ -274,7 +275,7 @@ ISR(PCINT1_vect)
   {
     if (!timer0IsOn()) // if timer is alreay on we're going, "hey, wire"
     {
-      startDebounceTimer();
+      //startDebounceTimer();
     }
     //SET_DEV_MODE_FLAG;
   }
@@ -294,9 +295,13 @@ ISR(EXT_INT0_vect)
   {
     SET_POWER_FLAG; // Turn load switch on
   }
+  else
+  {
+    CLR_POWER_FLAG;
+  }
 
   // start timer
-  startBigTimer();
+  //startBigTimer();
 
   // Insert nop for synchronization
   _NOP();

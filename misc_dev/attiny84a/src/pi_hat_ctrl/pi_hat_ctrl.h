@@ -27,13 +27,6 @@
 #define BUTTON_PIN     PINB
 #define RTC_ALARM_PIN  PINB
 
-#define POWER_STATUS_MASK      _BV(POWER_PIN_REG)
-#define FAULT_STATUS_MASK      _BV(FAULT_PIN_REG)
-#define DEV_MODE_STATUS_MASK   _BV(DEV_MODE_PIN_REG)
-#define DEVICE_ACK_STATUS_MASK _BV(DEVICE_ACK_PIN_REG)
-#define BUTTON_STATUS_MASK     _BV(BUTTON_PIN_REG)
-#define RTC_ALARM_STATUS_MASK  _BV(RTC_ALARM_PIN_REG)
-
 
 
 // Pin assertions
@@ -52,17 +45,13 @@
 #define GPIOR2_FAULT_FLAG_REG    6
 #define GPIOR2_DEV_MODE_FLAG_REG 5
 
-#define GPIOR2_POWER_FLAG_MASK    _BV(GPIOR2_POWER_FLAG_REG)
-#define GPIOR2_FAULT_FLAG_MASK    _BV(GPIOR2_FAULT_FLAG_REG)
-#define GPIOR2_DEV_MODE_FLAG_MASK _BV(GPIOR2_DEV_MODE_FLAG_REG)
-
-#define SET_POWER_FLAG     loop_until_bit_is_set(GPIOR2, GPIOR2_POWER_FLAG_REG)
-#define CLR_POWER_FLAG     loop_until_bit_is_clear(GPIOR2, GPIOR2_POWER_FLAG_REG)
-#define SET_FAULT_FLAG     loop_until_bit_is_set(GPIOR2, GPIOR2_FAULT_FLAG_REG)
-#define CLR_FAULT_FLAG     loop_until_bit_is_clear(GPIOR2, GPIOR2_FAULT_FLAG_REG)
-#define TGL_DEV_MODE_FLAG  TGL_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
-#define SET_DEV_MODE_FLAG  loop_until_bit_is_set(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
-#define CLR_DEV_MODE_FLAG  loop_until_bit_is_clear(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
+#define SET_POWER_FLAG     SET_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)   //loop_until_bit_is_set(GPIOR2, GPIOR2_POWER_FLAG_REG)
+#define CLR_POWER_FLAG     CLR_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)   //loop_until_bit_is_clear(GPIOR2, GPIOR2_POWER_FLAG_REG)
+#define SET_FAULT_FLAG     SET_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)   //loop_until_bit_is_set(GPIOR2, GPIOR2_FAULT_FLAG_REG)
+#define CLR_FAULT_FLAG     CLR_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)   //loop_until_bit_is_clear(GPIOR2, GPIOR2_FAULT_FLAG_REG)
+#define TGL_DEV_MODE_FLAG  TGL_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)//TGL_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
+#define SET_DEV_MODE_FLAG  SET_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)//loop_until_bit_is_set(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
+#define CLR_DEV_MODE_FLAG  CLR_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)//loop_until_bit_is_clear(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
 
 
 
@@ -116,59 +105,59 @@ static inline void initPortB(void)
 // todo: where to put these??
 static inline int powerIsOn(void)
 {
-  return bit_is_set(POWER_PIN, POWER_STATUS_MASK);
+  return bit_is_set(POWER_PIN, POWER_PIN_REG);
 }
 
 static inline int powerFlagIsSet(void)
 {
-  return bit_is_set(GPIOR2, GPIOR2_POWER_FLAG_MASK);
+  return bit_is_set(GPIOR2, GPIOR2_POWER_FLAG_REG);
 }
 
 static inline int faultIsOn(void)
 {
-  return bit_is_set(FAULT_PIN, FAULT_STATUS_MASK);
+  return bit_is_set(FAULT_PIN, FAULT_PIN_REG);
 }
 
 static inline int faultFlagIsSet(void)
 {
-  return bit_is_set(GPIOR2, GPIOR2_FAULT_FLAG_MASK);
+  return bit_is_set(GPIOR2, GPIOR2_FAULT_FLAG_REG);
 }
 
 static inline int devModeIsOn(void)
 {
-  return bit_is_set(DEV_MODE_PIN, DEV_MODE_STATUS_MASK);
+  return bit_is_set(DEV_MODE_PIN, DEV_MODE_PIN_REG);
 }
 
 static inline int devModeFlagIsSet(void)
 {
-  return bit_is_set(GPIOR2, GPIOR2_DEV_MODE_FLAG_MASK);
+  return bit_is_set(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG);
 }
 
 static inline int deviceAckIsOn(void)
 {
-  return bit_is_set(DEVICE_ACK_PIN, DEVICE_ACK_STATUS_MASK);
+  return bit_is_set(DEVICE_ACK_PIN, DEVICE_ACK_PIN_REG);
 }
 
 static inline int buttonIsOn(void) // look for low-going edge (active low)
 {
-  return bit_is_clear(BUTTON_PIN, BUTTON_STATUS_MASK);
+  return bit_is_clear(BUTTON_PIN, BUTTON_PIN_REG);
 }
 
 static inline int rtcAlarmIsOn(void) // look for low-going edge (active low)
 {
-  return bit_is_clear(RTC_ALARM_PIN, RTC_ALARM_STATUS_MASK);
+  return bit_is_clear(RTC_ALARM_PIN, RTC_ALARM_PIN_REG);
 }
 
 // NOTE: Probably can't use bit_is_set since if any [2:0] are non-zero, timer is on
 static inline int timer0IsOn(void)
 {
   //return bit_is_set(TCCR0B, TIMER_ON_MASK);
-    return (TCCR0B & TIMER_ON_MASK);
+  return (TCCR0B & TIMER_ON_MASK);
 }
 
 static inline int timer1IsOn(void)
 {
   //return bit_is_set(TCCR1B, TIMER_ON_MASK);
-    return (TCCR1B & TIMER_ON_MASK);
+  return (TCCR1B & TIMER_ON_MASK);
 }
 
