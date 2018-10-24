@@ -135,11 +135,13 @@
 // 1/(125000/(2*8*(1 + 35))) = 36.9ms
 static inline void startDebounceTimer(void)
 {
+  // 1/(125000/(2*8*(1 + 35))) = ~37ms
+
   // Output compare reg
   // todo: put in specific function for configuring correct period
   OCR0A = 35;
 
-  // Activate timer with prescalar 1024
+  // Activate timer with prescalar 8
   TURN_TIMER_0_ON;
 }
 
@@ -154,6 +156,14 @@ static inline void stopDebounceTimer(void)
 
 static inline void startBigTimer(void)
 {
+  // 1/(125000/(1024*(1 + 2500))) = ~41s
+
+  // Output compare reg
+  // todo: put in specific function for configuring correct period
+  OCR1AH = 0;
+  OCR1AL = 200;
+  //OCR1A = 200;
+
   // Activate timer with prescalar 1024
   TURN_TIMER_1_ON;
 }
@@ -183,6 +193,7 @@ static inline void initMCU(void)
   MCUCR &= ~(1 << PUD);
 
   // Set start-up state when uC first gets power
+  // todo: fix start up glitch when uC sees first alarm after power on
   SET_POWER_FLAG;
   TURN_POWER_ON;
   CLR_DEV_MODE_FLAG;
@@ -193,10 +204,11 @@ static inline void initMCU(void)
   // Configure all interrupts
   initInterrupts();
   initTimer0();
-  //initTimer1();
+  initTimer1();
 
   // Configure clocks
   initClock();
+
   // Configure low-power mode
   initLowPowerAndSleep();
 
@@ -275,6 +287,10 @@ ISR(PCINT1_vect)
   {
     startDebounceTimer();
   }
+  if (!timer1IsOn()) // DBG
+  {                  // DBG
+    startBigTimer(); // DBG
+  }                  // DBG
 
   // Insert nop for synchronization
   _NOP();
@@ -334,12 +350,13 @@ ISR(TIM0_COMPA_vect)
 /*
  * Timer 1 Overflow ISR
  */
-ISR(TIM1_OVF_vect)
+ISR(TIM1_COMPA_vect)
+//ISR(TIM1_OVF_vect)
 {
   // if power is on and no ack, give system ~30s to turn on
 
-  // Disable timer now as it has served heroically
-  stopBigTimer();
+  TGL_FAULT_FLAG;
+  //stopBigTimer();
 
   // Insert nop for synchronization
   _NOP();
@@ -349,7 +366,7 @@ ISR(TIM1_OVF_vect)
 static inline void serviceGpioRegFlags(void)
 {
   // disable interrupts to prevent flags changing
-  cli();
+  //cli();
 
   // control pin
   // todo: not sure if this needs to be checked so explicitly
@@ -383,7 +400,7 @@ static inline void serviceGpioRegFlags(void)
   }
 
   // re-enable interrupts
-  sei();
+  //sei();
 
   // Add some cycles for allowing interrupts to be processed
   _NOP();
@@ -393,7 +410,7 @@ static inline void serviceGpioRegFlags(void)
 int main(void)
 {
   initMCU();
-
+  //startBigTimer();
   while (1)
   {
     serviceGpioRegFlags();

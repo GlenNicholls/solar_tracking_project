@@ -154,8 +154,8 @@ static inline void initInterrupts(void)
   GIMSK |= (1 << INT0) | (1 << PCIE0) | (1 << PCIE1);
 
   // Pin Change Mask Registers
-  PCMSK0 |= (1 << PCINT7);
-  PCMSK1 |= (1 << PCINT9);
+  PCMSK0 |= _BV(PCINT7);
+  PCMSK1 |= _BV(PCINT9);
 }
 
 // 8-bit timer
@@ -169,22 +169,23 @@ static inline void initTimer0(void)
   CLR_TIMER_0_COUNT;
 
   // Enable compare match INT
-  TIMSK0 |= (1 << OCIE0A);
+  TIMSK0 |= _BV(OCIE0A);
 }
 
 // 16-bit timer
 static inline void initTimer1(void)
 {
   // Clear timer on compare match
-  SET_TIMER_1_REG1_MODE_NORMAL;
-  SET_TIMER_1_REG2_MODE_NORMAL;
+  SET_TIMER_1_REG1_MODE_CTC;
+  SET_TIMER_1_REG2_MODE_CTC;
 
   // Make sure it isn't free-running
   TURN_TIMER_1_OFF;
   CLR_TIMER_1_COUNT;
 
   // Enable compare match INT
-  TIMSK0 |= (1 << TOIE1); // will be using globals to check times
+  //TIMSK1 |= _BV(TOIE1); // will be using globals to check times
+  TIMSK1 |= _BV(OCIE1A);
 }
 
 // configure low-power
@@ -201,7 +202,6 @@ static inline void initLowPowerAndSleep(void)
   power_usi_disable();
 
   // todo: disable BOD for lower power
-
 
   // Sleep Mode
   //set_sleep_mode(SLEEP_MODE_PWR_DOWN);

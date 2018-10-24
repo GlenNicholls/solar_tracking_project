@@ -46,9 +46,13 @@
 #define GPIOR2_DEV_MODE_FLAG_REG 5
 
 #define SET_POWER_FLAG     SET_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
+#define TGL_POWER_FLAG     TGL_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
 #define CLR_POWER_FLAG     CLR_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
+
 #define SET_FAULT_FLAG     SET_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
+#define TGL_FAULT_FLAG     TGL_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
 #define CLR_FAULT_FLAG     CLR_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
+
 #define TGL_DEV_MODE_FLAG  TGL_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
 #define SET_DEV_MODE_FLAG  SET_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
 #define CLR_DEV_MODE_FLAG  CLR_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
@@ -140,8 +144,7 @@ static inline int deviceAckIsOn(void)
 
 static inline int buttonIsOn(void) // look for low-going edge (active low)
 {
-  //return bit_is_clear(BUTTON_PIN, BUTTON_PIN_REG);
-  return !(BUTTON_PIN & _BV(BUTTON_PIN_REG));
+  return bit_is_clear(BUTTON_PIN, BUTTON_PIN_REG);
 }
 
 static inline int rtcAlarmIsOn(void) // look for low-going edge (active low)
