@@ -128,8 +128,9 @@
 //void int CheckStartupTimeCount  = 0;
 
 
-
-// stop/start timers
+/*****************************
+ * 8-Bit Timer Helpers
+ *****************************/
 // todo: how to make this generic
 // spec of push button is 13ms, but the one I'm debugging with is awful
 // 1/(125000/(2*8*(1 + 35))) = 36.9ms
@@ -154,6 +155,10 @@ static inline void stopDebounceTimer(void)
   CLR_TIMER_0_COUNT;
 }
 
+
+/*****************************
+ * 16-Bit Timer Helpers
+ *****************************/
 static inline void startBigTimer(void)
 {
   // 1/(125000/(1024*(1 + 2500))) = ~41s
@@ -178,8 +183,9 @@ static inline void stopBigTimer(void)
 }
 
 
-
-// init MCU for desired operation
+/*****************************
+ * Initialize MCU
+ *****************************/
 static inline void initMCU(void)
 {
   // Disable interrupts for clock div just in case
@@ -217,34 +223,9 @@ static inline void initMCU(void)
 }
 
 
-// /*
-//  * RTC Alarm ISR
-//  */
-// ISR(EXT_INT0_vect)
-// {
-//   if (rtcAlarmIsOn()) // Alarm has occured
-//   {
-//     if (powerIsOn()) // Checking to see if load switch already on
-//     {
-//       // todo: Should FAULTS ever be cleared before user intervention??
-//       TURN_FAULT_ON; // raise FAULT as this shouldn't happen, but maintain power to device
-//     }
-//     else
-//     {
-//       TURN_POWER_ON; // Turn load switch on
-//     }
-//   }
-//   // todo: find out if any error checking needs to be done when alarm is cleared
-//   //       should be branching back to service other interrupts or sleep
-//   // else {}
-//
-//   // Insert nop for synchronization
-//   _NOP();
-// }
-
-/*
- * pi_tx_hold_on ISR
- */
+/*****************************
+ * Device Ack ISR
+ *****************************/
 ISR(PCINT0_vect)
 {
   if (deviceAckIsOn()) // Pi has turned on
@@ -274,9 +255,10 @@ ISR(PCINT0_vect)
   _NOP();
 }
 
-/*
+
+/*****************************
  * Push Button ISR
- */
+ *****************************/
 // todo: * when we enter, start timer if not already started.
 //       * let timer ISR take care of all logic to set the device reg for big func
 ISR(PCINT1_vect)
@@ -296,8 +278,10 @@ ISR(PCINT1_vect)
   _NOP();
 }
 
-// todo: test code below
-/////////////////////////////////////////////////////////
+
+/*****************************
+ * RTC Alarm ISR
+ *****************************/
 ISR(EXT_INT0_vect)
 {
   if (rtcAlarmIsOn()) // Alarm has occured
@@ -306,20 +290,24 @@ ISR(EXT_INT0_vect)
   }
   else
   {
-    CLR_POWER_FLAG;
+    // todo: use wiringpi to do ack manually to test
+    CLR_POWER_FLAG; // DBG
   }
 
-  // start timer
+  // Set flag to check for cleared alarm
+  SET_ALARM_CHECK_FLAG;
+
+  // start timer to ensure pi clears this in time
   //startBigTimer();
 
   // Insert nop for synchronization
   _NOP();
 }
-/////////////////////////////////////////////////////////
 
-/*
+
+/*****************************
  * Timer 0 Compare A ISR
- */
+ *****************************/
 ISR(TIM0_COMPA_vect)
 {
   // if power is off and button pressed, turn power on and enter dev mode
@@ -347,28 +335,45 @@ ISR(TIM0_COMPA_vect)
   _NOP();
 }
 
-/*
+
+/*****************************
  * Timer 1 Overflow ISR
- */
+ *****************************/
 ISR(TIM1_COMPA_vect)
 //ISR(TIM1_OVF_vect)
 {
-  // if power is on and no ack, give system ~30s to turn on
+  if (checkAlarmFlagIsSet() && deviceAckIsOn()) // Need to check alarm and make sure ack is on 
+  {
+    if (rtcAlarmIsOn()) 
+    {
+      SET_FAULT_FLAG; // todo: should this just be left or should more checking be done??
+    }
+    CLR_CHECK_ALARM_FLAG; // now clear the alarm flag
+  }
+  else if (checkAlarmFlagIsSet() && !deviceAckIsOn()) // no good, no ack from device so it took to long to start 
+  {
+    // todo: maybe give it one my cycle to turn on if this fails. Should be up and talking withing 5-10s though
+    SET_FAULT_FLAG;
+    CLR_CHECK_ALARM_FLAG; // now clear the alarm flag since fault is already raised
+  }
 
-  TGL_FAULT_FLAG;
+  TGL_FAULT_FLAG; // DBG
   //stopBigTimer();
 
   // Insert nop for synchronization
   _NOP();
 }
 
+
+/*****************************
+ * GPIO Reg Service Routine
+ *****************************/
 // todo: will be making this more much better later
 static inline void serviceGpioRegFlags(void)
 {
   // disable interrupts to prevent flags changing
   //cli();
 
-  // control pin
   // todo: not sure if this needs to be checked so explicitly
   if (powerFlagIsSet() && !powerIsOn())
   {
@@ -410,11 +415,11 @@ static inline void serviceGpioRegFlags(void)
 int main(void)
 {
   initMCU();
-  //startBigTimer();
+
   while (1)
   {
     serviceGpioRegFlags();
-    // todo: sleep_bod_disable(); every time since it gets enabled when woken up
+    sleep_bod_disable(); // every time since it gets enabled when woken up
     sleep_mode(); // or sleep_cpu();
     //sleep_cpu();
   }

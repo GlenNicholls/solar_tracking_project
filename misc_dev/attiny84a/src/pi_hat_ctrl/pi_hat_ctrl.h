@@ -41,21 +41,26 @@
 
 
 // GPIO register macros
-#define GPIOR2_POWER_FLAG_REG    7
-#define GPIOR2_FAULT_FLAG_REG    6
-#define GPIOR2_DEV_MODE_FLAG_REG 5
+#define GPIOR2_POWER_FLAG_REG       7
+#define GPIOR2_FAULT_FLAG_REG       6
+#define GPIOR2_DEV_MODE_FLAG_REG    5
+#define GPIOR2_ALARM_CHECK_FLAG_REG 4
 
-#define SET_POWER_FLAG     SET_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
-#define TGL_POWER_FLAG     TGL_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
-#define CLR_POWER_FLAG     CLR_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
+#define SET_POWER_FLAG  SET_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
+#define TGL_POWER_FLAG  TGL_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
+#define CLR_POWER_FLAG  CLR_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
 
-#define SET_FAULT_FLAG     SET_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
-#define TGL_FAULT_FLAG     TGL_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
-#define CLR_FAULT_FLAG     CLR_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
+#define SET_FAULT_FLAG  SET_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
+#define TGL_FAULT_FLAG  TGL_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
+#define CLR_FAULT_FLAG  CLR_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
 
 #define TGL_DEV_MODE_FLAG  TGL_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
 #define SET_DEV_MODE_FLAG  SET_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
 #define CLR_DEV_MODE_FLAG  CLR_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
+
+#define TGL_ALARM_CHECK_FLAG  TGL_BIT(GPIOR2, GPIOR2_ALARM_CHECK_FLAG_REG)
+#define SET_ALARM_CHECK_FLAG  SET_BIT(GPIOR2, GPIOR2_ALARM_CHECK_FLAG_REG)
+#define CLR_ALARM_CHECK_FLAG  CLR_BIT(GPIOR2, GPIOR2_ALARM_CHECK_FLAG_REG)
 
 
 
@@ -112,29 +117,14 @@ static inline int powerIsOn(void)
   return bit_is_set(POWER_PIN, POWER_PIN_REG);
 }
 
-static inline int powerFlagIsSet(void)
-{
-  return bit_is_set(GPIOR2, GPIOR2_POWER_FLAG_REG);
-}
-
 static inline int faultIsOn(void)
 {
   return bit_is_set(FAULT_PIN, FAULT_PIN_REG);
 }
 
-static inline int faultFlagIsSet(void)
-{
-  return bit_is_set(GPIOR2, GPIOR2_FAULT_FLAG_REG);
-}
-
 static inline int devModeIsOn(void)
 {
   return bit_is_set(DEV_MODE_PIN, DEV_MODE_PIN_REG);
-}
-
-static inline int devModeFlagIsSet(void)
-{
-  return bit_is_set(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG);
 }
 
 static inline int deviceAckIsOn(void)
@@ -152,6 +142,32 @@ static inline int rtcAlarmIsOn(void) // look for low-going edge (active low)
   return bit_is_clear(RTC_ALARM_PIN, RTC_ALARM_PIN_REG);
 }
 
+
+
+// functions for checking flags
+static inline int powerFlagIsSet(void)
+{
+  return bit_is_set(GPIOR2, GPIOR2_POWER_FLAG_REG);
+}
+
+static inline int faultFlagIsSet(void)
+{
+  return bit_is_set(GPIOR2, GPIOR2_FAULT_FLAG_REG);
+}
+
+static inline int devModeFlagIsSet(void)
+{
+  return bit_is_set(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG);
+}
+
+static inline int checkAlarmFlagIsSet(void) // todo: add prototype and re-organize prototypes
+{
+  return bit_is_set(GPIOR2, GPIOR2_ALARM_CHECK_FLAG_REG);
+}
+
+
+
+// Functions for monitoring timers
 // NOTE: Probably can't use bit_is_set since if any [2:0] are non-zero, timer is on
 static inline int timer0IsOn(void)
 {
