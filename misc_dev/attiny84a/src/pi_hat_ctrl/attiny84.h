@@ -63,6 +63,7 @@ static inline int timer1IsOn(void);
 
 
 // Timer configuration
+// todo: get info from make file for calculating div factors for desired delays
 // todo: use enum instead
 //typedef enum
 //{
@@ -118,9 +119,10 @@ static inline int timer1IsOn(void);
 
 
 // configuration functions
+// todo: add some whay to capture clock div from makefile... jesus that was stressful
 static inline void initClock(void)
 {
-  clock_prescale_set(clock_div_16); // yields 125kHz clk
+  clock_prescale_set(clock_div_64); // yields 125kHz clk
 
   // synchronize
   _NOP();

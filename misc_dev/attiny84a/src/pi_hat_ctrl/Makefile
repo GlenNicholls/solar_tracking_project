@@ -20,7 +20,7 @@ AVRDUDE_DBG         = -v
 AVRDUDE_CONF        = ../../../avrdude_gpio.conf
 AVRDUDE_PROGRAMMER  = pi_1
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
-AVRDUDE_ICSP_DLY    = -i4000
+AVRDUDE_ICSP_DLY    = -i32
 AVRDUDE_FLAGS       = -p $(MCU) -c $(AVRDUDE_PROGRAMMER) -C $(AVRDUDE_CONF) $(AVRDUDE_ICSP_DLY) $(AVRDUDE_DBG)
 
 all:

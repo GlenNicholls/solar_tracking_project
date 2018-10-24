@@ -137,7 +137,7 @@ static inline void startDebounceTimer(void)
 {
   // Output compare reg
   // todo: put in specific function for configuring correct period
-  OCR0A = 200;
+  OCR0A = 35;
 
   // Activate timer with prescalar 1024
   TURN_TIMER_0_ON;
@@ -196,9 +196,9 @@ static inline void initMCU(void)
   //initTimer1();
 
   // Configure clocks
-  //initClock(); // not sure we can use this as it makes it so I can't program avr
+  initClock();
   // Configure low-power mode
-//  initLowPowerMode();
+//  initLowPowerAndSleep();
 
   // Enable interrupts
   sei();
@@ -309,7 +309,7 @@ ISR(TIM0_COMPA_vect)
   // if power is off and button pressed, turn power on and enter dev mode
   // if power is on and button is pressed, leave power on and check dev mode
   //    if dev mode is active, deactivate. else turn dev mode on
-  if (powerIsOn() && powerFlagIsSet())
+  if (powerIsOn() && powerFlagIsSet() && buttonIsOn())
   {
     // todo: toggling flag should be safe as long as we're properly debounced. will
     //       be testing with scope on friday
@@ -351,7 +351,7 @@ ISR(TIM0_COMPA_vect)
 static inline void serviceGpioRegFlags(void)
 {
   // disable interrupts to prevent flags changing
-  //cli();
+  cli();
 
   // control pin
   if (powerFlagIsSet() && !powerIsOn())
@@ -384,7 +384,10 @@ static inline void serviceGpioRegFlags(void)
   }
 
   // re-enable interrupts
-  //sei();
+  sei();
+
+  // Add some cycles for allowing interrupts to be processed
+  _NOP();
 }
 
 
