@@ -204,7 +204,8 @@ static inline void initLowPowerAndSleep(void)
 
 
   // Sleep Mode
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  //set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  set_sleep_mode(SLEEP_MODE_IDLE); // DBG
   sleep_enable(); // todo: might not need this with sleep_mode();
 
   //MCUCR |= (1 << SE);     // Enable sleep
