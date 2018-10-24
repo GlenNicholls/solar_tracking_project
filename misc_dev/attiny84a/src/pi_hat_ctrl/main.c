@@ -198,7 +198,7 @@ static inline void initMCU(void)
   // Configure clocks
   initClock();
   // Configure low-power mode
-//  initLowPowerAndSleep();
+  initLowPowerAndSleep();
 
   // Enable interrupts
   sei();
@@ -233,34 +233,34 @@ static inline void initMCU(void)
 /*
  * pi_tx_hold_on ISR
  */
-// ISR(PCINT0_vect)
-// {
-//   if (deviceAckIsOn()) // Pi has turned on
-//   {
-//     // while (isRTCAlarmOn()) // while alarm not cleared, check until cleared
-//     // {
-//     //   // todo: sleep for some time
-//     //   // todo: what happens when alarm on INT0 gets cleared? does that get serviced before coming back here?
-//     //   // todo: add _WDT(), timer, or variable so we don't get stuck
-//     // }
-//   }
-//   else // Pi has turned off
-//   {
-//     // todo: start timer1 here for ~30s-45s and error-check
-//     if (powerIsOn()) // done sleeping, make sure load switch is on
-//     {
-//       CLR_POWER_FLAG; // Turn load switch off
-//     }
-//     else
-//     {
-//       SET_FAULT_FLAG; // Raise FAULT as this should never happen
-//     }
-//     CLR_DEV_MODE_FLAG; // Turn dev mode off
-//   }
-//
-//   // Insert nop for synchronization
-//   _NOP();
-// }
+ISR(PCINT0_vect)
+{
+  if (deviceAckIsOn()) // Pi has turned on
+  {
+    // while (isRTCAlarmOn()) // while alarm not cleared, check until cleared
+    // {
+    //   // todo: sleep for some time
+    //   // todo: what happens when alarm on INT0 gets cleared? does that get serviced before coming back here?
+    //   // todo: add _WDT(), timer, or variable so we don't get stuck
+    // }
+  }
+  else // Pi has turned off
+  {
+    // todo: start timer1 here for ~30s-45s and error-check
+    if (powerIsOn()) // done sleeping, make sure load switch is on
+    {
+      CLR_POWER_FLAG; // Turn load switch off
+    }
+    else
+    {
+      SET_FAULT_FLAG; // Raise FAULT as this should never happen
+    }
+    CLR_DEV_MODE_FLAG; // Turn dev mode off
+  }
+
+  // Insert nop for synchronization
+  _NOP();
+}
 
 /*
  * Push Button ISR
@@ -309,22 +309,20 @@ ISR(TIM0_COMPA_vect)
   // if power is off and button pressed, turn power on and enter dev mode
   // if power is on and button is pressed, leave power on and check dev mode
   //    if dev mode is active, deactivate. else turn dev mode on
-  if (powerIsOn() && powerFlagIsSet() && buttonIsOn())
+  if (buttonIsOn())
   {
-    // todo: toggling flag should be safe as long as we're properly debounced. will
-    //       be testing with scope on friday
-    TGL_DEV_MODE_FLAG;
-  }
-  else
-  {
-    if (!powerFlagIsSet())
+    if (powerIsOn())
+    {
+      // todo: toggling flag should be safe as long as we're properly debounced. will
+      //       be testing with scope on friday
+      TGL_DEV_MODE_FLAG;
+    }
+    else
     {
       SET_POWER_FLAG;
+      SET_DEV_MODE_FLAG;
     }
-    SET_DEV_MODE_FLAG;
   }
-
-  //TGL_DEV_MODE_FLAG; // DBG
 
   // Disable timer now as it has served heroically
   stopDebounceTimer();
@@ -336,16 +334,16 @@ ISR(TIM0_COMPA_vect)
 /*
  * Timer 1 Overflow ISR
  */
-//ISR(TIM1_OVF_vect)
-//{
-//  // if power is on and no ack, give system ~30s to turn on
-//
-//  // Disable timer now as it has served heroically
-//  stopBigTimer();
-//
-//  // Insert nop for synchronization
-//  _NOP();
-//}
+ISR(TIM1_OVF_vect)
+{
+  // if power is on and no ack, give system ~30s to turn on
+
+  // Disable timer now as it has served heroically
+  stopBigTimer();
+
+  // Insert nop for synchronization
+  _NOP();
+}
 
 // todo: will be making this more much better later
 static inline void serviceGpioRegFlags(void)
@@ -354,6 +352,7 @@ static inline void serviceGpioRegFlags(void)
   cli();
 
   // control pin
+  // todo: not sure if this needs to be checked so explicitly
   if (powerFlagIsSet() && !powerIsOn())
   {
     TURN_POWER_ON;
@@ -398,8 +397,9 @@ int main(void)
   while (1)
   {
     serviceGpioRegFlags();
-    // todo: sleep_bod_disable(); everytime since it gets enabled when woken up
+    // todo: sleep_bod_disable(); every time since it gets enabled when woken up
     //sleep_mode(); // or sleep_cpu();
+    //sleep_cpu();
   }
 
   return 0;
