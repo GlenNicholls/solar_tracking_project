@@ -203,4 +203,3 @@ static inline int timer1IsOn(void)
 {
   return (TCCR1B & TIMER_ON_MASK);
 }
-
