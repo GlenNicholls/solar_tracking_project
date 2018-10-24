@@ -1,5 +1,5 @@
 /*
- * power_circuit_ctrl.c
+ * main.c
  *
  * Created: 10/13/2018 8:01:58 PM
  * Author : Glen Nicholls
@@ -11,6 +11,8 @@
  *    power.
  *
  *    Goal #1: DON'T KILL THE BROCCOLI!!!
+ * 
+ *    TODO: Get rid of this junk and make a flow chart instead. This will be clearer
  *
  * Input Pins:
  * -----------
@@ -53,20 +55,14 @@
  *        todo: solidify whether pi will be off periodically throughout the day as
  *        this may influence the algorithm and checks during this stage!
  *
- *        todo: this should be implemented as dev_mode and power on as those states
- *              from pi perspective should be the same. Don't want to interrupt
- *              software operation, should just tell pi that algorithm can't initiate
- *              shutdown if it periodically shuts down. If so, need to ensure that the
- *              pi recognizes shutdown command to set next alarm as previous one may
- *              have passed, or will pass while pi is in the middle of shutting down.
- *
  *        1. This pin is normally pulled high
- *        2. Push button is debounced in analog, but will smooth just in case
- *        3. When there is a low-going edge, an interrupt will be issued.
- *        4. The uC will service this interrupt by driving the pi_rx_dev_mode
- *           pin high, driving en_power high, and waiting for the Pi to assert
- *           pi_tx_hold_on.
- *        5. uC will then follow pi_tx_hold_on description above
+ *        2. When there is a low-going edge, an interrupt will be issued.
+ *        3. After device on, RTC alarm should be cleared and then ack raised.
+ *        4. if RTC alarm is not cleared before this, fault will be raised.
+ *        5. If device is originally off, dev mode pin is asserted and power turned
+ *           on.
+ *        6. If device is on, dev mode pin asserted until user presses button again
+ *
  *
  * Output Pins:
  * ------------
@@ -124,8 +120,8 @@
 #include <pi_hat_ctrl.h>
 
 // Global variables for ISR
-//void int CheckShutdownTimeCount = 0;
-//void int CheckStartupTimeCount  = 0;
+//void int CheckShutdownTimeCount = 0; // todo: don't need these
+//void int CheckStartupTimeCount  = 0; // todo: don't need these
 
 
 /*****************************
@@ -196,10 +192,11 @@ static inline void initMCU(void)
   initPortB();
 
   // Enable the MCUCR pullups
-  MCUCR &= ~(1 << PUD);
+  MCUCR &= ~(1 << PUD); // todo: after everything looks to be working, remove this
 
   // Set start-up state when uC first gets power
   // todo: fix start up glitch when uC sees first alarm after power on
+  // todo: add clear all GPIO flags or something
   SET_POWER_FLAG;
   TURN_POWER_ON;
   CLR_DEV_MODE_FLAG;
