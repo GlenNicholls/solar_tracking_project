@@ -228,27 +228,10 @@ static inline void initMCU(void)
  *****************************/
 ISR(PCINT0_vect)
 {
-  if (deviceAckIsOn()) // Pi has turned on
+  if (!deviceAckIsOn()) // Pi has shutdown
   {
-    // while (isRTCAlarmOn()) // while alarm not cleared, check until cleared
-    // {
-    //   // todo: sleep for some time
-    //   // todo: what happens when alarm on INT0 gets cleared? does that get serviced before coming back here?
-    //   // todo: add _WDT(), timer, or variable so we don't get stuck
-    // }
-  }
-  else // Pi has turned off
-  {
-    // todo: start timer1 here for ~30s-45s and error-check
-    if (powerIsOn()) // done sleeping, make sure load switch is on
-    {
-      CLR_POWER_FLAG; // Turn load switch off
-    }
-    else
-    {
-      SET_FAULT_FLAG; // Raise FAULT as this should never happen
-    }
-    CLR_DEV_MODE_FLAG; // Turn dev mode off
+    SET_SHUTDOWN_DLY_FLAG;
+    startBigTimer();
   }
 
   // Insert nop for synchronization
@@ -342,20 +325,26 @@ ISR(TIM0_COMPA_vect)
 ISR(TIM1_COMPA_vect)
 //ISR(TIM1_OVF_vect)
 {
-  if (checkAlarmFlagIsSet() && deviceAckIsOn()) // Need to check alarm and make sure ack is on 
-  {
-    if (rtcAlarmIsOn()) 
-    {
-      SET_FAULT_FLAG; // todo: should this just be left or should more checking be done??
-    }
-    CLR_CHECK_ALARM_FLAG; // now clear the alarm flag
-  }
-  else if (checkAlarmFlagIsSet() && !deviceAckIsOn()) // no good, no ack from device so it took to long to start 
-  {
-    // todo: maybe give it one my cycle to turn on if this fails. Should be up and talking withing 5-10s though
-    SET_FAULT_FLAG;
-    CLR_CHECK_ALARM_FLAG; // now clear the alarm flag since fault is already raised
-  }
+  // if (checkAlarmFlagIsSet() && deviceAckIsOn()) // Need to check alarm and make sure ack is on 
+  // {
+  //   if (rtcAlarmIsOn()) 
+  //   {
+  //     SET_FAULT_FLAG; // todo: should this just be left or should more checking be done??
+  //   }
+  //   CLR_CHECK_ALARM_FLAG; // now clear the alarm flag
+  // }
+  // else if (checkAlarmFlagIsSet() && !deviceAckIsOn()) // no good, no ack from device so it took to long to start 
+  // {
+  //   // todo: should be up and talking withing 5-10s, but if not, this is issue
+  //   SET_FAULT_FLAG;
+  //   CLR_CHECK_ALARM_FLAG; // now clear the alarm flag since fault is already raised
+  // }
+  // 
+  // if (shutdownDelayFlagIsSet()) 
+  // {
+  //   CLR_POWER_FLAG;
+  //   CLR_SHUTDOWN_DLY_FLAG;
+  // }
 
   TGL_FAULT_FLAG; // DBG
   //stopBigTimer();
@@ -381,6 +370,7 @@ static inline void serviceGpioRegFlags(void)
   }
   else if (!powerFlagIsSet() && powerIsOn())
   {
+    // todo: Power down should clear all flags except FAULT I think
     TURN_POWER_OFF;
   }
 
@@ -404,6 +394,9 @@ static inline void serviceGpioRegFlags(void)
     TURN_DEV_MODE_OFF;
   }
 
+  // disable BOD
+  sleep_bod_disable(); // every time since it gets enabled when woken up
+
   // re-enable interrupts
   //sei();
 
@@ -419,7 +412,6 @@ int main(void)
   while (1)
   {
     serviceGpioRegFlags();
-    sleep_bod_disable(); // every time since it gets enabled when woken up
     sleep_mode(); // or sleep_cpu();
     //sleep_cpu();
   }
