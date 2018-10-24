@@ -16,10 +16,12 @@ OBJCOPY = avr-objcopy
 
 CFLAGS = -Wall -Os -std=gnu99 -mmcu=$(MCU) -I.
 
+AVRDUDE_DBG         = -v
 AVRDUDE_CONF        = ../../../avrdude_gpio.conf
 AVRDUDE_PROGRAMMER  = pi_1
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
-AVRDUDE_FLAGS       = -p $(MCU) -c $(AVRDUDE_PROGRAMMER) -C $(AVRDUDE_CONF) -v
+AVRDUDE_ICSP_DLY    = -i4000
+AVRDUDE_FLAGS       = -p $(MCU) -c $(AVRDUDE_PROGRAMMER) -C $(AVRDUDE_CONF) $(AVRDUDE_ICSP_DLY) $(AVRDUDE_DBG)
 
 all:
 	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
@@ -33,6 +35,6 @@ install: all
 	sudo $(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH)
 
 fuse:
-	sudo $(AVRDUDE) $(AVRDUDE_FLAGS) -U lfuse:w:0xE7:m -U hfuse:w:0xD9:m -U efuse:w:0x07:m
+	sudo $(AVRDUDE) $(AVRDUDE_FLAGS) -U lfuse:w:0x62:m -U hfuse:w:0xDF:m -U efuse:w:0xFF:m
 
 .PHONY: all clean install fuse

@@ -132,12 +132,12 @@
 // stop/start timers
 // todo: how to make this generic
 // spec of push button is 13ms, but the one I'm debugging with is awful
-// 1/(125k/(2*1024*(1 + ))) =
+// 1/(125000/(2*8*(1 + 35))) = 36.9ms
 static inline void startDebounceTimer(void)
 {
   // Output compare reg
   // todo: put in specific function for configuring correct period
-  OCR0A = 150;
+  OCR0A = 200;
 
   // Activate timer with prescalar 1024
   TURN_TIMER_0_ON;
@@ -192,11 +192,11 @@ static inline void initMCU(void)
 
   // Configure all interrupts
   initInterrupts();
-  //initTimer0();
+  initTimer0();
   //initTimer1();
 
   // Configure clocks
-  //initClock();
+  //initClock(); // not sure we can use this as it makes it so I can't program avr
   // Configure low-power mode
 //  initLowPowerMode();
 
@@ -233,34 +233,34 @@ static inline void initMCU(void)
 /*
  * pi_tx_hold_on ISR
  */
-ISR(PCINT0_vect)
-{
-  if (deviceAckIsOn()) // Pi has turned on
-  {
-    // while (isRTCAlarmOn()) // while alarm not cleared, check until cleared
-    // {
-    //   // todo: sleep for some time
-    //   // todo: what happens when alarm on INT0 gets cleared? does that get serviced before coming back here?
-    //   // todo: add _WDT(), timer, or variable so we don't get stuck
-    // }
-  }
-  else // Pi has turned off
-  {
-    // todo: start timer1 here for ~30s-45s and error-check
-    if (powerIsOn()) // done sleeping, make sure load switch is on
-    {
-      CLR_POWER_FLAG; // Turn load switch off
-    }
-    else
-    {
-      SET_FAULT_FLAG; // Raise FAULT as this should never happen
-    }
-    CLR_DEV_MODE_FLAG; // Turn dev mode off
-  }
-
-  // Insert nop for synchronization
-  _NOP();
-}
+// ISR(PCINT0_vect)
+// {
+//   if (deviceAckIsOn()) // Pi has turned on
+//   {
+//     // while (isRTCAlarmOn()) // while alarm not cleared, check until cleared
+//     // {
+//     //   // todo: sleep for some time
+//     //   // todo: what happens when alarm on INT0 gets cleared? does that get serviced before coming back here?
+//     //   // todo: add _WDT(), timer, or variable so we don't get stuck
+//     // }
+//   }
+//   else // Pi has turned off
+//   {
+//     // todo: start timer1 here for ~30s-45s and error-check
+//     if (powerIsOn()) // done sleeping, make sure load switch is on
+//     {
+//       CLR_POWER_FLAG; // Turn load switch off
+//     }
+//     else
+//     {
+//       SET_FAULT_FLAG; // Raise FAULT as this should never happen
+//     }
+//     CLR_DEV_MODE_FLAG; // Turn dev mode off
+//   }
+//
+//   // Insert nop for synchronization
+//   _NOP();
+// }
 
 /*
  * Push Button ISR
@@ -271,21 +271,14 @@ ISR(PCINT1_vect)
 {
   // todo: check flag register to see if dev mode is on, then put
   //       logic in here to account for when to start debounce timer
-  if (buttonIsOn()) // seeing dev mode req
+  if (!timer0IsOn()) // if timer is alreay on, bounce is going, "hey, wire"
   {
-    if (!timer0IsOn()) // if timer is alreay on we're going, "hey, wire"
-    {
-      //startDebounceTimer();
-    }
-    //SET_DEV_MODE_FLAG;
+    startDebounceTimer();
   }
-  //CLR_DEV_MODE_FLAG;
 
   // Insert nop for synchronization
   _NOP();
 }
-
-
 
 // todo: test code below
 /////////////////////////////////////////////////////////
@@ -316,7 +309,7 @@ ISR(TIM0_COMPA_vect)
   // if power is off and button pressed, turn power on and enter dev mode
   // if power is on and button is pressed, leave power on and check dev mode
   //    if dev mode is active, deactivate. else turn dev mode on
-  if (powerIsOn())
+  if (powerIsOn() && powerFlagIsSet())
   {
     // todo: toggling flag should be safe as long as we're properly debounced. will
     //       be testing with scope on friday
@@ -324,9 +317,14 @@ ISR(TIM0_COMPA_vect)
   }
   else
   {
-    SET_POWER_FLAG;
+    if (!powerFlagIsSet())
+    {
+      SET_POWER_FLAG;
+    }
     SET_DEV_MODE_FLAG;
   }
+
+  //TGL_DEV_MODE_FLAG; // DBG
 
   // Disable timer now as it has served heroically
   stopDebounceTimer();
@@ -338,16 +336,16 @@ ISR(TIM0_COMPA_vect)
 /*
  * Timer 1 Overflow ISR
  */
-ISR(TIM1_OVF_vect)
-{
-  // if power is on and no ack, give system ~30s to turn on
-
-  // Disable timer now as it has served heroically
-  stopBigTimer();
-
-  // Insert nop for synchronization
-  _NOP();
-}
+//ISR(TIM1_OVF_vect)
+//{
+//  // if power is on and no ack, give system ~30s to turn on
+//
+//  // Disable timer now as it has served heroically
+//  stopBigTimer();
+//
+//  // Insert nop for synchronization
+//  _NOP();
+//}
 
 // todo: will be making this more much better later
 static inline void serviceGpioRegFlags(void)
@@ -356,11 +354,11 @@ static inline void serviceGpioRegFlags(void)
   //cli();
 
   // control pin
-  if (powerFlagIsSet())
+  if (powerFlagIsSet() && !powerIsOn())
   {
     TURN_POWER_ON;
   }
-  else
+  else if (!powerFlagIsSet() && powerIsOn())
   {
     TURN_POWER_OFF;
   }
@@ -376,11 +374,11 @@ static inline void serviceGpioRegFlags(void)
   }
 
   // control dev mode pin
-  if (devModeFlagIsSet() && !devModeIsOn())
+  if (devModeFlagIsSet())
   {
     TURN_DEV_MODE_ON;
   }
-  else if (!devModeFlagIsSet() && devModeIsOn())
+  else if (!devModeFlagIsSet())
   {
     TURN_DEV_MODE_OFF;
   }

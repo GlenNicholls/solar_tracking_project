@@ -96,7 +96,7 @@ static inline int timer1IsOn(void);
 #define SET_TIMER_0_MODE_NORMAL SET_BITS(TCCR0A, TIMER_0_WGM_NORMAL, WGM00)
 #define SET_TIMER_0_MODE_CTC    SET_BITS(TCCR0A, TIMER_0_WGM_CTC, WGM00)
 #define CLR_TIMER_0_COUNT       SET_REG(TCNT0, 0x00)
-#define TURN_TIMER_0_ON         SET_BITS(TCCR0B, TIMER_PRESCALE_1024, CS00)
+#define TURN_TIMER_0_ON         SET_BITS(TCCR0B, TIMER_PRESCALE_8, CS00)
 #define TURN_TIMER_0_OFF        CLR_BITS(TCCR0B, ~TIMER_OFF, CS00) // todo: how do I make this generic for the prescalar and output compare reg??
 
 #define SET_TIMER_1_REG1_MODE_NORMAL SET_BITS(TCCR1A, TIMER_1_WGM_REG1_NORMAL, WGM10)
@@ -120,7 +120,7 @@ static inline int timer1IsOn(void);
 // configuration functions
 static inline void initClock(void)
 {
-  clock_prescale_set(clock_div_64); // yields 125kHz clk
+  clock_prescale_set(clock_div_16); // yields 125kHz clk
 
   // synchronize
   _NOP();
