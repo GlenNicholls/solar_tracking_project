@@ -1,18 +1,17 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
-//#include <avr/sfr_defs.h> // io should include this
 #include <avr/power.h>
 #include <avr/sleep.h>
 #include <avr/cpufunc.h>  // for _NOP()
-
-
 
 // used for a very short delay
 //#define _NOP() do { __asm__ __volatile__ ("nop"); } while (0)
 
 
 
-// function prototypes
+/*****************************
+ * Function Prototypes
+ *****************************/
 // todo: should all these be defined here or elsewhere??
 // static inline void initClocks(void);
 // static inline void initWDT(void);
@@ -30,21 +29,27 @@ static inline void startBigTimer(void);
 static inline void stopBigTimer(void);
 static inline void serviceGpioRegFlags(void);
 
-// todo: is this 32-bit integer or does compiler optimize??
+// todo: is this 32-bit integer or does compiler optimize?? does it matter??
 static inline int powerIsOn(void);
-static inline int powerFlagIsSet(void);
 static inline int faultIsOn(void);
-static inline int faultFlagIsSet(void);
 static inline int devModeIsOn(void);
-static inline int devModeFlagIsSet(void);
 static inline int deviceAckIsOn(void);
 static inline int buttonIsOn(void);
 static inline int rtcAlarmIsOn(void);
+
+static inline int powerFlagIsSet(void);
+static inline int faultFlagIsSet(void);
+static inline int devModeFlagIsSet(void);
+static inline int checkAlarmFlagIsSet(void);
+static inline int shutdownDelayFlagIsSet(void);
+
 static inline int timer0IsOn(void);
 static inline int timer1IsOn(void);
 
 
-// define macros
+/*****************************
+ * Bit/Reg Manipulation Macros
+ *****************************/
 #define SET_BIT(PORT, BIT) ( PORT |=  _BV(BIT) )
 #define CLR_BIT(PORT, BIT) ( PORT &= ~_BV(BIT) )
 #define TGL_BIT(PORT, BIT) ( PORT ^=  _BV(BIT) )
@@ -62,7 +67,9 @@ static inline int timer1IsOn(void);
 
 
 
-// Timer configuration
+/*****************************
+ * Timer Config Macros
+ *****************************/
 // todo: get info from make file for calculating div factors for desired delays
 // todo: use enum instead
 //typedef enum
@@ -108,56 +115,6 @@ static inline int timer1IsOn(void);
 #define TURN_TIMER_1_ON              SET_BITS(TCCR1B, TIMER_PRESCALE_1024, CS10)
 #define TURN_TIMER_1_OFF             CLR_BITS(TCCR1B, ~TIMER_OFF, CS10)
 
-
-
-// general definitions
-#define INT0_MODE_LOGIC_CHANGE 0b01
-//#define SLEEP_MODE_IDLE        0b00
-//#define SLEEP_MODE_PWR_DOWN    0b10
-//#define SLEEP_MODE_STAND_BY    0b11
-
-
-
-// configuration functions
-// todo: add some whay to capture clock div from makefile... jesus that was stressful
-static inline void initClock(void)
-{
-  clock_prescale_set(clock_div_64); // yields 125kHz clk
-
-  // synchronize
-  _NOP();
-}
-
-// todo: should the init functions be put into a .h as well??
-// todo: implement this when the time comes
-// static inline void WDT_off(void)
-// {
-//     _WDR();
-//
-//     // CLR WDRF in MCUSR
-//     MCUSR |= 0x00;
-//
-//     // Write 1 to WDCE and WDE
-//     WDTCSR |= (1 << WDCE);
-//     WDTCSR |= (1 << WDE);
-//
-//     // Turn off WDT
-//     WDTCSR = 0x00;
-// }
-
-static inline void initInterrupts(void)
-{
-  // Configure INT0 interrupt mode
-  SET_BITS(MCUCR, INT0_MODE_LOGIC_CHANGE, ISC00);
-
-  // General Interrupt Mask Register
-  GIMSK |= (1 << INT0) | (1 << PCIE0) | (1 << PCIE1);
-
-  // Pin Change Mask Registers
-  PCMSK0 |= _BV(PCINT7);
-  PCMSK1 |= _BV(PCINT9);
-}
-
 // 8-bit timer
 static inline void initTimer0(void)
 {
@@ -188,9 +145,69 @@ static inline void initTimer1(void)
   TIMSK1 |= _BV(OCIE1A);
 }
 
-// configure low-power
-// todo: don't shove everything in single function, pull stuff to other functions
-//       to make code clearer
+
+
+/*****************************
+ * Interrupt Config Macros
+ *****************************/
+#define INT0_MODE_LOGIC_CHANGE 0b01
+//#define SLEEP_MODE_IDLE        0b00
+//#define SLEEP_MODE_PWR_DOWN    0b10
+//#define SLEEP_MODE_STAND_BY    0b11
+
+static inline void initInterrupts(void)
+{
+  // Configure INT0 interrupt mode
+  SET_BITS(MCUCR, INT0_MODE_LOGIC_CHANGE, ISC00);
+
+  // General Interrupt Mask Register
+  GIMSK |= (1 << INT0) | (1 << PCIE0) | (1 << PCIE1);
+
+  // Pin Change Mask Registers
+  PCMSK0 |= _BV(PCINT7);
+  PCMSK1 |= _BV(PCINT9);
+}
+
+
+
+/*****************************
+ * Clock Config Macros
+ *****************************/
+// todo: add some whay to capture clock div from makefile... jesus that was stressful
+static inline void initClock(void)
+{
+  clock_prescale_set(clock_div_64); // yields 125kHz clk
+
+  // synchronize
+  _NOP();
+}
+
+
+
+/*****************************
+ * WDT Config Macros
+ *****************************/
+// todo: should the init functions be put into a .h as well??
+// todo: implement this when the time comes
+// static inline void WDT_off(void)
+// {
+//     _WDR();
+//
+//     // CLR WDRF in MCUSR
+//     MCUSR |= 0x00;
+//
+//     // Write 1 to WDCE and WDE
+//     WDTCSR |= (1 << WDCE);
+//     WDTCSR |= (1 << WDE);
+//
+//     // Turn off WDT
+//     WDTCSR = 0x00;
+// }
+
+
+/*****************************
+ * Low-Pwr/Sleep Config Macros
+ *****************************/
 // todo: might be beneficial to disable timers when not used. can enable them in the
 //       turn on functions
 static inline void initLowPowerAndSleep(void)
@@ -207,7 +224,4 @@ static inline void initLowPowerAndSleep(void)
   //set_sleep_mode(SLEEP_MODE_PWR_DOWN);
   set_sleep_mode(SLEEP_MODE_IDLE); // DBG
   sleep_enable(); // todo: might not need this with sleep_mode();
-
-  //MCUCR |= (1 << SE);     // Enable sleep
-  //MCUCR |= (0b11 << SM0); // Mode: standby
 }

@@ -1,7 +1,9 @@
 #include <attiny84.h>
 
 
-// define hardware pins
+/*****************************
+ * Define HW Pins
+ *****************************/
 #define POWER_PIN_REG      PA0
 #define FAULT_PIN_REG      PA1
 #define DEV_MODE_PIN_REG   PA3
@@ -29,7 +31,9 @@
 
 
 
-// Pin assertions
+/*****************************
+ * Pin Assertions
+ *****************************/
 // todo: possibly change to toggling?
 #define TURN_POWER_ON      SET_BIT(POWER_PORT,    POWER_PIN_REG)
 #define TURN_POWER_OFF     CLR_BIT(POWER_PORT,    POWER_PIN_REG)
@@ -40,7 +44,9 @@
 
 
 
-// GPIO register macros
+/*****************************
+ * GPIO User Registers
+ *****************************/
 #define GPIOR2_POWER_FLAG_REG        7
 #define GPIOR2_FAULT_FLAG_REG        6
 #define GPIOR2_DEV_MODE_FLAG_REG     5
@@ -69,7 +75,9 @@
 
 
 
-// hardware configuration
+/*****************************
+ * HW Port Configuration
+ *****************************/
 // todo: set full register if need memory
 // todo: put all hardware specific in attiny84a.h
 // todo: use pullup and figure out direction for unused pins (including ICSP)
@@ -115,7 +123,11 @@ static inline void initPortB(void)
   SET_PULLUP_ON(PORTB, PB0); // not connected
 }
 
-// functions for checking pin states
+
+
+/*****************************
+ * Pin State Helpers
+ *****************************/
 // todo: where to put these??
 static inline int powerIsOn(void)
 {
@@ -149,7 +161,9 @@ static inline int rtcAlarmIsOn(void) // look for low-going edge (active low)
 
 
 
-// functions for checking flags
+/*****************************
+ * GPIO Reg Flag State Helpers
+ *****************************/
 static inline int powerFlagIsSet(void)
 {
   return bit_is_set(GPIOR2, GPIOR2_POWER_FLAG_REG);
@@ -165,29 +179,28 @@ static inline int devModeFlagIsSet(void)
   return bit_is_set(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG);
 }
 
-static inline int checkAlarmFlagIsSet(void) // todo: add prototype and re-organize prototypes
+static inline int checkAlarmFlagIsSet(void)
 {
   return bit_is_set(GPIOR2, GPIOR2_ALARM_CHECK_FLAG_REG);
 }
 
-static inline int shutdownDelayFlagIsSet(void) // todo: add prototype and re-organize prototypes
+static inline int shutdownDelayFlagIsSet(void)
 {
   return bit_is_set(GPIOR2, GPIOR2_SHUTDOWN_DLY_FLAG_REG);
 }
 
 
 
-// Functions for monitoring timers
-// NOTE: Probably can't use bit_is_set since if any [2:0] are non-zero, timer is on
+/*****************************
+ * Timer Helpers
+ *****************************/
 static inline int timer0IsOn(void)
 {
-  //return bit_is_set(TCCR0B, TIMER_ON_MASK);
   return (TCCR0B & TIMER_ON_MASK);
 }
 
 static inline int timer1IsOn(void)
 {
-  //return bit_is_set(TCCR1B, TIMER_ON_MASK);
   return (TCCR1B & TIMER_ON_MASK);
 }
 
