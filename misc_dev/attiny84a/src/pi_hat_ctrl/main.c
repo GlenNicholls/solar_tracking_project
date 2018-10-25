@@ -11,7 +11,7 @@
  *    power.
  *
  *    Goal #1: DON'T KILL THE BROCCOLI!!!
- * 
+ *
  *    TODO: Get rid of this junk and make a flow chart instead. This will be clearer
  *
  * Input Pins:
@@ -322,29 +322,29 @@ ISR(TIM0_COMPA_vect)
 ISR(TIM1_COMPA_vect)
 //ISR(TIM1_OVF_vect)
 {
-  // if (checkAlarmFlagIsSet() && deviceAckIsOn()) // Need to check alarm and make sure ack is on 
+  // if (checkAlarmFlagIsSet() && deviceAckIsOn()) // Need to check alarm and make sure ack is on
   // {
-  //   if (rtcAlarmIsOn()) 
+  //   if (rtcAlarmIsOn())
   //   {
   //     SET_FAULT_FLAG; // todo: should this just be left or should more checking be done??
   //   }
   //   CLR_CHECK_ALARM_FLAG; // now clear the alarm flag
   // }
-  // else if (checkAlarmFlagIsSet() && !deviceAckIsOn()) // no good, no ack from device so it took to long to start 
+  // else if (checkAlarmFlagIsSet() && !deviceAckIsOn()) // no good, no ack from device so it took to long to start
   // {
   //   // todo: should be up and talking withing 5-10s, but if not, this is issue
   //   SET_FAULT_FLAG;
   //   CLR_CHECK_ALARM_FLAG; // now clear the alarm flag since fault is already raised
   // }
-  // 
-  // if (shutdownDelayFlagIsSet()) 
+  //
+  // if (shutdownDelayFlagIsSet())
   // {
   //   CLR_POWER_FLAG;
   //   CLR_SHUTDOWN_DLY_FLAG;
   // }
 
   TGL_FAULT_FLAG; // DBG
-  //stopBigTimer();
+  stopBigTimer();
 
   // Insert nop for synchronization
   _NOP();
@@ -397,6 +397,8 @@ static inline void serviceGpioRegFlags(void)
   // re-enable interrupts
   //sei();
 
+  // todo: do sleep here based on timer flags so we don't sleep when timers are waiting
+
   // Add some cycles for allowing interrupts to be processed
   _NOP();
 }
@@ -409,7 +411,7 @@ int main(void)
   while (1)
   {
     serviceGpioRegFlags();
-    sleep_mode(); // or sleep_cpu();
+    //sleep_mode(); // or sleep_cpu();
     //sleep_cpu();
   }
 

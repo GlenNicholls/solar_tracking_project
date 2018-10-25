@@ -79,9 +79,6 @@
  * HW Port Configuration
  *****************************/
 // todo: set full register if need memory
-// todo: put all hardware specific in attiny84a.h
-// todo: use pullup and figure out direction for unused pins (including ICSP)
-//       ref page 56
 static inline void initPortA(void)
 {
   // DDRA Port Directions
