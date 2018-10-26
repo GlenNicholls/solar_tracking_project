@@ -10,7 +10,8 @@ import os
 from DS3231         import DS3231
 from motor_control  import stepper_motor
 from shaft_encoder  import encoder
-from system_monitor import system_monitor 
+from system_monitor import system_monitor
+import Adafruit_MCP3008 as ADC
 
 #NOTE: indentation is 2 spaces
   
@@ -169,8 +170,8 @@ def main():
   long = -97.8
   elev = 6000
   
-  prev_solar_az = 290.0
-  prev_solar_el = -55.0
+  prev_solar_az = 123.0
+  prev_solar_el = 16.0
   
   #Load user specifice parameters
   logger.warn('Loading user specified parameters NOT DEFINED')
@@ -200,7 +201,7 @@ def main():
     daytime = False
     print("Nighttime")
     
-  if not daytime: #this will be the if check from above, implemented this way for development
+  if daytime: #this will be the if check from above, implemented this way for development
     #Get solar position
     solar_az = loc_astral.solar_azimuth(datetime.now())
     solar_el = loc_astral.solar_elevation(datetime.now())
