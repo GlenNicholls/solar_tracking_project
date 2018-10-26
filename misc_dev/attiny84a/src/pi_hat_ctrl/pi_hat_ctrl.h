@@ -35,12 +35,12 @@
  * Pin Assertions
  *****************************/
 // todo: possibly change to toggling?
-#define TURN_POWER_ON      SET_BIT(POWER_PORT,    POWER_PIN_REG)
-#define TURN_POWER_OFF     CLR_BIT(POWER_PORT,    POWER_PIN_REG)
-#define TURN_FAULT_ON      SET_BIT(FAULT_PORT,    FAULT_PIN_REG)
-#define TURN_FAULT_OFF     CLR_BIT(FAULT_PORT,    FAULT_PIN_REG)
-#define TURN_DEV_MODE_ON   SET_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
-#define TURN_DEV_MODE_OFF  CLR_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
+#define TURN_POWER_PIN_ON      SET_BIT(POWER_PORT,    POWER_PIN_REG)
+#define TURN_POWER_PIN_OFF     CLR_BIT(POWER_PORT,    POWER_PIN_REG)
+#define TURN_FAULT_PIN_ON      SET_BIT(FAULT_PORT,    FAULT_PIN_REG)
+#define TURN_FAULT_PIN_OFF     CLR_BIT(FAULT_PORT,    FAULT_PIN_REG)
+#define TURN_DEV_MODE_PIN_ON   SET_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
+#define TURN_DEV_MODE_PIN_OFF  CLR_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
 
 
 
@@ -129,13 +129,13 @@ static inline void initPortB(void)
 static inline void setPinStartupState(void)
 {
   SET_POWER_FLAG;
-  TURN_POWER_ON;
+  TURN_POWER_PIN_ON;
 
   CLR_DEV_MODE_FLAG;
-  TURN_DEV_MODE_OFF;
+  TURN_DEV_MODE_PIN_OFF;
 
   CLR_FAULT_FLAG;
-  TURN_FAULT_OFF;
+  TURN_FAULT_PIN_OFF;
 }
 
 static inline int powerIsOn(void)
