@@ -161,7 +161,8 @@ static inline void startBigTimer(void)
   // 1/(125000/(1024*(1 + 2500))) = ~41s
 
   // Output compare reg
-  OCR1A = 200;
+  // OCR1A = 200;// DBG
+  OCR1A = 2500;
 
   // Activate timer with prescalar 1024
   TURN_TIMER_1_ON;
@@ -230,8 +231,6 @@ ISR(PCINT0_vect)
 /*****************************
  * Push Button ISR
  *****************************/
-// todo: * when we enter, start timer if not already started.
-//       * let timer ISR take care of all logic to set the device reg for big func
 ISR(PCINT1_vect)
 {
   if (!timer0IsOn()) // if timer is alreay on, bounce is going, "hey, wire"
@@ -273,7 +272,7 @@ ISR(EXT_INT0_vect)
 /*****************************
  * Timer 0 Compare A ISR
  *****************************/
-ISR(TIM0_COMPA_vect)
+ISR(TIM0_COMPA_vect) // Debounce timer
 {
   if (buttonIsOn())
   {
@@ -303,7 +302,7 @@ ISR(TIM0_COMPA_vect)
 /*****************************
  * Timer 1 Compare A ISR
  *****************************/
-ISR(TIM1_COMPA_vect)
+ISR(TIM1_COMPA_vect) // long delay timer for checking RTC and allowing pi to shutdown safely.
 {
   if (checkAlarmFlagIsSet() && !shutdownDelayFlagIsSet()) // Need to check alarm and make sure ack is on
   {
