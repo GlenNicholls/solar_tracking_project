@@ -190,6 +190,11 @@ def main():
   
   #Get current position from shart encoders
   logger.warn('Get current position from shaft encoders NOT DEFINED')
+  encoder_az = encoder(5,11,2000)
+  #a is 29 on PI
+  #b is 23 on PI
+  init_encoder_az = encoder_az.get_degrees()
+  logger.info('Shaft encoder initial: [{}]'.format(init_encoder_az))
   
   #Get current position from motors
   logger.warn('Get current position from motors NOT DEFINED')
@@ -228,6 +233,12 @@ def main():
       dir = 1
     #motor.move_motor(stepper_motor.EL, dir, deg_el)
     motor.move_motor(13, dir, deg_el)
+
+    final_encoder_az = encoder_az.get_degrees()
+    logger.info('Shaft encoder final: [{}]'.format(final_encoder_az))
+
+    degrees_move_encoder = final_encoder_az - init_encoder_az
+    logger.info('Shaft encoder degrees moved: [{}]'.format(degrees_move_encoder))
     
     #Read light sensor
     logger.info('Reading light sensor')
