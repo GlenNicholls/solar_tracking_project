@@ -119,9 +119,6 @@
 
 #include <pi_hat_ctrl.h>
 
-// Global variables for ISR
-//void int CheckShutdownTimeCount = 0; // todo: don't need these
-//void int CheckStartupTimeCount  = 0; // todo: don't need these
 
 
 /*****************************
@@ -161,9 +158,7 @@ static inline void startBigTimer(void)
 
   // Output compare reg
   // todo: put in specific function for configuring correct period
-  OCR1AH = 0;
-  OCR1AL = 200;
-  //OCR1A = 200;
+  OCR1A = 200;
 
   // Activate timer with prescalar 1024
   TURN_TIMER_1_ON;
@@ -184,25 +179,14 @@ static inline void stopBigTimer(void)
  *****************************/
 static inline void initMCU(void)
 {
-  // Disable interrupts for clock div just in case
-  //cli();
-
   // init pin directions and pullups
   initPortA();
   initPortB();
 
-  // Enable the MCUCR pullups
-  MCUCR &= ~(1 << PUD); // todo: after everything looks to be working, remove this
-
   // Set start-up state when uC first gets power
   // todo: fix start up glitch when uC sees first alarm after power on
   // todo: add clear all GPIO flags or something
-  SET_POWER_FLAG;
-  TURN_POWER_ON;
-  CLR_DEV_MODE_FLAG;
-  TURN_DEV_MODE_OFF;
-  CLR_FAULT_FLAG;
-  TURN_FAULT_OFF;
+  setPinStartupState();
 
   // Configure all interrupts
   initInterrupts();
@@ -213,7 +197,7 @@ static inline void initMCU(void)
   initClock();
 
   // Configure low-power mode
-  initLowPowerAndSleep();
+  initLowPower();
 
   // Enable interrupts
   sei();
@@ -230,9 +214,6 @@ ISR(PCINT0_vect)
     SET_SHUTDOWN_DLY_FLAG;
     startBigTimer();
   }
-
-  // Insert nop for synchronization
-  _NOP();
 }
 
 
@@ -243,8 +224,6 @@ ISR(PCINT0_vect)
 //       * let timer ISR take care of all logic to set the device reg for big func
 ISR(PCINT1_vect)
 {
-  // todo: check flag register to see if dev mode is on, then put
-  //       logic in here to account for when to start debounce timer
   if (!timer0IsOn()) // if timer is alreay on, bounce is going, "hey, wire"
   {
     startDebounceTimer();
@@ -253,9 +232,6 @@ ISR(PCINT1_vect)
   {                  // DBG
     startBigTimer(); // DBG
   }                  // DBG
-
-  // Insert nop for synchronization
-  _NOP();
 }
 
 
@@ -279,9 +255,6 @@ ISR(EXT_INT0_vect)
 
   // start timer to ensure pi clears this in time
   //startBigTimer();
-
-  // Insert nop for synchronization
-  _NOP();
 }
 
 
@@ -310,9 +283,6 @@ ISR(TIM0_COMPA_vect)
 
   // Disable timer now as it has served heroically
   stopDebounceTimer();
-
-  // Insert nop for synchronization
-  _NOP();
 }
 
 
@@ -345,9 +315,6 @@ ISR(TIM1_COMPA_vect)
 
   TGL_FAULT_FLAG; // DBG
   stopBigTimer();
-
-  // Insert nop for synchronization
-  _NOP();
 }
 
 
@@ -358,7 +325,7 @@ ISR(TIM1_COMPA_vect)
 static inline void serviceGpioRegFlags(void)
 {
   // disable interrupts to prevent flags changing
-  //cli();
+  cli();
 
   // todo: not sure if this needs to be checked so explicitly
   if (powerFlagIsSet() && !powerIsOn())
@@ -391,16 +358,37 @@ static inline void serviceGpioRegFlags(void)
     TURN_DEV_MODE_OFF;
   }
 
-  // disable BOD
-  sleep_bod_disable(); // every time since it gets enabled when woken up
-
   // re-enable interrupts
-  //sei();
-
-  // todo: do sleep here based on timer flags so we don't sleep when timers are waiting
+  sei();
 
   // Add some cycles for allowing interrupts to be processed
   _NOP();
+}
+
+
+/*****************************
+ * Sleep Mode Logic
+ *****************************/
+static inline void goToSleep(void)
+{
+  if (timer0IsOn() || timer1IsOn()) // go into low-pwr state that allows timer interrupts
+  {
+    set_sleep_mode(SLEEP_MODE_IDLE);
+  }
+  else // lowest power mode
+  {
+    disableAllTimers();
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  }
+
+  // disable BOD
+  sleep_bod_disable(); // every time since it gets enabled when woken up
+
+  // enable sleep
+  sleep_enable();
+
+  // go into desired sleep mode
+  sleep_mode();
 }
 
 
@@ -410,9 +398,16 @@ int main(void)
 
   while (1)
   {
+    // // disable sleep now that we're awake
+    // sleep_disable();
+    //
+    // // enable timers since we disabled before sleep
+    // enableAllTimers();
+
+    // initiate pin states based on device register flags
     serviceGpioRegFlags();
-    //sleep_mode(); // or sleep_cpu();
-    //sleep_cpu();
+
+    //goToSleep();
   }
 
   return 0;

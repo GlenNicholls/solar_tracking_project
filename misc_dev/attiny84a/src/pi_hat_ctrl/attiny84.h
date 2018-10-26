@@ -4,21 +4,20 @@
 #include <avr/sleep.h>
 #include <avr/cpufunc.h>  // for _NOP()
 
-// used for a very short delay
-//#define _NOP() do { __asm__ __volatile__ ("nop"); } while (0)
-
 
 
 /*****************************
  * Function Prototypes
  *****************************/
 // todo: should all these be defined here or elsewhere??
-// static inline void initClocks(void);
 // static inline void initWDT(void);
 static inline void initInterrupts(void);
 static inline void initTimer0(void);
 static inline void initTimer1(void);
-static inline void initLowPowerAndSleep(void);
+static inline void initClock(void);
+static inline void initLowPower(void);
+static inline void enableAllTimers(void);
+static inline void disableAllTimers(void);
 static inline void initPortA(void);
 static inline void initPortB(void);
 
@@ -28,8 +27,10 @@ static inline void stopDebounceTimer(void);
 static inline void startBigTimer(void);
 static inline void stopBigTimer(void);
 static inline void serviceGpioRegFlags(void);
+static inline void goToSleep(void);
 
 // todo: is this 32-bit integer or does compiler optimize?? does it matter??
+static inline void setPinStartupState(void);
 static inline int powerIsOn(void);
 static inline int faultIsOn(void);
 static inline int devModeIsOn(void);
@@ -210,18 +211,23 @@ static inline void initClock(void)
  *****************************/
 // todo: might be beneficial to disable timers when not used. can enable them in the
 //       turn on functions
-static inline void initLowPowerAndSleep(void)
+static inline void initLowPower(void)
 {
   // Disable ADC
   power_adc_disable();
 
   // Disable USI
   power_usi_disable();
+}
 
-  // todo: disable BOD for lower power
+static inline void disableAllTimers(void)
+{
+  power_timer0_disable();
+  power_timer1_disable();
+}
 
-  // Sleep Mode
-  //set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-  set_sleep_mode(SLEEP_MODE_IDLE); // DBG
-  sleep_enable(); // todo: might not need this with sleep_mode();
+static inline void enableAllTimers(void)
+{
+  power_timer0_enable();
+  power_timer1_enable();
 }

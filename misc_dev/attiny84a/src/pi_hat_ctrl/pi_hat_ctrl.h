@@ -126,6 +126,18 @@ static inline void initPortB(void)
  * Pin State Helpers
  *****************************/
 // todo: where to put these??
+static inline void setPinStartupState(void)
+{
+  SET_POWER_FLAG;
+  TURN_POWER_ON;
+
+  CLR_DEV_MODE_FLAG;
+  TURN_DEV_MODE_OFF;
+
+  CLR_FAULT_FLAG;
+  TURN_FAULT_OFF;
+}
+
 static inline int powerIsOn(void)
 {
   return bit_is_set(POWER_PIN, POWER_PIN_REG);
@@ -185,6 +197,12 @@ static inline int shutdownDelayFlagIsSet(void)
 {
   return bit_is_set(GPIOR2, GPIOR2_SHUTDOWN_DLY_FLAG_REG);
 }
+
+// static inline void clearAllSecondaryFlags(void) // clears all flags that don't control pin outputs
+// {
+//
+// }
+
 
 
 
