@@ -327,6 +327,7 @@ ISR(TIM1_COMPA_vect) // long delay timer for checking RTC and allowing pi to shu
   }
   else // either got here unexpectedly or we are trying to shutdown immediately after we're supposed to be powered on
   {
+    // no bueno
     SET_FAULT_FLAG;
   }
 
@@ -338,11 +339,10 @@ ISR(TIM1_COMPA_vect) // long delay timer for checking RTC and allowing pi to shu
 /*****************************
  * GPIO Reg Service Routine
  *****************************/
-// todo: will be making this more much better later
 static inline void serviceGpioRegFlags(void)
 {
   // disable interrupts to prevent flags changing
-  cli();
+  //cli();
 
   // control power pin
   powerFlagIsSet() ? TURN_POWER_PIN_ON : TURN_POWER_PIN_OFF;
@@ -354,10 +354,10 @@ static inline void serviceGpioRegFlags(void)
   devModeFlagIsSet() ? TURN_DEV_MODE_PIN_ON : TURN_DEV_MODE_PIN_OFF;
 
   // re-enable interrupts
-  sei();
+  //sei();
 
   // Add some cycles for allowing interrupts to be processed
-  _NOP();
+  //_NOP();
 }
 
 
@@ -383,7 +383,8 @@ static inline void goToSleep(void)
   sleep_enable();
 
   // go into desired sleep mode
-  sleep_mode();
+  //sleep_mode();
+  sleep_cpu();
 }
 
 
@@ -393,14 +394,27 @@ int main(void)
 
   while (1)
   {
-    // // disable sleep now that we're awake
-    // sleep_disable();
-    //
-    // // enable timers since we disabled before sleep
-    // enableAllTimers();
+    // disable interrupts after wake up
+    cli();
+
+    // disable sleep now that we're awake
+    sleep_disable();
+
+    // enable timers since we disabled before sleep
+    enableAllTimers();
+
+    // enable interrupts
+    sei();
+    _NOP();
 
     // initiate pin states based on device register flags
     serviceGpioRegFlags();
+
+
+    // go to sleep
+    set_sleep_mode(SLEEP_MODE_IDLE);// DBG
+    sleep_enable();                 // DBG
+    sleep_cpu();                    // DBG
 
     //goToSleep();
   }

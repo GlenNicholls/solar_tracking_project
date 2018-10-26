@@ -34,11 +34,12 @@
 /*****************************
  * Pin Assertions
  *****************************/
-// todo: possibly change to toggling?
 #define TURN_POWER_PIN_ON      SET_BIT(POWER_PORT,    POWER_PIN_REG)
 #define TURN_POWER_PIN_OFF     CLR_BIT(POWER_PORT,    POWER_PIN_REG)
+
 #define TURN_FAULT_PIN_ON      SET_BIT(FAULT_PORT,    FAULT_PIN_REG)
 #define TURN_FAULT_PIN_OFF     CLR_BIT(FAULT_PORT,    FAULT_PIN_REG)
+
 #define TURN_DEV_MODE_PIN_ON   SET_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
 #define TURN_DEV_MODE_PIN_OFF  CLR_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
 
@@ -47,6 +48,7 @@
 /*****************************
  * GPIO User Registers
  *****************************/
+// todo: remove all TGLs we don't need/use
 #define GPIOR2_POWER_FLAG_REG        7
 #define GPIOR2_FAULT_FLAG_REG        6
 #define GPIOR2_DEV_MODE_FLAG_REG     5
