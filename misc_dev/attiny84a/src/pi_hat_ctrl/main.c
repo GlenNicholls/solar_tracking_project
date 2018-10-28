@@ -158,11 +158,11 @@ static inline void stopDebounceTimer(void)
  *****************************/
 static inline void startBigTimer(void)
 {
-  // 1/(125000/(1024*(1 + 2500))) = ~41s
+  // 1/(125000/(1024*(1 + 5000))) = ~41s
 
   // Output compare reg
-  // OCR1A = 200;// DBG
-  OCR1A = 2500;
+   OCR1A = 2000;// DBG
+  //OCR1A = 5000;
 
   // Activate timer with prescalar 1024
   TURN_TIMER_1_ON;
@@ -222,6 +222,7 @@ ISR(PCINT0_vect)
     }
 
     SET_SHUTDOWN_DLY_FLAG;
+
     // start timer
     startBigTimer();
   } // don't check when it comes on since RTC ISR takes care of this
@@ -261,11 +262,6 @@ ISR(EXT_INT0_vect)
     // start timer to ensure pi clears this in time
     startBigTimer();
   } // don't check when it is cleared since timer ISR takes care of this
-  // else                                               // DBG
-  // {                                                  // DBG
-  //   // todo: use wiringpi to do ack manually to test // DBG
-  //   CLR_POWER_FLAG; // DBG                           // DBG
-  // }                                                  // DBG
 }
 
 
@@ -304,34 +300,37 @@ ISR(TIM0_COMPA_vect) // Debounce timer
  *****************************/
 ISR(TIM1_COMPA_vect) // long delay timer for checking RTC and allowing pi to shutdown safely.
 {
-  if (checkAlarmFlagIsSet() && !shutdownDelayFlagIsSet()) // Need to check alarm and make sure ack is on
+  if (checkAlarmFlagIsSet()) // Need to check alarm and make sure ack is on
   {
-    if (rtcAlarmIsOn())
-    {
-      // pi needs to clear alarm before giving ack!
-      SET_FAULT_FLAG;
-    }
+    // if (rtcAlarmIsOn())
+    // {
+    //   // pi needs to clear alarm before giving ack!
+    //   SET_FAULT_FLAG;
+    // }
+    //
+    // if (!deviceAckIsOn()) // no good, no ack from pi so it took too long to start
+    // {
+    //   SET_FAULT_FLAG;
+    // }
 
-    if (!deviceAckIsOn()) // no good, no ack from pi so it took too long to start
-    {
-      SET_FAULT_FLAG;
-    }
+    SET_FAULT_FLAG; // DBG
 
-    // todo: possibly add counter to determine if we should turn timer off yet or not
     CLR_ALARM_CHECK_FLAG;
   }
-  else if (!checkAlarmFlagIsSet() && shutdownDelayFlagIsSet()) // shutdown delay has passed, time to shut pi down
+  if (shutdownDelayFlagIsSet()) // shutdown delay has passed, time to shut pi down
   {
+    //SET_FAULT_FLAG; // DBG
     CLR_POWER_FLAG;
     CLR_SHUTDOWN_DLY_FLAG;
   }
-  else // either got here unexpectedly or we are trying to shutdown immediately after we're supposed to be powered on
+  if (shutdownDelayFlagIsSet() && checkAlarmFlagIsSet()) // either got here unexpectedly or we are trying to shutdown immediately after we're supposed to be powered on
   {
     // no bueno
     SET_FAULT_FLAG;
+    CLR_SHUTDOWN_DLY_FLAG;
+    CLR_ALARM_CHECK_FLAG;
   }
 
-  //TGL_FAULT_FLAG; // DBG
   stopBigTimer();
 }
 
@@ -342,7 +341,7 @@ ISR(TIM1_COMPA_vect) // long delay timer for checking RTC and allowing pi to shu
 static inline void serviceGpioRegFlags(void)
 {
   // disable interrupts to prevent flags changing
-  //cli();
+  cli();
 
   // control power pin
   powerFlagIsSet() ? TURN_POWER_PIN_ON : TURN_POWER_PIN_OFF;
@@ -354,10 +353,10 @@ static inline void serviceGpioRegFlags(void)
   devModeFlagIsSet() ? TURN_DEV_MODE_PIN_ON : TURN_DEV_MODE_PIN_OFF;
 
   // re-enable interrupts
-  //sei();
+  sei();
 
   // Add some cycles for allowing interrupts to be processed
-  //_NOP();
+  _NOP();
 }
 
 
@@ -394,27 +393,27 @@ int main(void)
 
   while (1)
   {
-    // disable interrupts after wake up
-    cli();
-
-    // disable sleep now that we're awake
-    sleep_disable();
-
-    // enable timers since we disabled before sleep
-    enableAllTimers();
-
-    // enable interrupts
-    sei();
-    _NOP();
+    // // disable interrupts after wake up
+    // cli();
+    //
+    // // disable sleep now that we're awake
+    // sleep_disable();
+    //
+    // // enable timers since we disabled before sleep
+    // enableAllTimers();
+    //
+    // // enable interrupts
+    // sei();
+    // _NOP();
 
     // initiate pin states based on device register flags
     serviceGpioRegFlags();
 
 
     // go to sleep
-    set_sleep_mode(SLEEP_MODE_IDLE);// DBG
-    sleep_enable();                 // DBG
-    sleep_cpu();                    // DBG
+    // set_sleep_mode(SLEEP_MODE_IDLE);// DBG
+    // sleep_enable();                 // DBG
+    // sleep_cpu();                    // DBG
 
     //goToSleep();
   }
