@@ -49,7 +49,7 @@ class system_monitor(object):
         #cpu_use = os.popen("top -n1 | awk '/Cpu\(s\):/ {print $2}'").readline().strip('\\')
         #print('-DBG- CPU Use call from terminal returns: xxx{}xxx'.format(cpu_use))
         #self._cpu_use = float(cpu_use)
-		self._cpu_use = psutil.cpu_percent(interval=1)
+        self._cpu_use = psutil.cpu_percent(interval=1)
         return self._cpu_use
 
 
