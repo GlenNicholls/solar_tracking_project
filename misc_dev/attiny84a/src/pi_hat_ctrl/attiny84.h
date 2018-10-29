@@ -69,22 +69,8 @@ static inline int timer1IsOn(void);
 
 
 /*****************************
- * Timer Config Macros
+ * Timer Prescalars
  *****************************/
-// todo: get info from make file for calculating div factors for desired delays
-// todo: use enum instead
-//typedef enum
-//{
-//  off      = 0b000,
-//  div_1    = 0b001,
-//  div_8    = 0b010,
-//  div_64   = 0b011,
-//  div_256  = 0b100,
-//  div_1024 = 0b101
-//} timerPrescaleT;
-//
-//timerPrescaleT timerPrescale;
-
 #define TIMER_OFF            0b000
 #define TIMER_PRESCALE_1     0b001
 #define TIMER_PRESCALE_8     0b010
@@ -93,6 +79,97 @@ static inline int timer1IsOn(void);
 #define TIMER_PRESCALE_1024  0b101
 #define TIMER_ON_MASK        0b111
 
+
+
+/*****************************
+ * Clock Config Macros
+ *****************************/
+// todo: possibly use CKSEL to choose different clock
+#ifndef F_CPU
+#error You must define F_CPU
+#else
+  // #if F_CPU == 8000000
+  //   #define CLOCK_DIV         clock_div_1
+  //   #define TIMER_0_PRESCALE  TIMER_PRESCALE_1024
+  //   #define TIMER_1_PRESCALE  TIMER_PRESCALE_
+  //   OCR0A = 125;
+  //   OCR1A = ;
+  //
+  // #elif F_CPU == 4000000
+  //   #define CLOCK_DIV         clock_div_2
+  //   #define TIMER_0_PRESCALE  TIMER_PRESCALE_1024
+  //   #define TIMER_1_PRESCALE  TIMER_PRESCALE_
+  //   OCR0A = 65;
+  //   OCR1A = ;
+  //
+  #if F_CPU == 2000000
+    #define CLOCK_DIV         clock_div_4
+    #define TIMER_0_PRESCALE  TIMER_PRESCALE_256
+    #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
+    OCR0A = 125;
+    OCR1A = 65535;
+
+  #elif F_CPU == 1000000
+    #define CLOCK_DIV         clock_div_8
+    #define TIMER_0_PRESCALE  TIMER_PRESCALE_256
+    #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
+    OCR0A = 65;
+    OCR1A = 40000;
+
+  #elif F_CPU == 500000
+    #define CLOCK_DIV         clock_div_16
+    #define TIMER_0_PRESCALE  TIMER_PRESCALE_64
+    #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
+    OCR0A = 125;
+    OCR1A = 20000;
+
+  #elif F_CPU == 250000
+    #define CLOCK_DIV         clock_div_32
+    #define TIMER_0_PRESCALE  TIMER_PRESCALE_64
+    #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
+    OCR0A = 65;
+    OCR1A = 10000;
+
+  #elif F_CPU == 125000
+    #define CLOCK_DIV         clock_div_64
+    #define TIMER_0_PRESCALE  TIMER_PRESCALE_64
+    #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
+    OCR0A = 35;
+    OCR1A = 5000;
+
+  #elif F_CPU == 62500
+    #define CLOCK_DIV         clock_div_128
+    #define TIMER_0_PRESCALE  TIMER_PRESCALE_8
+    #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
+    OCR0A = 125;
+    OCR1A = 2500;
+
+  #elif F_CPU == 31250
+    #define CLOCK_DIV         clock_div_256
+    #define TIMER_0_PRESCALE  TIMER_PRESCALE_8
+    #define TIMER_1_PRESCALE  TIMER_PRESCALE_256
+    OCR0A = 65;
+    OCR1A = 5000;
+
+  #else
+    #error Unsupported value for F_CPU
+  #endif
+#endif
+
+static inline void initClock(void)
+{
+  //clock_prescale_set(clock_div_64); // yields 125kHz clk
+  clock_prescale_set(CLOCK_DIV);
+
+  // synchronize
+  _NOP();
+}
+
+
+
+/*****************************
+ * Timer Config Macros
+ *****************************/
 #define TIMER_0_WGM_NORMAL  0b10 // todo: possibly add more but probably don't need now
 #define TIMER_0_WGM_CTC     0b10
 
@@ -105,7 +182,7 @@ static inline int timer1IsOn(void);
 #define SET_TIMER_0_MODE_NORMAL SET_BITS(TCCR0A, TIMER_0_WGM_NORMAL, WGM00)
 #define SET_TIMER_0_MODE_CTC    SET_BITS(TCCR0A, TIMER_0_WGM_CTC, WGM00)
 #define CLR_TIMER_0_COUNT       SET_REG(TCNT0, 0x00)
-#define TURN_TIMER_0_ON         SET_BITS(TCCR0B, TIMER_PRESCALE_8, CS00)
+#define TURN_TIMER_0_ON         SET_BITS(TCCR0B, TIMER_0_PRESCALE, CS00)
 #define TURN_TIMER_0_OFF        CLR_BITS(TCCR0B, ~TIMER_OFF, CS00) // todo: how do I make this generic for the prescalar and output compare reg??
 
 #define SET_TIMER_1_REG1_MODE_NORMAL SET_BITS(TCCR1A, TIMER_1_WGM_REG1_NORMAL, WGM10)
@@ -113,7 +190,7 @@ static inline int timer1IsOn(void);
 #define SET_TIMER_1_REG1_MODE_CTC    SET_BITS(TCCR1A, TIMER_1_WGM_REG1_CTC, WGM10)
 #define SET_TIMER_1_REG2_MODE_CTC    SET_BITS(TCCR1B, TIMER_1_WGM_REG2_CTC, WGM12)
 #define CLR_TIMER_1_COUNT            SET_REG(TCNT1, 0x0000) // tcnt1 gives direct access to both regs
-#define TURN_TIMER_1_ON              SET_BITS(TCCR1B, TIMER_PRESCALE_1024, CS10)
+#define TURN_TIMER_1_ON              SET_BITS(TCCR1B, TIMER_1_PRESCALE, CS10)
 #define TURN_TIMER_1_OFF             CLR_BITS(TCCR1B, ~TIMER_OFF, CS10)
 
 // 8-bit timer
@@ -166,21 +243,6 @@ static inline void initInterrupts(void)
   // Pin Change Mask Registers
   PCMSK0 |= _BV(PCINT7);
   PCMSK1 |= _BV(PCINT9);
-}
-
-
-
-/*****************************
- * Clock Config Macros
- *****************************/
-// todo: add some whay to capture clock div from makefile... jesus that was stressful
-// todo: possibly use CKSEL to choose different clock
-static inline void initClock(void)
-{
-  clock_prescale_set(clock_div_64); // yields 125kHz clk
-
-  // synchronize
-  _NOP();
 }
 
 

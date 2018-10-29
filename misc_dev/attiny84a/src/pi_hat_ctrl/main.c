@@ -161,8 +161,8 @@ static inline void startBigTimer(void)
   // 1/(125000/(1024*(1 + 5000))) = ~41s
 
   // Output compare reg
-   OCR1A = 2000;// DBG
-  //OCR1A = 5000;
+  //OCR1A = 2000;// DBG
+  OCR1A = 5000;
 
   // Activate timer with prescalar 1024
   TURN_TIMER_1_ON;
@@ -317,15 +317,15 @@ ISR(TIM1_COMPA_vect) // long delay timer for checking RTC and allowing pi to shu
       SET_FAULT_FLAG;
     }
 
-    //SET_FAULT_FLAG; // DBG
-
     CLR_ALARM_CHECK_FLAG;
   }
+
   if (shutdownDelayFlagIsSet()) // shutdown delay has passed, time to shut pi down
   {
     CLR_POWER_FLAG;
     CLR_SHUTDOWN_DLY_FLAG;
   }
+
   if (shutdownDelayFlagIsSet() && checkAlarmFlagIsSet()) // either got here unexpectedly or we are trying to shutdown immediately after we're supposed to be powered on
   {
     // no bueno

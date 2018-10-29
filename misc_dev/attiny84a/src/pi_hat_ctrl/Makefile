@@ -1,10 +1,11 @@
 # ======================================================================
 #  Makefile for AVRDude
 # ======================================================================
-MCU    = attiny84
+MCU          = attiny84
+MCU_CPU_FREQ = 31250
 
-TARGET = pi_hat_ctrl
-SRC    = main.c pi_hat_ctrl.h $(MCU).h 
+TARGET       = pi_hat_ctrl
+SRC          = main.c pi_hat_ctrl.h $(MCU).h 
 
 
 # ======================================================================
@@ -20,11 +21,11 @@ AVRDUDE_DBG         = -v
 AVRDUDE_CONF        = ../../../avrdude_gpio.conf
 AVRDUDE_PROGRAMMER  = pi_1
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
-AVRDUDE_ICSP_DLY_us = -i32
+AVRDUDE_ICSP_DLY_us = -i128
 AVRDUDE_FLAGS       = -p $(MCU) -c $(AVRDUDE_PROGRAMMER) -C $(AVRDUDE_CONF) $(AVRDUDE_ICSP_DLY_us) $(AVRDUDE_DBG)
 
 all:
-	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
+	$(CC) $(CFLAGS) $(SRC) -o $(TARGET) -DF_CPU=$(MCU_CPU_FREQ)
 	$(OBJCOPY) -O ihex -R .eeprom $(TARGET) $(TARGET).hex
 	avr-size -C --mcu=$(MCU) $(TARGET)
 
