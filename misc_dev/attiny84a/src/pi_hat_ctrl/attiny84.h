@@ -11,41 +11,39 @@
  *****************************/
 // todo: should all these be defined here or elsewhere??
 // static inline void initWDT(void);
-static inline void initInterrupts(void);
-static inline void initTimer0(void);
-static inline void initTimer1(void);
-static inline void initClock(void);
-static inline void initLowPower(void);
-static inline void enableAllTimers(void);
-static inline void disableAllTimers(void);
-static inline void initPortA(void);
-static inline void initPortB(void);
+static inline void initClock          (void);
+static inline void initTimer0         (void);
+static inline void initTimer1         (void);
+static inline void startDebounceTimer (void);
+static inline void stopDebounceTimer  (void);
+static inline void startBigTimer      (void);
+static inline void stopBigTimer       (void);
+static inline void initInterrupts     (void);
+static inline void initLowPower       (void);
+static inline void disableAllTimers   (void);
+static inline void enableAllTimers    (void);
 
-static inline void initMCU(void);
-static inline void startDebounceTimer(void);
-static inline void stopDebounceTimer(void);
-static inline void startBigTimer(void);
-static inline void stopBigTimer(void);
-static inline void serviceGpioRegFlags(void);
-static inline void goToSleep(void);
+static inline void initPortA             (void);
+static inline void initPortB             (void);
+static inline void setPinStartupState    (void);
+static inline int powerIsOn              (void);
+static inline int faultIsOn              (void);
+static inline int devModeIsOn            (void);
+static inline int deviceAckIsOn          (void);
+static inline int buttonIsOn             (void);
+static inline int rtcAlarmIsOn           (void);
+static inline int powerFlagIsSet         (void);
+static inline int faultFlagIsSet         (void);
+static inline int devModeFlagIsSet       (void);
+static inline int checkAlarmFlagIsSet    (void);
+static inline int shutdownDelayFlagIsSet (void);
+static inline int timer0IsOn             (void);
+static inline int timer1IsOn             (void);
 
-// todo: is this 32-bit integer or does compiler optimize?? does it matter??
-static inline void setPinStartupState(void);
-static inline int powerIsOn(void);
-static inline int faultIsOn(void);
-static inline int devModeIsOn(void);
-static inline int deviceAckIsOn(void);
-static inline int buttonIsOn(void);
-static inline int rtcAlarmIsOn(void);
+static inline void initMCU             (void);
+static inline void serviceGpioRegFlags (void);
+static inline void goToSleep           (void);
 
-static inline int powerFlagIsSet(void);
-static inline int faultFlagIsSet(void);
-static inline int devModeFlagIsSet(void);
-static inline int checkAlarmFlagIsSet(void);
-static inline int shutdownDelayFlagIsSet(void);
-
-static inline int timer0IsOn(void);
-static inline int timer1IsOn(void);
 
 
 /*****************************
@@ -222,6 +220,51 @@ static inline void initTimer1(void)
   TIMSK1 |= _BV(OCIE1A);
 }
 
+// 8-bit timer
+// todo: how to make this generic
+// spec of push button is 13ms, added some slack to be safe
+// 1/( (F_CPU/prescale) /(2*prescale*(1 + timer_count_to))) = 36.9ms
+static inline void startDebounceTimer(void)
+{
+  // 1/(125000/(2*8*(1 + 35))) = ~37ms
+
+  // Output compare reg
+  //OCR0A = 35;
+
+  // Activate timer with prescalar 8
+  TURN_TIMER_0_ON;
+}
+
+static inline void stopDebounceTimer(void)
+{
+  // Disable timer
+  TURN_TIMER_0_OFF;
+
+  // Clear timer counter
+  CLR_TIMER_0_COUNT;
+}
+
+// 16-bit timer
+static inline void startBigTimer(void)
+{
+  // 1/(125000/(1024*(1 + 5000))) = ~41s
+
+  // Output compare reg
+  //OCR1A = 2000;// DBG
+  //OCR1A = 5000;
+
+  // Activate timer with prescalar 1024
+  TURN_TIMER_1_ON;
+}
+
+static inline void stopBigTimer(void)
+{
+  // Disable timer
+  TURN_TIMER_1_OFF;
+
+  // Clear timer counter
+  CLR_TIMER_1_COUNT;
+}
 
 
 /*****************************
@@ -238,7 +281,7 @@ static inline void initInterrupts(void)
   SET_BITS(MCUCR, INT0_MODE_LOGIC_CHANGE, ISC00);
 
   // General Interrupt Mask Register
-  GIMSK |= (1 << INT0) | (1 << PCIE0) | (1 << PCIE1);
+  GIMSK |= _BV(INT0) | _BV(PCIE0) | _BV(PCIE1);
 
   // Pin Change Mask Registers
   PCMSK0 |= _BV(PCINT7);

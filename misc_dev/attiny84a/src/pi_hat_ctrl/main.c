@@ -126,57 +126,6 @@
 //void int checkFaultFlag = 0; // to periodically check fault flag to see if we need to forcefully turn on pi.
 
 
-/*****************************
- * 8-Bit Timer Helpers
- *****************************/
-// todo: how to make this generic
-// spec of push button is 13ms, added some slack to be safe
-// 1/(125000/(2*8*(1 + 35))) = 36.9ms
-static inline void startDebounceTimer(void)
-{
-  // 1/(125000/(2*8*(1 + 35))) = ~37ms
-
-  // Output compare reg
-  OCR0A = 35;
-
-  // Activate timer with prescalar 8
-  TURN_TIMER_0_ON;
-}
-
-static inline void stopDebounceTimer(void)
-{
-  // Disable timer
-  TURN_TIMER_0_OFF;
-
-  // Clear timer counter
-  CLR_TIMER_0_COUNT;
-}
-
-
-/*****************************
- * 16-Bit Timer Helpers
- *****************************/
-static inline void startBigTimer(void)
-{
-  // 1/(125000/(1024*(1 + 5000))) = ~41s
-
-  // Output compare reg
-  //OCR1A = 2000;// DBG
-  OCR1A = 5000;
-
-  // Activate timer with prescalar 1024
-  TURN_TIMER_1_ON;
-}
-
-static inline void stopBigTimer(void)
-{
-  // Disable timer
-  TURN_TIMER_1_OFF;
-
-  // Clear timer counter
-  CLR_TIMER_1_COUNT;
-}
-
 
 /*****************************
  * Initialize MCU
@@ -205,6 +154,58 @@ static inline void initMCU(void)
 
   // Enable interrupts
   sei();
+}
+
+
+/*****************************
+ * GPIO Reg Service Routine
+ *****************************/
+static inline void serviceGpioRegFlags(void)
+{
+  // disable interrupts to prevent flags changing
+  cli();
+
+  // control power pin
+  powerFlagIsSet() ? TURN_POWER_PIN_ON : TURN_POWER_PIN_OFF;
+
+  // control fault pin
+  faultFlagIsSet() ? TURN_FAULT_PIN_ON : TURN_FAULT_PIN_OFF;
+
+  // control dev mode pin
+  devModeFlagIsSet() ? TURN_DEV_MODE_PIN_ON : TURN_DEV_MODE_PIN_OFF;
+
+  // re-enable interrupts
+  sei();
+
+  // Add some cycles for allowing interrupts to be processed
+  _NOP();
+}
+
+
+/*****************************
+ * Sleep Mode Logic
+ *****************************/
+static inline void goToSleep(void)
+{
+  if (timer0IsOn() || timer1IsOn()) // go into low-pwr state that allows timer interrupts
+  {
+    set_sleep_mode(SLEEP_MODE_IDLE);
+  }
+  else // lowest power mode
+  {
+    disableAllTimers();
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  }
+
+  // disable BOD
+  sleep_bod_disable(); // every time since it gets enabled when woken up
+
+  // enable sleep
+  sleep_enable();
+
+  // go into desired sleep mode
+  //sleep_mode();
+  sleep_cpu();
 }
 
 
@@ -336,58 +337,6 @@ ISR(TIM1_COMPA_vect) // long delay timer for checking RTC and allowing pi to shu
 
 
   stopBigTimer();
-}
-
-
-/*****************************
- * GPIO Reg Service Routine
- *****************************/
-static inline void serviceGpioRegFlags(void)
-{
-  // disable interrupts to prevent flags changing
-  cli();
-
-  // control power pin
-  powerFlagIsSet() ? TURN_POWER_PIN_ON : TURN_POWER_PIN_OFF;
-
-  // control fault pin
-  faultFlagIsSet() ? TURN_FAULT_PIN_ON : TURN_FAULT_PIN_OFF;
-
-  // control dev mode pin
-  devModeFlagIsSet() ? TURN_DEV_MODE_PIN_ON : TURN_DEV_MODE_PIN_OFF;
-
-  // re-enable interrupts
-  sei();
-
-  // Add some cycles for allowing interrupts to be processed
-  _NOP();
-}
-
-
-/*****************************
- * Sleep Mode Logic
- *****************************/
-static inline void goToSleep(void)
-{
-  if (timer0IsOn() || timer1IsOn()) // go into low-pwr state that allows timer interrupts
-  {
-    set_sleep_mode(SLEEP_MODE_IDLE);
-  }
-  else // lowest power mode
-  {
-    disableAllTimers();
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-  }
-
-  // disable BOD
-  sleep_bod_disable(); // every time since it gets enabled when woken up
-
-  // enable sleep
-  sleep_enable();
-
-  // go into desired sleep mode
-  //sleep_mode();
-  sleep_cpu();
 }
 
 
