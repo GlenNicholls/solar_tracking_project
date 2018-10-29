@@ -224,7 +224,10 @@ ISR(PCINT0_vect)
     SET_SHUTDOWN_DLY_FLAG;
 
     // start timer
-    startBigTimer();
+    if (!timer1IsOn())
+    {
+      startBigTimer();
+    }
   } // don't check when it comes on since RTC ISR takes care of this
 }
 
@@ -234,14 +237,10 @@ ISR(PCINT0_vect)
  *****************************/
 ISR(PCINT1_vect)
 {
-  if (!timer0IsOn()) // if timer is alreay on, bounce is going, "hey, wire"
+  if (!timer0IsOn() && buttonIsOn()) // if timer is alreay on, bounce is going, "hey, wire"
   {
     startDebounceTimer();
   }
-  // if (!timer1IsOn()) // DBG
-  // {                  // DBG
-  //   startBigTimer(); // DBG
-  // }                  // DBG
 }
 
 
@@ -260,8 +259,13 @@ ISR(EXT_INT0_vect)
     SET_ALARM_CHECK_FLAG;
 
     // start timer to ensure pi clears this in time
-    startBigTimer();
+    if (!timer1IsOn())
+    {
+      startBigTimer();
+    }
   } // don't check when it is cleared since timer ISR takes care of this
+
+  _NOP();
 }
 
 
@@ -302,24 +306,23 @@ ISR(TIM1_COMPA_vect) // long delay timer for checking RTC and allowing pi to shu
 {
   if (checkAlarmFlagIsSet()) // Need to check alarm and make sure ack is on
   {
-    // if (rtcAlarmIsOn())
-    // {
-    //   // pi needs to clear alarm before giving ack!
-    //   SET_FAULT_FLAG;
-    // }
-    //
-    // if (!deviceAckIsOn()) // no good, no ack from pi so it took too long to start
-    // {
-    //   SET_FAULT_FLAG;
-    // }
+    if (rtcAlarmIsOn())
+    {
+      // pi needs to clear alarm before giving ack!
+      SET_FAULT_FLAG;
+    }
 
-    SET_FAULT_FLAG; // DBG
+    if (!deviceAckIsOn()) // no good, no ack from pi so it took too long to start
+    {
+      SET_FAULT_FLAG;
+    }
+
+    //SET_FAULT_FLAG; // DBG
 
     CLR_ALARM_CHECK_FLAG;
   }
   if (shutdownDelayFlagIsSet()) // shutdown delay has passed, time to shut pi down
   {
-    //SET_FAULT_FLAG; // DBG
     CLR_POWER_FLAG;
     CLR_SHUTDOWN_DLY_FLAG;
   }
@@ -330,6 +333,7 @@ ISR(TIM1_COMPA_vect) // long delay timer for checking RTC and allowing pi to shu
     CLR_SHUTDOWN_DLY_FLAG;
     CLR_ALARM_CHECK_FLAG;
   }
+
 
   stopBigTimer();
 }

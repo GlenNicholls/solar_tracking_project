@@ -109,14 +109,14 @@ static inline void initPortA(void)
 static inline void initPortB(void)
 {
   // DDRB Port Directions
-  SET_INPUT(DDRB, ICSP_RESET_N);
+  //SET_INPUT(DDRB, ICSP_RESET_N);
   SET_INPUT(DDRB, RTC_ALARM_PIN_REG);
   SET_INPUT(DDRB, BUTTON_PIN_REG);
 
   SET_OUTPUT(DDRB, PB0); // not connected
 
   // Enable pullups
-  SET_PULLUP_ON(PORTB, ICSP_RESET_N);
+  //SET_PULLUP_ON(PORTB, ICSP_RESET_N);
   SET_PULLUP_ON(PORTB, RTC_ALARM_PIN_REG);
   SET_PULLUP_ON(PORTB, BUTTON_PIN_REG);
   SET_PULLUP_ON(PORTB, PB0); // not connected
