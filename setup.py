@@ -42,16 +42,17 @@ setup(
                          # 'https://github.com/adafruit/Adafruit_Python_GPIO/tarball/master#egg=Adafruit-GPIO-0.6.5',
                          # 'https://github.com/adafruit/Adafruit_Python_MCP3008/tarball/master#egg=Adafruit-MCP3008-1.0.2'],
                          ],
-    install_requires  = [
+    install_requires  = [                         
                          'Adafruit-GPIO>=0.6.5',
-                         'Adafruit-MCP3008>=1.0.2',
-                         'RPI.GPIO>=0.6.3',
-                         'astral>=1.2',
+                         'Adafruit-MCP3008>=1.0.2',	                     
+						 'astral>=1.2',
+						 'geocoder>=1.38.1',
+						 'psutil>=5.4.7',
+						 'pytest>=3.8.2',
+						 'pytest-timeout>=1.3.2',
+						 'pytest-runner>=4.2',
                          'python-dateutil>=2.7.3',
-                         'pytest-timeout>=1.3.2',
-                         'pytest-runner>=4.2',
-                         'pytest>=3.8.2',
-                         'geocoder>=1.38.1'],
+                         'RPI.GPIO>=0.6.3',],
     setup_requires    = [
                          'pytest-runner>=4.2',],
     tests_require     = [

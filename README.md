@@ -256,7 +256,8 @@ After the tests have passed, no further configuration is required and the system
             
             '''
 
-* voltage sense for panel, load, pi, battery (for safe shutdown)
+* voltage divider resistors
+* test button bounce on uC
 * Logging/database
 * REST API support
 * Add dev_*.py in test/ directories to be able to run test_* cases for development so we don't have to deal with delay of py.test to run

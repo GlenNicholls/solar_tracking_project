@@ -1,7 +1,9 @@
 #include <attiny84.h>
 
 
-// define hardware pins
+/*****************************
+ * Define HW Pins
+ *****************************/
 #define POWER_PIN_REG      PA0
 #define FAULT_PIN_REG      PA1
 #define DEV_MODE_PIN_REG   PA3
@@ -29,37 +31,56 @@
 
 
 
-// Pin assertions
-// todo: possibly change to toggling?
-#define TURN_POWER_ON      SET_BIT(POWER_PORT,    POWER_PIN_REG)
-#define TURN_POWER_OFF     CLR_BIT(POWER_PORT,    POWER_PIN_REG)
-#define TURN_FAULT_ON      SET_BIT(FAULT_PORT,    FAULT_PIN_REG)
-#define TURN_FAULT_OFF     CLR_BIT(FAULT_PORT,    FAULT_PIN_REG)
-#define TURN_DEV_MODE_ON   SET_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
-#define TURN_DEV_MODE_OFF  CLR_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
+/*****************************
+ * Pin Assertions
+ *****************************/
+#define TURN_POWER_PIN_ON      SET_BIT(POWER_PORT,    POWER_PIN_REG)
+#define TURN_POWER_PIN_OFF     CLR_BIT(POWER_PORT,    POWER_PIN_REG)
+
+#define TURN_FAULT_PIN_ON      SET_BIT(FAULT_PORT,    FAULT_PIN_REG)
+#define TURN_FAULT_PIN_OFF     CLR_BIT(FAULT_PORT,    FAULT_PIN_REG)
+
+#define TURN_DEV_MODE_PIN_ON   SET_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
+#define TURN_DEV_MODE_PIN_OFF  CLR_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
 
 
 
-// GPIO register macros
-#define GPIOR2_POWER_FLAG_REG    7
-#define GPIOR2_FAULT_FLAG_REG    6
-#define GPIOR2_DEV_MODE_FLAG_REG 5
+/*****************************
+ * GPIO User Registers
+ *****************************/
+// todo: remove all TGLs we don't need/use
+#define GPIOR2_POWER_FLAG_REG         7
+#define GPIOR2_FAULT_FLAG_REG         6
+#define GPIOR2_DEV_MODE_FLAG_REG      5
+#define GPIOR2_ALARM_CHECK_FLAG_REG   4
+#define GPIOR2_SHUTDOWN_DLY_FLAG_REG  3
+#define GPIOR2_CHECK_ACK_FLAG_REG     2
 
-#define SET_POWER_FLAG     SET_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
-#define CLR_POWER_FLAG     CLR_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
-#define SET_FAULT_FLAG     SET_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
-#define CLR_FAULT_FLAG     CLR_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
-#define TGL_DEV_MODE_FLAG  TGL_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
+#define SET_POWER_FLAG  SET_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
+#define CLR_POWER_FLAG  CLR_BIT(GPIOR2, GPIOR2_POWER_FLAG_REG)
+
+#define SET_FAULT_FLAG  SET_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
+#define CLR_FAULT_FLAG  CLR_BIT(GPIOR2, GPIOR2_FAULT_FLAG_REG)
+
 #define SET_DEV_MODE_FLAG  SET_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
+#define TGL_DEV_MODE_FLAG  TGL_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
 #define CLR_DEV_MODE_FLAG  CLR_BIT(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG)
 
+#define SET_ALARM_CHECK_FLAG  SET_BIT(GPIOR2, GPIOR2_ALARM_CHECK_FLAG_REG)
+#define CLR_ALARM_CHECK_FLAG  CLR_BIT(GPIOR2, GPIOR2_ALARM_CHECK_FLAG_REG)
+
+#define SET_SHUTDOWN_DLY_FLAG  SET_BIT(GPIOR2, GPIOR2_SHUTDOWN_DLY_FLAG_REG)
+#define CLR_SHUTDOWN_DLY_FLAG  CLR_BIT(GPIOR2, GPIOR2_SHUTDOWN_DLY_FLAG_REG)
+
+#define SET_CHECK_ACK_FLAG  SET_BIT(GPIOR2, GPIOR2_CHECK_ACK_FLAG_REG)
+#define CLR_CHECK_ACK_FLAG  CLR_BIT(GPIOR2, GPIOR2_CHECK_ACK_FLAG_REG)
 
 
-// hardware configuration
+
+/*****************************
+ * HW Port Configuration
+ *****************************/
 // todo: set full register if need memory
-// todo: put all hardware specific in attiny84a.h
-// todo: use pullup and figure out direction for unused pins (including ICSP)
-//       ref page 56
 static inline void initPortA(void)
 {
   // DDRA Port Directions
@@ -88,29 +109,42 @@ static inline void initPortA(void)
 static inline void initPortB(void)
 {
   // DDRB Port Directions
-  SET_INPUT(DDRB, ICSP_RESET_N);
+  //SET_INPUT(DDRB, ICSP_RESET_N);
   SET_INPUT(DDRB, RTC_ALARM_PIN_REG);
   SET_INPUT(DDRB, BUTTON_PIN_REG);
 
   SET_OUTPUT(DDRB, PB0); // not connected
 
   // Enable pullups
-  SET_PULLUP_ON(PORTB, ICSP_RESET_N);
+  //SET_PULLUP_ON(PORTB, ICSP_RESET_N);
   SET_PULLUP_ON(PORTB, RTC_ALARM_PIN_REG);
   SET_PULLUP_ON(PORTB, BUTTON_PIN_REG);
   SET_PULLUP_ON(PORTB, PB0); // not connected
 }
 
-// functions for checking pin states
+
+
+/*****************************
+ * Pin State Helpers
+ *****************************/
 // todo: where to put these??
+static inline void setPinStartupState(void)
+{
+  // SET_POWER_FLAG;
+  // TURN_POWER_PIN_ON;
+  CLR_POWER_FLAG;     // DBG
+  TURN_POWER_PIN_OFF; // DBG
+
+  CLR_DEV_MODE_FLAG;
+  TURN_DEV_MODE_PIN_OFF;
+
+  CLR_FAULT_FLAG;
+  TURN_FAULT_PIN_OFF;
+}
+
 static inline int powerIsOn(void)
 {
   return bit_is_set(POWER_PIN, POWER_PIN_REG);
-}
-
-static inline int powerFlagIsSet(void)
-{
-  return bit_is_set(GPIOR2, GPIOR2_POWER_FLAG_REG);
 }
 
 static inline int faultIsOn(void)
@@ -118,19 +152,9 @@ static inline int faultIsOn(void)
   return bit_is_set(FAULT_PIN, FAULT_PIN_REG);
 }
 
-static inline int faultFlagIsSet(void)
-{
-  return bit_is_set(GPIOR2, GPIOR2_FAULT_FLAG_REG);
-}
-
 static inline int devModeIsOn(void)
 {
   return bit_is_set(DEV_MODE_PIN, DEV_MODE_PIN_REG);
-}
-
-static inline int devModeFlagIsSet(void)
-{
-  return bit_is_set(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG);
 }
 
 static inline int deviceAckIsOn(void)
@@ -140,8 +164,7 @@ static inline int deviceAckIsOn(void)
 
 static inline int buttonIsOn(void) // look for low-going edge (active low)
 {
-  //return bit_is_clear(BUTTON_PIN, BUTTON_PIN_REG);
-  return !(BUTTON_PIN & _BV(BUTTON_PIN_REG));
+  return bit_is_clear(BUTTON_PIN, BUTTON_PIN_REG);
 }
 
 static inline int rtcAlarmIsOn(void) // look for low-going edge (active low)
@@ -149,16 +172,58 @@ static inline int rtcAlarmIsOn(void) // look for low-going edge (active low)
   return bit_is_clear(RTC_ALARM_PIN, RTC_ALARM_PIN_REG);
 }
 
-// NOTE: Probably can't use bit_is_set since if any [2:0] are non-zero, timer is on
+
+
+/*****************************
+ * GPIO Reg Flag State Helpers
+ *****************************/
+static inline int powerFlagIsSet(void)
+{
+  return bit_is_set(GPIOR2, GPIOR2_POWER_FLAG_REG);
+}
+
+static inline int faultFlagIsSet(void)
+{
+  return bit_is_set(GPIOR2, GPIOR2_FAULT_FLAG_REG);
+}
+
+static inline int devModeFlagIsSet(void)
+{
+  return bit_is_set(GPIOR2, GPIOR2_DEV_MODE_FLAG_REG);
+}
+
+static inline int checkAlarmFlagIsSet(void)
+{
+  return bit_is_set(GPIOR2, GPIOR2_ALARM_CHECK_FLAG_REG);
+}
+
+static inline int shutdownDelayFlagIsSet(void)
+{
+  return bit_is_set(GPIOR2, GPIOR2_SHUTDOWN_DLY_FLAG_REG);
+}
+
+static inline int checkAckFlagIsSet(void)
+{
+  return bit_is_set(GPIOR2, GPIOR2_CHECK_ACK_FLAG_REG);
+}
+
+// static inline void clearAllSecondaryFlags(void) // clears all flags that don't control pin outputs
+// {
+//
+// }
+
+
+
+
+/*****************************
+ * Timer Helpers
+ *****************************/
 static inline int timer0IsOn(void)
 {
-  //return bit_is_set(TCCR0B, TIMER_ON_MASK);
   return (TCCR0B & TIMER_ON_MASK);
 }
 
 static inline int timer1IsOn(void)
 {
-  //return bit_is_set(TCCR1B, TIMER_ON_MASK);
   return (TCCR1B & TIMER_ON_MASK);
 }
-

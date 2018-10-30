@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys
 import time
 #from datetime import datetime
@@ -54,6 +56,9 @@ def configure_rtc():
 def configure_rtc_alarm(alarm_in_x_secs):
     rtc.set_alarm_now_delta(seconds=alarm_in_x_secs)
 
+def clear_rtc_alarm():
+    rtc.check_and_clear_alarms()
+
 def monitor_rtc_temp():
     temp = rtc.get_temp()
     return temp
@@ -92,8 +97,3 @@ def test_monitor_rtc_temp():
         print('-I- RTC temperature: {}'.format(temp))
         time.sleep(0.5)
         assert -40 < temp < 80
-
-
-# test_configure_rtc()
-# test_configure_rtc_alarm()
-# test_monitor_rtc_temp()

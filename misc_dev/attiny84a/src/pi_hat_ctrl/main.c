@@ -1,5 +1,5 @@
 /*
- * power_circuit_ctrl.c
+ * main.c
  *
  * Created: 10/13/2018 8:01:58 PM
  * Author : Glen Nicholls
@@ -11,6 +11,8 @@
  *    power.
  *
  *    Goal #1: DON'T KILL THE BROCCOLI!!!
+ *
+ *    TODO: Get rid of this junk and make a flow chart instead. This will be clearer
  *
  * Input Pins:
  * -----------
@@ -53,20 +55,14 @@
  *        todo: solidify whether pi will be off periodically throughout the day as
  *        this may influence the algorithm and checks during this stage!
  *
- *        todo: this should be implemented as dev_mode and power on as those states
- *              from pi perspective should be the same. Don't want to interrupt
- *              software operation, should just tell pi that algorithm can't initiate
- *              shutdown if it periodically shuts down. If so, need to ensure that the
- *              pi recognizes shutdown command to set next alarm as previous one may
- *              have passed, or will pass while pi is in the middle of shutting down.
- *
  *        1. This pin is normally pulled high
- *        2. Push button is debounced in analog, but will smooth just in case
- *        3. When there is a low-going edge, an interrupt will be issued.
- *        4. The uC will service this interrupt by driving the pi_rx_dev_mode
- *           pin high, driving en_power high, and waiting for the Pi to assert
- *           pi_tx_hold_on.
- *        5. uC will then follow pi_tx_hold_on description above
+ *        2. When there is a low-going edge, an interrupt will be issued.
+ *        3. After device on, RTC alarm should be cleared and then ack raised.
+ *        4. if RTC alarm is not cleared before this, fault will be raised.
+ *        5. If device is originally off, dev mode pin is asserted and power turned
+ *           on.
+ *        6. If device is on, dev mode pin asserted until user presses button again
+ *
  *
  * Output Pins:
  * ------------
@@ -122,283 +118,278 @@
  */
 
 #include <pi_hat_ctrl.h>
-
-// Global variables for ISR
-//void int CheckShutdownTimeCount = 0;
-//void int CheckStartupTimeCount  = 0;
+#include <util/delay.h>
 
 
-
-// stop/start timers
-// todo: how to make this generic
-// spec of push button is 13ms, but the one I'm debugging with is awful
-// 1/(125000/(2*8*(1 + 35))) = 36.9ms
-static inline void startDebounceTimer(void)
-{
-  // Output compare reg
-  // todo: put in specific function for configuring correct period
-  OCR0A = 200;
-
-  // Activate timer with prescalar 1024
-  TURN_TIMER_0_ON;
-}
-
-static inline void stopDebounceTimer(void)
-{
-  // Disable timer
-  TURN_TIMER_0_OFF;
-
-  // Clear timer counter
-  CLR_TIMER_0_COUNT;
-}
-
-static inline void startBigTimer(void)
-{
-  // Activate timer with prescalar 1024
-  TURN_TIMER_1_ON;
-}
-
-static inline void stopBigTimer(void)
-{
-  // Disable timer
-  TURN_TIMER_1_OFF;
-
-  // Clear timer counter
-  CLR_TIMER_1_COUNT;
-}
+/*****************************
+ * Global
+ *****************************/
+//void int checkFaultFlag = 0; // to periodically check fault flag to see if we need to forcefully turn on pi.
 
 
 
-// init MCU for desired operation
+/*****************************
+ * Initialize MCU
+ *****************************/
 static inline void initMCU(void)
 {
-  // Disable interrupts for clock div just in case
-  //cli();
-
   // init pin directions and pullups
   initPortA();
   initPortB();
 
-  // Enable the MCUCR pullups
-  MCUCR &= ~(1 << PUD);
-
   // Set start-up state when uC first gets power
-  SET_POWER_FLAG;
-  TURN_POWER_ON;
-  CLR_DEV_MODE_FLAG;
-  TURN_DEV_MODE_OFF;
-  CLR_FAULT_FLAG;
-  TURN_FAULT_OFF;
+  // todo: fix start up glitch when uC sees first alarm after power on
+  // todo: add clear all GPIO flags or something
+  setPinStartupState();
 
   // Configure all interrupts
   initInterrupts();
   initTimer0();
-  //initTimer1();
+  initTimer1();
 
   // Configure clocks
-  //initClock(); // not sure we can use this as it makes it so I can't program avr
+  initClock();
+
   // Configure low-power mode
-//  initLowPowerMode();
+  initLowPower();
 
   // Enable interrupts
   sei();
 }
 
 
-// /*
-//  * RTC Alarm ISR
-//  */
-// ISR(EXT_INT0_vect)
-// {
-//   if (rtcAlarmIsOn()) // Alarm has occured
-//   {
-//     if (powerIsOn()) // Checking to see if load switch already on
-//     {
-//       // todo: Should FAULTS ever be cleared before user intervention??
-//       TURN_FAULT_ON; // raise FAULT as this shouldn't happen, but maintain power to device
-//     }
-//     else
-//     {
-//       TURN_POWER_ON; // Turn load switch on
-//     }
-//   }
-//   // todo: find out if any error checking needs to be done when alarm is cleared
-//   //       should be branching back to service other interrupts or sleep
-//   // else {}
-//
-//   // Insert nop for synchronization
-//   _NOP();
-// }
+/*****************************
+ * GPIO Reg Service Routine
+ *****************************/
+static inline void serviceGpioRegFlags(void)
+{
+  // disable interrupts to prevent flags changing
+  cli();
 
-/*
- * pi_tx_hold_on ISR
- */
-// ISR(PCINT0_vect)
-// {
-//   if (deviceAckIsOn()) // Pi has turned on
-//   {
-//     // while (isRTCAlarmOn()) // while alarm not cleared, check until cleared
-//     // {
-//     //   // todo: sleep for some time
-//     //   // todo: what happens when alarm on INT0 gets cleared? does that get serviced before coming back here?
-//     //   // todo: add _WDT(), timer, or variable so we don't get stuck
-//     // }
-//   }
-//   else // Pi has turned off
-//   {
-//     // todo: start timer1 here for ~30s-45s and error-check
-//     if (powerIsOn()) // done sleeping, make sure load switch is on
-//     {
-//       CLR_POWER_FLAG; // Turn load switch off
-//     }
-//     else
-//     {
-//       SET_FAULT_FLAG; // Raise FAULT as this should never happen
-//     }
-//     CLR_DEV_MODE_FLAG; // Turn dev mode off
-//   }
-//
-//   // Insert nop for synchronization
-//   _NOP();
-// }
+  // control power pin
+  powerFlagIsSet() ? TURN_POWER_PIN_ON : TURN_POWER_PIN_OFF;
 
-/*
+  // control fault pin
+  faultFlagIsSet() ? TURN_FAULT_PIN_ON : TURN_FAULT_PIN_OFF;
+
+  // control dev mode pin
+  devModeFlagIsSet() ? TURN_DEV_MODE_PIN_ON : TURN_DEV_MODE_PIN_OFF;
+
+  // re-enable interrupts
+  sei();
+
+  // Add some cycles for allowing interrupts to be processed
+  _NOP();
+}
+
+
+/*****************************
+ * Sleep Mode Logic
+ *****************************/
+static inline void goToSleep(void)
+{
+  if (timer0IsOn() || timer1IsOn()) // go into low-pwr state that allows timer interrupts
+  {
+    set_sleep_mode(SLEEP_MODE_IDLE);
+  }
+  else // lowest power mode
+  {
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  }
+
+  // disable BOD
+  sleep_bod_disable(); // every time since it gets enabled when woken up
+
+  // enable sleep
+  sleep_enable();
+
+  // go into desired sleep mode
+  sleep_cpu();
+
+  // interrupt condition has occured
+  _delay_ms(50); // give processor enough time to set INT flags
+
+  // manually disable sleep per suggestion in datasheet
+  cli();
+  sleep_disable();
+  sei();
+}
+
+
+/*****************************
+ * Device Ack ISR
+ *****************************/
+ISR(PCINT0_vect)
+{
+  if (!deviceAckIsOn()) // pi has shutdown
+  {
+    // todo: not sure if we should still shutdown during this fault condition or not
+    if (devModeIsOn()) // pi should not be able to shut down with this pin high!
+    {
+      SET_FAULT_FLAG;
+    }
+
+    SET_SHUTDOWN_DLY_FLAG;
+
+    // start timer
+    if (!timer1IsOn())
+    {
+      startBigTimer();
+    }
+  } // don't check when it comes on since RTC ISR takes care of this
+}
+
+
+/*****************************
  * Push Button ISR
- */
-// todo: * when we enter, start timer if not already started.
-//       * let timer ISR take care of all logic to set the device reg for big func
+ *****************************/
 ISR(PCINT1_vect)
 {
-  // todo: check flag register to see if dev mode is on, then put
-  //       logic in here to account for when to start debounce timer
-  if (!timer0IsOn()) // if timer is alreay on, bounce is going, "hey, wire"
+  if (!timer0IsOn() && buttonIsOn()) // if timer is alreay on, bounce is going, "hey, wire"
   {
     startDebounceTimer();
   }
 
-  // Insert nop for synchronization
-  _NOP();
-}
-
-// todo: test code below
-/////////////////////////////////////////////////////////
-ISR(EXT_INT0_vect)
-{
   if (rtcAlarmIsOn()) // Alarm has occured
   {
-    SET_POWER_FLAG; // Turn load switch on
-  }
-  else
-  {
-    CLR_POWER_FLAG;
-  }
+    // Turn load switch on
+    SET_POWER_FLAG;
 
-  // start timer
-  //startBigTimer();
+    // Set flag to check for cleared alarm
+    // when timer is done, this should be cleared and ack should be high
+    SET_ALARM_CHECK_FLAG;
 
-  // Insert nop for synchronization
-  _NOP();
-}
-/////////////////////////////////////////////////////////
-
-/*
- * Timer 0 Compare A ISR
- */
-ISR(TIM0_COMPA_vect)
-{
-  // if power is off and button pressed, turn power on and enter dev mode
-  // if power is on and button is pressed, leave power on and check dev mode
-  //    if dev mode is active, deactivate. else turn dev mode on
-  if (powerIsOn() && powerFlagIsSet())
-  {
-    // todo: toggling flag should be safe as long as we're properly debounced. will
-    //       be testing with scope on friday
-    TGL_DEV_MODE_FLAG;
-  }
-  else
-  {
-    if (!powerFlagIsSet())
+    // start timer to ensure pi clears this in time
+    if (!timer1IsOn())
     {
-      SET_POWER_FLAG;
+      startBigTimer();
     }
-    SET_DEV_MODE_FLAG;
-  }
+  } // don't check when it is cleared since timer ISR takes care of this
+}
 
-  //TGL_DEV_MODE_FLAG; // DBG
+
+/*****************************
+ * RTC Alarm ISR
+ *****************************/
+// ISR(EXT_INT0_vect)
+// {
+//   if (rtcAlarmIsOn()) // Alarm has occured
+//   {
+//     // Turn load switch on
+//     SET_POWER_FLAG;
+//
+//     // Set flag to check for cleared alarm
+//     // when timer is done, this should be cleared and ack should be high
+//     SET_ALARM_CHECK_FLAG;
+//
+//     // start timer to ensure pi clears this in time
+//     if (!timer1IsOn())
+//     {
+//       startBigTimer();
+//     }
+//   } // don't check when it is cleared since timer ISR takes care of this
+//
+//   _NOP();
+// }
+
+
+/*****************************
+ * Timer 0 Compare A ISR
+ *****************************/
+ISR(TIM0_COMPA_vect) // Debounce timer
+{
+  if (buttonIsOn())
+  {
+    if (powerIsOn())
+    {
+      TGL_DEV_MODE_FLAG;
+    }
+    else
+    {
+      if (!timer1IsOn())
+      {
+        startBigTimer();
+      }
+      SET_POWER_FLAG;      // set power flag to turn on device power
+      SET_DEV_MODE_FLAG;   // set dev mode flag to turn dev mode pin on
+      SET_CHECK_ACK_FLAG;  // set flag that big timer needs to check to make sure there is ack
+    }
+  }
+  else
+  {
+    // Button was released too quickly or has too much bounce
+    SET_FAULT_FLAG;
+  }
 
   // Disable timer now as it has served heroically
   stopDebounceTimer();
-
-  // Insert nop for synchronization
-  _NOP();
 }
 
-/*
- * Timer 1 Overflow ISR
- */
-//ISR(TIM1_OVF_vect)
-//{
-//  // if power is on and no ack, give system ~30s to turn on
-//
-//  // Disable timer now as it has served heroically
-//  stopBigTimer();
-//
-//  // Insert nop for synchronization
-//  _NOP();
-//}
 
-// todo: will be making this more much better later
-static inline void serviceGpioRegFlags(void)
+/*****************************
+ * Timer 1 Compare A ISR
+ *****************************/
+ISR(TIM1_COMPA_vect) // long delay timer for checking RTC and allowing pi to shutdown safely.
 {
-  // disable interrupts to prevent flags changing
-  //cli();
+  if (checkAlarmFlagIsSet()) // Need to check alarm and make sure ack is on
+  {
+    if (rtcAlarmIsOn())
+    {
+      // pi needs to clear alarm before giving ack!
+      SET_FAULT_FLAG;
+    }
 
-  // control pin
-  if (powerFlagIsSet() && !powerIsOn())
-  {
-    TURN_POWER_ON;
-  }
-  else if (!powerFlagIsSet() && powerIsOn())
-  {
-    TURN_POWER_OFF;
-  }
+    if (!deviceAckIsOn()) // no good, no ack from pi so it took too long to start
+    {
+      SET_FAULT_FLAG;
+    }
 
-  // control fault pin
-  if (faultFlagIsSet())
-  {
-    TURN_FAULT_ON;
-  }
-  else if (!faultFlagIsSet())
-  {
-    TURN_FAULT_OFF;
+    CLR_ALARM_CHECK_FLAG;
   }
 
-  // control dev mode pin
-  if (devModeFlagIsSet())
+  if (checkAckFlagIsSet()) // power is being applied by dev mode button by user
   {
-    TURN_DEV_MODE_ON;
-  }
-  else if (!devModeFlagIsSet())
-  {
-    TURN_DEV_MODE_OFF;
+    if (!deviceAckIsOn()) // if no ack withing ~40s, no good
+    {
+      SET_FAULT_FLAG;
+    }
+    CLR_CHECK_ACK_FLAG;
   }
 
-  // re-enable interrupts
-  //sei();
+  if (shutdownDelayFlagIsSet()) // shutdown delay has passed, time to shut pi down
+  {
+    CLR_POWER_FLAG;
+    CLR_SHUTDOWN_DLY_FLAG;
+  }
+
+  if (shutdownDelayFlagIsSet() && (checkAlarmFlagIsSet()|| checkAckFlagIsSet()) ) // either got here unexpectedly or we are trying to shutdown immediately after we're supposed to be powered on
+  {
+    // no bueno
+    SET_FAULT_FLAG;
+    CLR_SHUTDOWN_DLY_FLAG;
+    CLR_ALARM_CHECK_FLAG;
+  }
+
+  // turn timer off
+  stopBigTimer();
 }
 
 
+/*****************************
+ * Main
+ *****************************/
 int main(void)
 {
   initMCU();
 
   while (1)
   {
+    // initiate pin states based on device register flags
     serviceGpioRegFlags();
-    // todo: sleep_bod_disable(); everytime since it gets enabled when woken up
-    //sleep_mode(); // or sleep_cpu();
+
+    // enter desired sleep mode for power reduction
+    goToSleep();
   }
 
   return 0;
 }
-

@@ -1,6 +1,7 @@
 from __future__ import division 
 import time
 import os
+import psutil
 import re
 import shlex
 from subprocess import Popen, PIPE, check_call
@@ -45,9 +46,10 @@ class system_monitor(object):
 
     # get current cpu usage in %
     def get_cpu_use_perc(self):
-        cpu_use = os.popen("top -n1 | awk '/Cpu\(s\):/ {print $2}'").readline().strip('\\')
-        print('-DBG- CPU Use call from terminal returns: xxx{}xxx'.format(cpu_use))
-        self._cpu_use = float(cpu_use)
+        #cpu_use = os.popen("top -n1 | awk '/Cpu\(s\):/ {print $2}'").readline().strip('\\')
+        #print('-DBG- CPU Use call from terminal returns: xxx{}xxx'.format(cpu_use))
+        #self._cpu_use = float(cpu_use)
+        self._cpu_use = psutil.cpu_percent(interval=1)
         return self._cpu_use
 
 
