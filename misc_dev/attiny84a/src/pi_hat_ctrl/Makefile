@@ -2,7 +2,7 @@
 #  Makefile for AVRDude
 # ======================================================================
 MCU          = attiny84
-MCU_CPU_FREQ = 125000
+MCU_CPU_FREQ = 31250
 
 TARGET       = pi_hat_ctrl
 SRC          = main.c pi_hat_ctrl.h $(MCU).h 

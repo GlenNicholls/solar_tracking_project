@@ -86,20 +86,7 @@ static inline void goToSleep           (void);
 #ifndef F_CPU
 #error You must define F_CPU
 #else
-  // #if F_CPU == 8000000
-  //   #define CLOCK_DIV         clock_div_1
-  //   #define TIMER_0_PRESCALE  TIMER_PRESCALE_1024
-  //   #define TIMER_1_PRESCALE  TIMER_PRESCALE_
-  //   OCR0A = 125;
-  //   OCR1A = ;
-  //
-  // #elif F_CPU == 4000000
-  //   #define CLOCK_DIV         clock_div_2
-  //   #define TIMER_0_PRESCALE  TIMER_PRESCALE_1024
-  //   #define TIMER_1_PRESCALE  TIMER_PRESCALE_
-  //   OCR0A = 65;
-  //   OCR1A = ;
-  //
+  // not supporting any higher freqs since this would require global counter
   #if (F_CPU == 2000000)
     #define CLOCK_DIV         clock_div_4
     #define TIMER_0_PRESCALE  TIMER_PRESCALE_256
