@@ -100,54 +100,54 @@ static inline void goToSleep           (void);
   //   OCR0A = 65;
   //   OCR1A = ;
   //
-  #if F_CPU == 2000000
+  #if (F_CPU == 2000000)
     #define CLOCK_DIV         clock_div_4
     #define TIMER_0_PRESCALE  TIMER_PRESCALE_256
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
-    OCR0A = 125;
-    OCR1A = 65535;
+    #define TIMER_0_OCRA      125
+    #define TIMER_1_OCRA      65535
 
-  #elif F_CPU == 1000000
+  #elif (F_CPU == 1000000)
     #define CLOCK_DIV         clock_div_8
     #define TIMER_0_PRESCALE  TIMER_PRESCALE_256
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
-    OCR0A = 65;
-    OCR1A = 40000;
+    #define TIMER_0_OCRA      65
+    #define TIMER_1_OCRA      40000
 
-  #elif F_CPU == 500000
+  #elif (F_CPU == 500000)
     #define CLOCK_DIV         clock_div_16
     #define TIMER_0_PRESCALE  TIMER_PRESCALE_64
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
-    OCR0A = 125;
-    OCR1A = 20000;
+    #define TIMER_0_OCRA      125
+    #define TIMER_1_OCRA      20000
 
-  #elif F_CPU == 250000
+  #elif (F_CPU == 250000)
     #define CLOCK_DIV         clock_div_32
     #define TIMER_0_PRESCALE  TIMER_PRESCALE_64
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
-    OCR0A = 65;
-    OCR1A = 10000;
+    #define TIMER_0_OCRA      65
+    #define TIMER_1_OCRA      10000
 
-  #elif F_CPU == 125000
+  #elif (F_CPU == 125000)
     #define CLOCK_DIV         clock_div_64
     #define TIMER_0_PRESCALE  TIMER_PRESCALE_64
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
-    OCR0A = 35;
-    OCR1A = 5000;
+    #define TIMER_0_OCRA      35
+    #define TIMER_1_OCRA      5000
 
-  #elif F_CPU == 62500
+  #elif (F_CPU == 62500)
     #define CLOCK_DIV         clock_div_128
     #define TIMER_0_PRESCALE  TIMER_PRESCALE_8
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
-    OCR0A = 125;
-    OCR1A = 2500;
+    #define TIMER_0_OCRA      125
+    #define TIMER_1_OCRA      2500
 
-  #elif F_CPU == 31250
+  #elif (F_CPU == 31250)
     #define CLOCK_DIV         clock_div_256
     #define TIMER_0_PRESCALE  TIMER_PRESCALE_8
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_256
-    OCR0A = 65;
-    OCR1A = 5000;
+    #define TIMER_0_OCRA      65
+    #define TIMER_1_OCRA      5000
 
   #else
     #error Unsupported value for F_CPU
@@ -226,10 +226,10 @@ static inline void initTimer1(void)
 // 1/( (F_CPU/prescale) /(2*prescale*(1 + timer_count_to))) = 36.9ms
 static inline void startDebounceTimer(void)
 {
-  // 1/(125000/(2*8*(1 + 35))) = ~37ms
+  // 1/(F_CPU/(2*prescale*(1 + timer_compare))) = ~37ms
 
   // Output compare reg
-  //OCR0A = 35;
+  OCR0A = TIMER_0_OCRA;
 
   // Activate timer with prescalar 8
   TURN_TIMER_0_ON;
@@ -247,11 +247,11 @@ static inline void stopDebounceTimer(void)
 // 16-bit timer
 static inline void startBigTimer(void)
 {
-  // 1/(125000/(1024*(1 + 5000))) = ~41s
+  // 1/(F_CPU/(prescale*(1 + timer_compare))) = ~41s
 
   // Output compare reg
   //OCR1A = 2000;// DBG
-  //OCR1A = 5000;
+  OCR1A = TIMER_1_OCRA;
 
   // Activate timer with prescalar 1024
   TURN_TIMER_1_ON;
