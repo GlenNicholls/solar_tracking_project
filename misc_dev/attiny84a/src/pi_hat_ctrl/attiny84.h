@@ -37,6 +37,7 @@ static inline int faultFlagIsSet         (void);
 static inline int devModeFlagIsSet       (void);
 static inline int checkAlarmFlagIsSet    (void);
 static inline int shutdownDelayFlagIsSet (void);
+static inline int checkAckFlagIsSet      (void);
 static inline int timer0IsOn             (void);
 static inline int timer1IsOn             (void);
 
@@ -268,11 +269,13 @@ static inline void initInterrupts(void)
   SET_BITS(MCUCR, INT0_MODE_LOGIC_CHANGE, ISC00);
 
   // General Interrupt Mask Register
-  GIMSK |= _BV(INT0) | _BV(PCIE0) | _BV(PCIE1);
+  //GIMSK |= _BV(INT0) | _BV(PCIE0) | _BV(PCIE1);
+  GIMSK |= _BV(PCIE0) | _BV(PCIE1); // DBG
 
   // Pin Change Mask Registers
   PCMSK0 |= _BV(PCINT7);
   PCMSK1 |= _BV(PCINT9);
+  PCMSK1 |= _BV(PCINT10); // DBG
 }
 
 

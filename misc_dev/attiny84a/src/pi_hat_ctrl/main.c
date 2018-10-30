@@ -118,6 +118,7 @@
  */
 
 #include <pi_hat_ctrl.h>
+#include <util/delay.h>
 
 
 /*****************************
@@ -163,7 +164,7 @@ static inline void initMCU(void)
 static inline void serviceGpioRegFlags(void)
 {
   // disable interrupts to prevent flags changing
-  //cli();
+  cli();
 
   // control power pin
   powerFlagIsSet() ? TURN_POWER_PIN_ON : TURN_POWER_PIN_OFF;
@@ -175,7 +176,7 @@ static inline void serviceGpioRegFlags(void)
   devModeFlagIsSet() ? TURN_DEV_MODE_PIN_ON : TURN_DEV_MODE_PIN_OFF;
 
   // re-enable interrupts
-  //sei();
+  sei();
 
   // Add some cycles for allowing interrupts to be processed
   _NOP();
@@ -187,16 +188,12 @@ static inline void serviceGpioRegFlags(void)
  *****************************/
 static inline void goToSleep(void)
 {
-  initInterrupts();
-  initLowPower();
-
   if (timer0IsOn() || timer1IsOn()) // go into low-pwr state that allows timer interrupts
   {
     set_sleep_mode(SLEEP_MODE_IDLE);
   }
   else // lowest power mode
   {
-    disableAllTimers();
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
   }
 
@@ -207,12 +204,15 @@ static inline void goToSleep(void)
   sleep_enable();
 
   // go into desired sleep mode
-  //sleep_mode();
   sleep_cpu();
-  cli();             // DBG
-  sleep_disable();   // DBG
-  enableAllTimers(); // DBG
-  sei();             // DBG
+
+  // interrupt condition has occured
+  _delay_ms(50); // give processor enough time to set INT flags
+
+  // manually disable sleep per suggestion in datasheet
+  cli();
+  sleep_disable();
+  sei();
 }
 
 
@@ -249,14 +249,7 @@ ISR(PCINT1_vect)
   {
     startDebounceTimer();
   }
-}
 
-
-/*****************************
- * RTC Alarm ISR
- *****************************/
-ISR(EXT_INT0_vect)
-{
   if (rtcAlarmIsOn()) // Alarm has occured
   {
     // Turn load switch on
@@ -272,9 +265,32 @@ ISR(EXT_INT0_vect)
       startBigTimer();
     }
   } // don't check when it is cleared since timer ISR takes care of this
-
-  _NOP();
 }
+
+
+/*****************************
+ * RTC Alarm ISR
+ *****************************/
+// ISR(EXT_INT0_vect)
+// {
+//   if (rtcAlarmIsOn()) // Alarm has occured
+//   {
+//     // Turn load switch on
+//     SET_POWER_FLAG;
+//
+//     // Set flag to check for cleared alarm
+//     // when timer is done, this should be cleared and ack should be high
+//     SET_ALARM_CHECK_FLAG;
+//
+//     // start timer to ensure pi clears this in time
+//     if (!timer1IsOn())
+//     {
+//       startBigTimer();
+//     }
+//   } // don't check when it is cleared since timer ISR takes care of this
+//
+//   _NOP();
+// }
 
 
 /*****************************
@@ -368,13 +384,11 @@ int main(void)
 
   while (1)
   {
-    // // enable timers since we disabled before sleep
-    // enableAllTimers();
-
     // initiate pin states based on device register flags
     serviceGpioRegFlags();
 
-    //goToSleep();
+    // enter desired sleep mode for power reduction
+    goToSleep();
   }
 
   return 0;
