@@ -231,35 +231,3 @@ Connect the Raspberry Pi to the provided pi hat expansion along with wiring the 
     sudo python setup.py test
 
 After the tests have passed, no further configuration is required and the system is ready
-
-
-# TODO:
-* Update all docstrings to following format:
-
-        def function(arg1, arg2):
-            '''
-            Summary line.
-            
-            Extended description of function.
-            
-            Parameters
-            ----------
-            arg1 : int
-                Description of arg1
-            arg2 : str
-                Description of arg2
-            
-            Returns
-            -------
-            int
-                Description of return value
-            
-            '''
-
-* voltage divider resistors
-* test button bounce on uC
-* Logging/database
-* REST API support
-* Add dev_*.py in test/ directories to be able to run test_* cases for development so we don't have to deal with delay of py.test to run
-* Update MANIFEST.ini file
-* High level web server for simple control
