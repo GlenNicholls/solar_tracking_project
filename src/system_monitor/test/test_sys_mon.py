@@ -4,7 +4,7 @@ import system_monitor
 
 main_logger = 'main_logger'
 logger = logging.getLogger(main_logger)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # create console handler to log to the terminal
 ch = logging.StreamHandler()
 # set logging level to debug, will switch to info for final version
@@ -40,7 +40,7 @@ def write_table(string=[], max_str_len=None, header=False):
     if max_str_len == None or type(max_str_len) != int or max_str_len <= 1:
         raise ValueError('Max string length must be integer >= 1')
     if type(string) != list:
-        print('-E- You passed type: {}'.format(type(string)))
+        logger.error('You passed type: {}'.format(type(string)))
         raise ValueError('String is not of type list')
 
     if header:
@@ -153,5 +153,3 @@ def test_memory(num_checks=20):
         assert float(disk_use_perc) < 80.0 # tested DISK usage, if >80%, could run into issues logging
 
         time.sleep(0.5)    
-
-# todo: possibly add test to check for memory leaks
