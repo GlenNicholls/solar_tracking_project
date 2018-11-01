@@ -1,1 +1,11 @@
-#REV, original part/connection, new part/connection, notes
+2018-10-25 Graeme Danforth
+	*solartrack1.pcb: Added panel/charge controller measurement dividers to PCB
+
+2018-10-30 Graeme Danforth
+	*solartrack1.pcb: Added missing 3.3v bus connection to dev_mod level shifter
+
+2018-10-31 Graeme Danforth
+	*solartrack1.pcb: Fixed reference voltage connection for curr. sense amps.
+			Corrected LED package sizes to 0603
+			Fixed pushbutton switch connection to attiny
+			Added filter cap to attiny reset line (Pullup from level shifter)
