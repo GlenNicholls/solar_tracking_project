@@ -207,12 +207,10 @@ static inline void goToSleep(void)
   sleep_cpu();
 
   // interrupt condition has occured
-  _delay_ms(50); // give processor enough time to set INT flags
+  _delay_us(100); // give processor enough time to set INT flags
 
   // manually disable sleep per suggestion in datasheet
-  cli();
   sleep_disable();
-  sei();
 }
 
 

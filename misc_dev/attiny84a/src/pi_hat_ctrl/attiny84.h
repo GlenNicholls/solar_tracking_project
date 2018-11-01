@@ -269,13 +269,12 @@ static inline void initInterrupts(void)
   SET_BITS(MCUCR, INT0_MODE_LOGIC_CHANGE, ISC00);
 
   // General Interrupt Mask Register
-  //GIMSK |= _BV(INT0) | _BV(PCIE0) | _BV(PCIE1);
-  GIMSK |= _BV(PCIE0) | _BV(PCIE1); // DBG
+  GIMSK |= _BV(PCIE0) | _BV(PCIE1);
 
   // Pin Change Mask Registers
   PCMSK0 |= _BV(PCINT7);
   PCMSK1 |= _BV(PCINT9);
-  PCMSK1 |= _BV(PCINT10); // DBG
+  PCMSK1 |= _BV(PCINT10);
 }
 
 

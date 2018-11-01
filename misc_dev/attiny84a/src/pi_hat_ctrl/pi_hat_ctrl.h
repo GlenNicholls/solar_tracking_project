@@ -130,10 +130,8 @@ static inline void initPortB(void)
 // todo: where to put these??
 static inline void setPinStartupState(void)
 {
-  // SET_POWER_FLAG;
-  // TURN_POWER_PIN_ON;
-  CLR_POWER_FLAG;     // DBG
-  TURN_POWER_PIN_OFF; // DBG
+  SET_POWER_FLAG;
+  TURN_POWER_PIN_ON;
 
   CLR_DEV_MODE_FLAG;
   TURN_DEV_MODE_PIN_OFF;
