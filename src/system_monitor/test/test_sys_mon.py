@@ -1,9 +1,23 @@
+import logging
 import time
 import system_monitor
 
+main_logger = 'main_logger'
+logger = logging.getLogger(main_logger)
+logger.setLevel(logging.DEBUG)
+# create console handler to log to the terminal
+ch = logging.StreamHandler()
+# set logging level to debug, will switch to info for final version
+ch.setLevel(logging.DEBUG)
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+# add the handlers to logger
+logger.addHandler(ch)
 
-print('-I- Monitoring system information')
-sys_mon = system_monitor.system_monitor()
+
+logger.info('Monitoring system information')
+sys_mon = system_monitor.system_monitor(logger=main_logger)
 
 
 ''' Helper Functions
@@ -59,7 +73,7 @@ def get_memory():
 ''' Test Routine
 '''
 def test_wifi_wlan(num_checks=20):
-    print('-I- ----WLAN Information----')
+    logger.info('----WLAN Information----')
     string = []
     string.append('WiFi/WLAN Status')
     string.append('Bit Rate [Mbps]')
@@ -89,7 +103,7 @@ def test_wifi_wlan(num_checks=20):
         time.sleep(0.5)
 
 def test_cpu_temp(num_checks=20):
-    print('-I- ----Temperature Information----')
+    logger.info('----Temperature Information----')
     string = []
     string.append('Temp [\'C]')
     string.append('Temp [\'F]')
@@ -114,7 +128,7 @@ def test_cpu_temp(num_checks=20):
         time.sleep(0.5)
 
 def test_memory(num_checks=20):
-    print('-I- ----Memory Information----')
+    logger.info('----Memory Information----')
     string = []
     string.append('CPU [%]')
     string.append('RAM [%]')

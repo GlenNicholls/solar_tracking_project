@@ -17,7 +17,7 @@ class system_monitor(object):
               globally in the without calling this function for the other readings.
     '''
     def __init__(self, logger='main_logger', wlan_interface='wlan0'):
-        self.logger = logging.getLogger(logger+'sys_mon')
+        self.logger = logging.getLogger(logger+'.'+__name__)#'sys_mon')
         self.logger.info('creating an instance of the system monitor')
         self._wlan_interface = wlan_interface.lower()
         self._wlan_out = []
@@ -35,21 +35,21 @@ class system_monitor(object):
     def get_cpu_temp_C(self):
         res = os.popen('vcgencmd measure_temp').readline()
         self._temp_C = float( res.replace("temp=","").replace("'C\n","") )
-        self.logger.info('Getting CPU Temp in \'C')
+        self.logger.debug('Getting CPU Temp in \'C')
         self.logger.debug('Temperature is: {}\'C'.format(self._temp_C))
         return self._temp_C
 
     # get current cpu temp in 'F
     def get_cpu_temp_F(self):
         self._temp_F = self.get_cpu_temp_C() * 9.0/5.0 + 32.0
-        self.logger.info('Getting CPU Temp in \'F')
+        self.logger.debug('Getting CPU Temp in \'F')
         self.logger.debug('Temperature is: {}\'F'.format(self._temp_F))
         return self._temp_F
 
     # get current cpu temp in K... just because
     def get_cpu_temp_K(self):
         self._temp_K = self.get_cpu_temp_C() + 273.15
-        self.logger.info('Getting CPU Temp in \'K')
+        self.logger.debug('Getting CPU Temp in \'K')
         self.logger.debug('Temperature is: {}\'K'.format(self._temp_K))
         return self._temp_K
 
@@ -59,7 +59,7 @@ class system_monitor(object):
         #print('-DBG- CPU Use call from terminal returns: xxx{}xxx'.format(cpu_use))
         #self._cpu_use = float(cpu_use)
         self._cpu_use = psutil.cpu_percent(interval=1)
-        self.logger.info('Getting CPU usage')
+        self.logger.debug('Getting CPU usage')
         self.logger.debug('Temperature is: {}%'.format(self._cpu_use))
         return self._cpu_use
 
