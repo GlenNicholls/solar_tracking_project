@@ -8,6 +8,7 @@ from astral import Location
 import geocoder
 import pytz
 import os
+from motor_control import stepper_motor
 
 #NOTE: indentation is 2 spaces
   
