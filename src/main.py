@@ -93,8 +93,8 @@ def main():
   long = -97.8
   elev = 6000
   
-  prev_solar_az = 0.0
-  prev_solar_el = 0.0
+  prev_solar_az = 290.0
+  prev_solar_el = -55.0
   
   #Load user specifice parameters
   main_logger.warn('Loading user specified parameters NOT DEFINED')
@@ -134,17 +134,23 @@ def main():
     motor = stepper_motor()
     deg_az = int(round(solar_az - prev_solar_az))
     if deg_az < 0:
-      dir = motor_control.EAST
+      #dir = stepper_motor.EAST
+      dir = 0
     else:
-      dir = motor_control.WEST
-    motor.move_motor(motor_control.AZ, dir, deg_az)
+      #dir = stepper_motor.WEST
+      dir = 1
+    #motor.move_motor(stepper_motor.AZ, dir, deg_az)
+    motor.move_motor(19, dir, deg_az)
     
     deg_el = int(round(solar_el - prev_solar_el))
     if deg_el < 0:
-      dir = motor_control.SOUTH
+      #dir = stepper_motor.SOUTH
+      dir = 0
     else:
-      dir = motor_control.NORTH
-    motor.move_motor(motor_control.el, dir, deg_el)
+      #dir = stepper_motor.NORTH
+      dir = 1
+    #motor.move_motor(stepper_motor.EL, dir, deg_el)
+    motor.move_motor(13, dir, deg_el)
     
     main_logger.info('Moving to next position NOT DEFINED')
     

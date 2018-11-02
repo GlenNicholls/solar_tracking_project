@@ -29,7 +29,7 @@ class stepper_motor:
   #End __init__
   
   #TODO: Pass parameters using enum
-  def move_motor(axis, dir, deg):
+  def move_motor(self, axis, dir, deg):
     if axis == AZ:
       steps = deg*DEGAZ
     elif axis == EL:
