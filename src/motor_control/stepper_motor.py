@@ -3,10 +3,10 @@ import time
 
 #TODO: Define a constants file???
 #Constants
-WEST = 1
-NORTH = 1
-EAST = 0
-SOUTH = 0
+WEST = 0
+NORTH = 0
+EAST = 1
+SOUTH = 1
 ENABLE = 1
 DISABLE = 0
 DIR = 12 #12-direction (17
@@ -14,9 +14,9 @@ EL = 13 #13-EL controller enable (10)
 CLK = 16 #16-clock (18)
 AZ = 19 #19-AZ controller enable (10)
 RST = 26 #26-reset (20
-DEGAZ = 22 #Number of steps for 1 degree of movement in azimuth
-DEGEL = 72 #Number of steps for 1 degree of movement in elevation
-SPEED = 0.005 #Time delay to control the speed
+DEGAZ = 50 #Number of steps for 1 degree of movement in azimuth
+DEGEL = 62 #Number of steps for 1 degree of movement in elevation
+SPEED = 0.001 #Time delay to control the speed
 
 class stepper_motor:
 
