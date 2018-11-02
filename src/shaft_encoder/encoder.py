@@ -1,21 +1,21 @@
 import RPi.GPIO as GPIO  
 
 
-class Encoder:
+class encoder:
 
 	def __init__(self,a_pin,b_pin, ppr):
 		# Define pin numbers for A/B channels on azimuth/elevation motors
 		self.A_pin=a_pin
 		self.B_pin=b_pin
 
-    # Define pulses per revolution (2000 for chosen encoders)
-    self.ppr = ppr
+                # Define pulses per revolution (2000 for chosen encoders)
+                self.ppr = ppr
     
 		# Define global count variables
 		self.a_count = 0
     
-    # Configure interrupts
-    self.CFG_Encoder_Int()
+                # Configure interrupts
+                self.CFG_Encoder_Int()
 
   def CFG_Encoder_Int(self):
     #set up gpio module

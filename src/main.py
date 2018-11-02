@@ -9,6 +9,7 @@ import geocoder
 import pytz
 import os
 from motor_control import stepper_motor
+from shaft_encoder import encoder
 
 #NOTE: indentation is 2 spaces
   
