@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-from datetime import datetime
-from datetime import timedelta
+
+from datetime import datetime, timedelta
 import time
 import logging
-from astral import Astral
-from astral import Location
+from astral import Astral, Location
 import geocoder
 import pytz
 import os
@@ -17,8 +16,10 @@ from shaft_encoder import encoder
 # TODO: Need to find way to save state for periodically shutting down -GN
 
 #Global area
-main_logger = logging.getLogger('main_logger')
-main_logger.setLevel(logging.DEBUG)
+# TODO: possibly add init_logger()
+logger_name = 'main_app'
+logger = logging.getLogger(logger_name)
+logger.setLevel(logging.DEBUG)
 # create console handler to log to the terminal
 ch = logging.StreamHandler()
 # create file handler to log the state for next reboot
@@ -30,20 +31,20 @@ ch.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 ch.setFormatter(formatter)
 # add the handlers to logger
-main_logger.addHandler(ch)
+logger.addHandler(ch)
 #End Global area
 
 def get_location(lat, lng):
   try:
-    main_logger.info('Getting location from IP')
+    logger.info('Getting location from IP')
     g = geocoder.ip('me')
     lat = g.latlng[0]
     lng = g.latlng[1]
-    main_logger.info('Get location from IP Successfull! =)')
+    logger.info('Get location from IP Successfull! =)')
   except:
-    main_logger.warn('Get location from IP Failed, using defaults. =(')
+    logger.warn('Get location from IP Failed, using defaults. =(')
 
-  main_logger.info("Lattitude: [" + str(lat) + "], Longitude: [" + str(lng) + "]")
+  logger.info("Lattitude: [" + str(lat) + "], Longitude: [" + str(lng) + "]")
   return lat, lng 
 #End get_location
 
@@ -71,7 +72,7 @@ todo: list for uC stuff -GN
 '''
 
 def shutdown():
-  main_logger.info('Initiating Shutdown')
+  logger.info('Initiating Shutdown')
   #os.system('shutdown now -h')
 #End shutdown
 
@@ -81,20 +82,20 @@ def main():
   #       be notified and some checks about if we can talk to the device should be done.
   #       if this happens, system cannot shutdown
  
-  main_logger.info("Current UTC time: " + str(datetime.utcnow()))
+  logger.info("Current UTC time: " + str(datetime.utcnow()))
   
   #Run setup if needed
-  main_logger.info('Running setup')
+  logger.info('Running setup')
   
   #Load stored parameters
-  main_logger.info('Loading stored prarmeters')
+  logger.info('Loading stored prarmeters')
   #need to load from parameter file or similar, hard coded for now
   lat = 37.8
   long = -97.8
   elev = 6000
   
   #Load user specifice parameters
-  main_logger.warn('Loading user specified parameters NOT DEFINED')
+  logger.warn('Loading user specified parameters NOT DEFINED')
   
   #Get Location
   lat, lng = get_location(lat, long)
@@ -103,16 +104,16 @@ def main():
   loc_astral = get_location_astral(lat, lng, elev)
   
   #Calibrate system
-  main_logger.info('Calibrating System NOT DEFINED')
+  logger.info('Calibrating System NOT DEFINED')
   
   sun_dict = loc_astral.sun()
   now = pytz.timezone('US/Mountain').localize(datetime.now())
   
   #Get current position from shart encoders
-  main_logger.warn('Get current position from shaft encoders NOT DEFINED')
+  logger.warn('Get current position from shaft encoders NOT DEFINED')
   
   #Get current position from motors
-  main_logger.warn('Get current position from motors NOT DEFINED')
+  logger.warn('Get current position from motors NOT DEFINED')
   
   if now > sun_dict['sunrise'] and now < sun_dict['sunset']:
     daytime = True
@@ -125,13 +126,13 @@ def main():
     #Get solar position
     solar_az = loc_astral.solar_azimuth(datetime.now())
     solar_el = loc_astral.solar_elevation(datetime.now())
-    main_logger.info("Next Solar Azimuth: [" + str(solar_az) + "], Next Solar Elevation: [" + str(solar_el) + "]")
+    logger.info("Next Solar Azimuth: [" + str(solar_az) + "], Next Solar Elevation: [" + str(solar_el) + "]")
     
     #Move to calculated sun posistion
-    main_logger.info('Moving to next position NOT DEFINED')
+    logger.info('Moving to next position NOT DEFINED')
     
     #Read light sensor
-    main_logger.info('Reading light sensor')
+    logger.info('Reading light sensor')
     
   else:
     #Get solar position for tomorrow morning
@@ -139,10 +140,10 @@ def main():
     sun_dict = loc_astral.sun(tomorrow.date())
     solar_az = loc_astral.solar_azimuth(sun_dict['sunrise'])
     solar_el = loc_astral.solar_elevation(sun_dict['sunrise'])
-    main_logger.info("Tomorrow Solar Azimuth: [" + str(solar_az) + "], Tomorrow Solar Elevation: [" + str(solar_el) + "]")
+    logger.info("Tomorrow Solar Azimuth: [" + str(solar_az) + "], Tomorrow Solar Elevation: [" + str(solar_el) + "]")
     
     #Move to sunrise position for tomorrow
-    main_logger.info('Moving to sunrise position for tomorrow NOT DEFINED')
+    logger.info('Moving to sunrise position for tomorrow NOT DEFINED')
   #End if else
 
   shutdown()
