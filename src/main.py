@@ -88,7 +88,6 @@ def init_rtc():
 # def init_sys_mon():
 
 
-
 ##########################
 # Helpers
 ##########################
@@ -156,6 +155,12 @@ def main():
   
   #Run setup if needed
   logger.info('Running setup')
+  #Move these to a constants file???
+  CLK  = 18
+  MISO = 23
+  MOSI = 24
+  CS   = 25
+  adc = ADC.MCP3008(clk=CLK, cs=CS, miso=MISO, mosi=MOSI)
   
   #Load stored parameters
   logger.info('Loading stored prarmeters')

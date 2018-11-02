@@ -42,12 +42,7 @@ class encoder:
 
 
   def get_degrees(self):
-    return self.count2deg(self)
+    return (self.a_count)*360/self.ppr
   
   def get_count(self):
     return self.a_count
-    
-  def count2deg(self):
-    # ppr = pulses per rotation (rising edges per rotation)
-    return (self.a_count)*360/self.ppr
-
