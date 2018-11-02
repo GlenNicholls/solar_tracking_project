@@ -43,7 +43,7 @@ setup(
                          # 'https://github.com/adafruit/Adafruit_Python_MCP3008/tarball/master#egg=Adafruit-MCP3008-1.0.2'],
                          ],
     install_requires  = [                         
-                        'Adafruit-GPIO>=0.6.5',
+                         'Adafruit-GPIO>=0.6.5',
                          'Adafruit-MCP3008>=1.0.2',	                     
                          'astral>=1.2',
                          'geocoder>=1.38.1',
