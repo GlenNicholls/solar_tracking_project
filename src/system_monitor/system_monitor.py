@@ -17,7 +17,7 @@ class system_monitor(object):
               globally in the without calling this function for the other readings.
     '''
     def __init__(self, logger='main_logger', wlan_interface='wlan0'):
-        self.logger = logging.getLogger(logger+'.'+__name__)#'sys_mon')
+        self.logger = logging.getLogger(logger+ '.' +__name__)
         self.logger.info('creating an instance of the system monitor')
         self._wlan_interface = wlan_interface.lower()
         self._wlan_out = []
@@ -35,22 +35,19 @@ class system_monitor(object):
     def get_cpu_temp_C(self):
         res = os.popen('vcgencmd measure_temp').readline()
         self._temp_C = float( res.replace("temp=","").replace("'C\n","") )
-        self.logger.debug('Getting CPU Temp in \'C')
-        self.logger.debug('Temperature is: {}\'C'.format(self._temp_C))
+        self.logger.debug('Getting CPU Temp in \'C: {}'.format(self._temp_C))
         return self._temp_C
 
     # get current cpu temp in 'F
     def get_cpu_temp_F(self):
         self._temp_F = self.get_cpu_temp_C() * 9.0/5.0 + 32.0
-        self.logger.debug('Getting CPU Temp in \'F')
-        self.logger.debug('Temperature is: {}\'F'.format(self._temp_F))
+        self.logger.debug('Getting CPU Temp in \'K: {}'.format(self._temp_K))
         return self._temp_F
 
     # get current cpu temp in K... just because
     def get_cpu_temp_K(self):
         self._temp_K = self.get_cpu_temp_C() + 273.15
-        self.logger.debug('Getting CPU Temp in \'K')
-        self.logger.debug('Temperature is: {}\'K'.format(self._temp_K))
+        self.logger.debug('Getting CPU Temp in \'K: {}'.format(self._temp_K))
         return self._temp_K
 
     # get current cpu usage in %
@@ -59,8 +56,7 @@ class system_monitor(object):
         #print('-DBG- CPU Use call from terminal returns: xxx{}xxx'.format(cpu_use))
         #self._cpu_use = float(cpu_use)
         self._cpu_use = psutil.cpu_percent(interval=1)
-        self.logger.debug('Getting CPU usage')
-        self.logger.debug('Temperature is: {}%'.format(self._cpu_use))
+        self.logger.debug('Getting CPU usage: {} %'.format(self._cpu_use))
         return self._cpu_use
 
 
@@ -83,6 +79,7 @@ class system_monitor(object):
     def get_ram_use_perc(self):
         self._ram_use = self.get_ram_info()[1] / self.get_ram_info()[0] * 100  
         self._ram_use = '{:.2f}'.format(self._ram_use)
+        self.logger.debug('Getting RAM Use: {} %'.format(self._ram_use))
         return self._ram_use
 
     # get disk information                     
@@ -102,6 +99,7 @@ class system_monitor(object):
     # get disk usage in %
     def get_disk_use_perc(self):
         self._disk_use = float(self.get_disk_info()[3].strip('%'))
+        self.logger.debug('Getting Disk Use: {} %'.format(self._disk_use))
         return self._disk_use
 
 
@@ -130,9 +128,11 @@ class system_monitor(object):
         for i, line in enumerate(self._wlan_out):
             if line.find('Not-Associated') > -1 or line.find('No such device') > -1:
                 connected =  False
+                self.logger.warning('No Internet Connection!')
                 break
             else:
                 connected =  True
+                self.logger.debug('Internet Connected')
         return connected
 
     # get data rate
@@ -153,9 +153,11 @@ class system_monitor(object):
             if line.find('Link Quality') > -1:
                 tmp = float(re.split('=|/', line)[1]) / float(re.split('=|/', line)[2])
                 link_quality = '{:.2f}'.format(float(tmp) * 100.0 )
+                self.logger.debug('Link Quality: {}'.format(link_quality))
                 break
             else:
                 link_quality = None
+                self.logger.warning('Poor link quality')
         return link_quality
 
     def get_wlan_rx_pwr(self):
@@ -163,9 +165,11 @@ class system_monitor(object):
         for i, line in enumerate(self._wlan_out):
             if line.find('Signal level') > -1:
                 rx_power = line.split('=')[1]
+                self.logger.debug('Rx Power Level: {}'.format(rx_power))
                 break
             else:
                 rx_power = None
+                self.logger.warning('Poor Rx Power Level!')
         return rx_power
 
     # get wifi name
@@ -174,7 +178,9 @@ class system_monitor(object):
         for i, line in enumerate(self._wlan_out):
             if line.find('ESSID') > -1:
                 name = line.split(':')[1]
+                self.logger.debug('ESSID Name: {}'.format(name))
                 break
             else:
                 name = None
+                self.logger.warning('No ESSID Name!')
         return name

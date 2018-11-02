@@ -3,6 +3,7 @@ import datetime
 from datetime import timedelta
 from dateutil import tz 
 import time
+import logging
 import astral
 import smbus
 from enum import Enum, unique
@@ -57,11 +58,15 @@ class DS3231(object):
 
     # change port to 0 if old gen 1 pi, else leave default
     # addr should not change as this is embedded in RTC
-    def __init__(self, i2c_port  = 1,
+    def __init__(self, logger='main_logger',
+                       i2c_port  = 1,
                        i2c_addr  = 0x68,
                        latitude  = 0.00,
                        longitude = 0.00
                        ):
+        # instantiate logger
+        self.logger = logging.getLogger(logger+ '.' +__name__)
+        self.logger.info('creating an instance of the {}'.format(__name__))
         
         # constants
         self._SEC_PER_MIN        = 60
@@ -86,12 +91,6 @@ class DS3231(object):
         # _REG_CTRL
         # todo: can probably remove these masks since we won't need to change
         # them after config is done
-        #self._MASK_oscillator_en_N   = 0x80 # active low
-        #self._MASK_bat_backed_sqw_en = 0x40
-        #self._MASK_conv_temp         = 0x20
-        #self._MASK_interrupt_en      = 0x04
-        #self._MASK_alrm_2_en         = 0x02
-        #self._MASK_alrm_1_en         = 0x01
         self._CONFIG_REG_CTRL        = 0x05
 
         # _REG_STATUS
@@ -101,10 +100,6 @@ class DS3231(object):
         self._MASK_alrm_2_flag  = 0x02
         self._MASK_alrm_1_flag  = 0x01
         self._CONFIG_REG_STATUS = 0x00
-
-        # _REG_ALRM 
-        # todo: add tuple masks for alarm table in datasheet
-        #self._MASK_alrm
 
         # reg map tuples for DS3231
         self._reg_time_addrs = (
@@ -142,7 +137,9 @@ class DS3231(object):
     # n defaults to 2 (BCD digits).
     # n=0 decodes all digits.
     def __bcd_to_int(self, bcd, n=2):
-        return int(('%x' % bcd)[-n:])
+        bcd2int = int(('%x' % bcd)[-n:])
+        self.logger.debug('BCD to Int: {}'.format(bcd2int))
+        return bcd2int
 
 
     # integer to BCD
@@ -152,7 +149,9 @@ class DS3231(object):
     # n defaults to 2 (digits).
     # n=0 encodes all digits.
     def __int_to_bcd(self, x, n=2):
-        return int(str(x)[-n:], 0x10)
+        int2bcd = int(str(x)[-n:], 0x10)
+        self.logger.debug('Int to BCD: {}'.format(int2bcd))
+        return int2bcd
 
     # utc to local time
     def __utc_to_local(self, utc):
@@ -160,8 +159,12 @@ class DS3231(object):
         from_zone = tz.tzutc()
         to_zone = tz.tzlocal()
 
-        central = utc.astimezone(to_zone)
         # convert time zone
+        central = utc.astimezone(to_zone)
+
+        self.logger.debug('Converting UTC to Local time')
+        self.logger.debug('From Zone: {}, To Zone: {}'.format(from_zone,to_zone))
+        self.logger.debug('Central Time: {}'.format(central))
         return central
 
 
@@ -180,11 +183,15 @@ class DS3231(object):
     def __read(self, reg_addr):
         data = self._bus.read_byte_data(self._addr, reg_addr)
         if False:
+            self.logger.error('Invalid I2C Read State!')
             print(
                 "addr = 0x%x reg_addr = 0x%x %i data = 0x%x %i "
                 % (
                     self._addr, reg_addr, reg_addr,
                     data, self.__bcd_to_int(data)))
+        self.logger.debug('I2C read cmd: {}'.format(reg_addr))
+        self.logger.debug('I2C read from addr: {}'.format(self._addr))
+        self.logger.debug('I2C read data: {}'.format(data))
         return data
 
 
@@ -206,9 +213,11 @@ class DS3231(object):
             if hrs == 0x64:
                 hrs = 0x40
             hrs &= 0x3F
-        return tuple(
+        return_data = tuple(
             self.__bcd_to_int(t)
             for t in (yrs, month, date, day, hrs, mins, sec))
+        self.logger.debug('Incoherent read all data regs returns: {}'.format(return_data))
+        return return_data 
 
 
     # Write all
@@ -218,6 +227,7 @@ class DS3231(object):
     #         day [0,7], date [1-31], month [1-12], yrs [0-99].
     def __write_all_time_regs(self, sec=None, mins=None, hrs=None, day=None,
             date=None, month=None, yrs=None, save_as_24h=True):
+        self.logger.debug('Performing write to all RTC time regs')
         
         if sec is not None:
             if not 0 <= sec < self._SEC_PER_MIN:
@@ -262,6 +272,7 @@ class DS3231(object):
     def __set_datetime(self, dt):
         self.__write_all_time_regs(dt.second, dt.minute, dt.hour,
                 dt.isoweekday(), dt.day, dt.month, dt.year % 100)
+        self.logger.debug('Setting RTC with datetime object: {}'.format(dt))
 
 
     # Read All
@@ -274,7 +285,10 @@ class DS3231(object):
             new = self.__incoherent_read_all()
             if old == new:
                 break
+            self.logger.warning('Reading RTC time regs is on second boundry, trying again')
             old = new
+
+        self.logger.warning('Reading RTC time regs is stable, seeing: {}'.format(new))
         return new
 
 
@@ -288,6 +302,8 @@ class DS3231(object):
     # set the alarm
     # has_seconds should be false for alarm 2
     def __set_alrm_regs(self, alrm_type=None, sec=None, mins=None, hrs=None, daydate=None):
+        self.logger.debug('Setting RTC alarm regs')
+
         if not isinstance(alrm_type, AlrmType_t): #alrm_type not in AlrmType_t:
             raise ValueError('Alarm Type is not in enumerate')
 
@@ -313,34 +329,42 @@ class DS3231(object):
                 raise ValueError('Date is out of range [1,31].')
             daydate = self.__int_to_bcd(daydate)
         
-        print('-I- Alarm Type: {}'.format(alrm_type.name))
-        print('-I- Alarm Value: {}'.format(alrm_type.value))
+        self.logger.debug('Alarm Type: {}'.format(alrm_type.name))
+        self.logger.debug('Alarm Value: {}'.format(alrm_type.value))
 
         if (alrm_type.value & 0x01): # A1M1
             seconds |= 0b1<<7  
+            self.logger.debug('Setting mode A1M1')
         if (alrm_type.value & 0x02): # A1M2
             minutes |= 0b1<<7
+            self.logger.debug('Setting mode A1M2')
         if (alrm_type.value & 0x04): # A1M3
             hours |= 0b1<<7
+            self.logger.debug('Setting mode A1M3')
         if (alrm_type.value & 0x10): # DYDT
             daydate |= 0b1<<6
+            self.logger.debug('Setting mode Day Date')
         if (alrm_type.value & 0x08): # A1M4
             daydate |= 0b1<<7
+            self.logger.debug('Setting mode A1M4')
 
         if ~(alrm_type.value & 0x80): # alarm 1
             data = (seconds, minutes, hours, daydate)
             for i, reg in enumerate(self._reg_alrm_1_addrs):
                 self.__write(reg, data[i])
+            self.logger.debug('Setting RTC Alarm 1 for up to seconds match of datetime: {}'.format(data))
         else: # alarm 2
             data = (minutes, hours, daydate)
             for i, reg in enumerate(self._reg_alrm_2_addrs):
                 self.__write(reg, data[i])    
+            self.logger.debug('Setting RTC Alarm 2 for up to minutes match of datetime: {}'.format(data))
 
 
     # Set alarm with datetime object
     def __set_alrm_datetime(self, dt):
         self.__set_alrm_regs(AlrmType_t.ALM1_MATCH_DATE, dt.second, dt.minute,
                             dt.hour, dt.day)
+        self.logger.debug('Setting alarm with datetime object')
 
 
 
@@ -350,6 +374,7 @@ class DS3231(object):
     # Returns byte
     def __get_status(self):
         status_reg = self.__read(self._REG_STATUS)
+        self.logger.debug('Checking RTC status register: {}'.format(status_reg))
         return status_reg    
 
 
@@ -365,7 +390,7 @@ class DS3231(object):
     #        A2IE    = 0 -- disable alarm 2 interrupts
     #        A1IE    = 1 -- enable alarm 1 interrupts
     def configure_rtc(self):
-        print('-I- Configuring Status and Control Registers')
+        self.logger.info('Configuring Status and Control Registers')
         self.__write(self._REG_CTRL, self._CONFIG_REG_CTRL)
         self.__write(self._REG_STATUS, self._CONFIG_REG_STATUS)
 
@@ -373,16 +398,18 @@ class DS3231(object):
         check_stat_reg = self.__read(self._REG_STATUS) & self._MASK_en_32_kHz
 
         if check_ctrl_reg == self._CONFIG_REG_CTRL:
-            print('-I- Configuration of control register successful!')
+            self.logger.info('Configuration of control register successful!')
         else:
-            print('-E- Configuration of control register was NOT successful!')
-        print('-I- Control Reg Value: 0b{:08b}, Expected Value: 0b{:08b}'.format(check_ctrl_reg, self._CONFIG_REG_CTRL))
+            self.logger.error('Configuration of control register was NOT successful!')
+            raise ValueError
+        self.logger.info('Control Reg Value: 0b{:08b}, Expected Value: 0b{:08b}'.format(check_ctrl_reg, self._CONFIG_REG_CTRL))
 
         if check_stat_reg == self._CONFIG_REG_STATUS:
-            print('-I- Configuration of status register successful!')
+            self.logger.info('Configuration of status register successful!')
         else:
-            print('-E- Configuration of status register was NOT successful!')
-        print('-I- Status Reg Value: 0b{:08b}, Expected Value: 0b{:08b}'.format(check_stat_reg, self._CONFIG_REG_STATUS))
+            self.logger.error('Configuration of status register was NOT successful!')
+            raise ValueError
+        self.logger.info('Status Reg Value: 0b{:08b}, Expected Value: 0b{:08b}'.format(check_stat_reg, self._CONFIG_REG_STATUS))
 
 
     # Read string
@@ -399,6 +426,7 @@ class DS3231(object):
     # Return the datetime.datetime object.
     def get_datetime(self, century=21, tzinfo=None):
         time_str = self.get_datetime_str()
+        self.logger.debug('RTC datetime as string: {}'.format(time_str))
         return datetime.datetime.strptime(time_str, "%y-%m-%d %H:%M:%S")
 
 
@@ -407,23 +435,33 @@ class DS3231(object):
     def get_datetime_delta(self):
         rtc_datetime = self.get_datetime()
         local_now = datetime.datetime.now()
-        return local_now - rtc_datetime
+        delta = local_now - rtc_datetime
+        self.logger.debug('RTC datetime: {}'.format(rtc_datetime))
+        self.logger.debug('Local Time: {}'.format(local_now))
+        self.logger.debug('RTC and Local time delta: {}'.format(delta))
+        return delta
 
 
     # write datetime.now
     # Write from a datetime.datetime object.
     def set_datetime_now(self):
-        self.__set_datetime(datetime.datetime.now())
+        dt = datetime.datetime.now()
+        self.__set_datetime(datetime.datetime.now(dt))
+        self.logger.debug('Setting RTC time to datetime.now(): {}'.format())
 
 
     # Set alarm
     # sets an alarm for now + the specified number of days, hours, minutes, and seconds
     def set_alarm_now_delta(self, days=0, hours=0, minutes=0, seconds=0):
         if days == hours == minutes == seconds == 0:
+            self.logger.error('Not entering delta may cause RTC to become unstable!')
             raise ValueError('Due to time passing, not entering any timedelta might cause RTC to become unstable')
-
-        time = datetime.datetime.now() + timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
+        now   = datetime.datetime.now()
+        delta = timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
+        time  = now + delta 
         self.__set_alrm_datetime(time)
+        self.logger.info('Setting RTC alarm with delta: {}'.format(delta))
+        self.logger.info('RTC alarm is set for: {}'.format(time))
 
 
     # set alarm sunrise
@@ -435,6 +473,10 @@ class DS3231(object):
         time_utc = astral.Astral.sunrise_utc(next_day_date, self._latitude, self._longitude)
         time_local = self.__utc_to_local(time_utc)
         self.__set_alrm_datetime(time_local)
+        self.logger.debug('1 day from now is: {}'.format(next_day))
+        self.logger.debug('Date for tomorrow is: {}'.format(next_day_date))
+        self.logger.debug('UTC time call is: {}, local conversion: {}'.format(time_utc, time_local))
+        self.logger.info('Setting sunrise alarm for: {}'.format(time_local))
 
 
     # todo: add function for checking when sunset is
@@ -443,18 +485,28 @@ class DS3231(object):
     # Get Power Lost
     # Returns boolean
     def get_power_lost(self):
-        return bool(self.__get_status() & self._MASK_power_lost)
+        self.debug('Checking to see if power was lost')
+        power_lost = bool(self.__get_status() & self._MASK_power_lost)
+        if power_lost:
+            self.logger.warning('Power was lost, check the battery and power supply')
+        return power_lost 
 
 
     # Get alarm 1 flag
     # Returns boolean
     def get_alarm_1_flag(self):
-        return bool(self.__get_status() & self._MASK_alrm_1_flag)
+        alrm_set = bool(self.__get_status() & self._MASK_alrm_1_flag)
+        if alrm_set:
+            self.debug('RTC Alarm 1 is set')
+        else:
+            self.debug('RTC Alarm 1 is NOT set')
+        return alrm_set
 
 
     # Clear alarm 1 flag
     # clears alarm 1 flag without modifying anything in register
     def clear_alarm_1_flag(self):
+        self.debug('Clearing RTC alarm 1 flag')
         current_status = self.__get_status() & 0xFE
         self.__write(self._REG_STATUS, current_status)
 
@@ -462,12 +514,18 @@ class DS3231(object):
     # Get alarm 2 flag
     # Returns boolean
     def get_alarm_2_flag(self):
-        return bool(self.__get_status() & self._MASK_alrm_2_flag)
+        alrm_set = bool(self.__get_status() & self._MASK_alrm_2_flag)
+        if alrm_set:
+            self.debug('RTC Alarm 2 is set')
+        else:
+            self.debug('RTC Alarm 2 is NOT set')
+        return alrm_set
 
 
     # Clear alarm 2 flag
     # clears alarm 2 flag without modifying anything in register
     def clear_alarm_2_flag():
+        self.debug('Clearing RTC alarm 2 flag')
         current_status = self.__get_status() & 0xFD
         self.__write(self._REG_STATUS, current_status)
 
@@ -476,6 +534,7 @@ class DS3231(object):
     # return boolean
     # asserts true if either alarm was set
     def check_and_clear_alarms(self):
+        self.debug('Checking both RTC alarm flags')
         is_alarm = False
         if self.get_alarm_1_flag():
             is_alarm = True
@@ -489,7 +548,12 @@ class DS3231(object):
     # Get temperature conversion busy state
     # Returns boolean
     def get_temp_conversion_busy():
-        return bool(self.__get_status() & self._MASK_busy)
+        conv_busy = bool(self.__get_status() & self._MASK_busy)
+        if conv_busy:
+            self.debug('RTC Temperature is busy')
+        else:
+            self.debug('RTC Temperature is NOT busy')
+        return conv_busy
 
 
     # Get temp of DS3231
@@ -498,8 +562,10 @@ class DS3231(object):
     def get_temp(self):
         byte_tmsb = self._bus.read_byte_data(self._addr, self._REG_TMP_MSB)
         byte_tlsb = bin(self._bus.read_byte_data(self._addr, self._REG_TMP_LSB))[2:].zfill(8)
-        return byte_tmsb + int(byte_tlsb[0]) * 2**(-1) + \
-               int(byte_tlsb[1]) * 2**(-2)
+        temp_C = byte_tmsb + int(byte_tlsb[0]) * 2**(-1) + int(byte_tlsb[1]) * 2**(-2)
+        self.logger.debug('Temp MSB: {}, Temp LSB: {}'.format(byte_tmsb, byte_tlsb))
+        self.logger.debug('RTC Temperature: {} \'C'.format(temp_C))
+        return temp_C 
 
 
 
