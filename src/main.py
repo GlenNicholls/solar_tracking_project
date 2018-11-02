@@ -10,7 +10,8 @@ import os
 from DS3231         import DS3231
 from motor_control  import stepper_motor
 from shaft_encoder  import encoder
-from system_monitor import system_monitor 
+from system_monitor import system_monitor
+import Adafruit_MCP3008 as ADC
 
 #NOTE: indentation is 2 spaces
   
@@ -88,7 +89,6 @@ def init_rtc():
 # def init_sys_mon():
 
 
-
 ##########################
 # Helpers
 ##########################
@@ -156,6 +156,12 @@ def main():
   
   #Run setup if needed
   logger.info('Running setup')
+  #Move these to a constants file???
+  CLK  = 18
+  MISO = 23
+  MOSI = 24
+  CS   = 25
+  adc = ADC.MCP3008(clk=CLK, cs=CS, miso=MISO, mosi=MOSI)
   
   #Load stored parameters
   logger.info('Loading stored prarmeters')
@@ -164,8 +170,8 @@ def main():
   long = -97.8
   elev = 6000
   
-  prev_solar_az = 290.0
-  prev_solar_el = -55.0
+  prev_solar_az = 123.0
+  prev_solar_el = 16.0
   
   #Load user specifice parameters
   logger.warn('Loading user specified parameters NOT DEFINED')
@@ -184,6 +190,11 @@ def main():
   
   #Get current position from shart encoders
   logger.warn('Get current position from shaft encoders NOT DEFINED')
+  encoder_az = encoder(5,11,2000)
+  #a is 29 on PI
+  #b is 23 on PI
+  init_encoder_az = encoder_az.get_degrees()
+  logger.info('Shaft encoder initial: [{}]'.format(init_encoder_az))
   
   #Get current position from motors
   logger.warn('Get current position from motors NOT DEFINED')
@@ -195,7 +206,7 @@ def main():
     daytime = False
     print("Nighttime")
     
-  if not daytime: #this will be the if check from above, implemented this way for development
+  if daytime: #this will be the if check from above, implemented this way for development
     #Get solar position
     solar_az = loc_astral.solar_azimuth(datetime.now())
     solar_el = loc_astral.solar_elevation(datetime.now())
@@ -222,6 +233,12 @@ def main():
       dir = 1
     #motor.move_motor(stepper_motor.EL, dir, deg_el)
     motor.move_motor(13, dir, deg_el)
+
+    final_encoder_az = encoder_az.get_degrees()
+    logger.info('Shaft encoder final: [{}]'.format(final_encoder_az))
+
+    degrees_move_encoder = final_encoder_az - init_encoder_az
+    logger.info('Shaft encoder degrees moved: [{}]'.format(degrees_move_encoder))
     
     #Read light sensor
     logger.info('Reading light sensor')

@@ -26,14 +26,14 @@ class encoder:
     GPIO.setup(self.B_pin, GPIO.IN)
 
     # Set up rising edge detectors for each pin
-    GPIO.add_event_detect(A_pin, GPIO.RISING, callback=self.A_pin_ISR)
+    GPIO.add_event_detect(self.A_pin, GPIO.RISING, callback=self.A_pin_ISR)
 		
   # A channel ISR
   def A_pin_ISR(self):
     # Check if channel A is leading channel B (A=1,B=0)
     # If channel A leads, rotation is CCW
     # Increment/Decrement position counter based on direction
-    if GPIO.input(B_pin):
+    if GPIO.input(self.B_pin):
       #CCW
       self.a_count += 1
     else:
@@ -42,12 +42,7 @@ class encoder:
 
 
   def get_degrees(self):
-    return self.count2deg(self)
+    return (self.a_count)*360/self.ppr
   
   def get_count(self):
     return self.a_count
-    
-  def count2deg(self):
-    # ppr = pulses per rotation (rising edges per rotation)
-    return (self.a_count)*360/self.ppr
-
