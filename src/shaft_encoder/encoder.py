@@ -8,14 +8,14 @@ class encoder:
 		self.A_pin=a_pin
 		self.B_pin=b_pin
 
-                # Define pulses per revolution (2000 for chosen encoders)
-                self.ppr = ppr
+    # Define pulses per revolution (2000 for chosen encoders)
+    self.ppr = ppr
     
 		# Define global count variables
 		self.a_count = 0
     
-                # Configure interrupts
-                self.CFG_Encoder_Int()
+    # Configure interrupts
+    self.CFG_Encoder_Int()
 
   def CFG_Encoder_Int(self):
     #set up gpio module
