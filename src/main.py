@@ -15,7 +15,6 @@ from shaft_encoder import encoder
   
 # TODO: Need to set up pi to add this routine to startup -GN
 # TODO: Need to find way to save state for periodically shutting down -GN
-# TODO: Pass logger class or however you do it to sub-packages
 
 #Global area
 main_logger = logging.getLogger('main_logger')
