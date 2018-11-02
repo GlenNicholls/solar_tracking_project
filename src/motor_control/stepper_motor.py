@@ -20,7 +20,7 @@ SPEED = 0.005 #Time delay to control the speed
 
 class stepper_motor:
 
-  def __init__(self) 
+  def __init__(self): 
     MOT.setwarnings(False)
     MOT.setmode(MOT.BCM)
     lines = [DIR, EL, CLK, AZ, RST]
@@ -29,10 +29,10 @@ class stepper_motor:
   #End __init__
   
   #TODO: Pass parameters using enum
-  def move_motor(axis, dir, deg)
-    if axis = AZ:
+  def move_motor(axis, dir, deg):
+    if axis == AZ:
       steps = deg*DEGAZ
-    elif axis = EL:
+    elif axis == EL:
       steps = deg*DEGEL
     else:
       return
@@ -45,7 +45,7 @@ class stepper_motor:
     MOT.output(RST,1)  #ends reset
     MOT.output(axis,ENABLE)
       
-    for step in range(0, steps)
+    for step in range(0, steps):
       MOT.output(CLK, DISABLE) #pulse the clock pin
       time.sleep(SPEED)
       MOT.output(CLK, ENABLE)
