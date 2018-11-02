@@ -164,6 +164,9 @@ def main():
   long = -97.8
   elev = 6000
   
+  prev_solar_az = 290.0
+  prev_solar_el = -55.0
+  
   #Load user specifice parameters
   logger.warn('Loading user specified parameters NOT DEFINED')
   
@@ -199,7 +202,26 @@ def main():
     logger.info('Next Solar Azimuth: [{}], Next Solar Elevation: [{}]'.format(solar_az, solar_el))
     
     #Move to calculated sun posistion
-    logger.info('Moving to next position NOT DEFINED')
+    motor = stepper_motor()
+    deg_az = int(round(solar_az - prev_solar_az))
+    if deg_az < 0:
+      #dir = stepper_motor.EAST
+      dir = 0
+    else:
+      #dir = stepper_motor.WEST
+      dir = 1
+    #motor.move_motor(stepper_motor.AZ, dir, deg_az)
+    motor.move_motor(19, dir, deg_az)
+    
+    deg_el = int(round(solar_el - prev_solar_el))
+    if deg_el < 0:
+      #dir = stepper_motor.SOUTH
+      dir = 0
+    else:
+      #dir = stepper_motor.NORTH
+      dir = 1
+    #motor.move_motor(stepper_motor.EL, dir, deg_el)
+    motor.move_motor(13, dir, deg_el)
     
     #Read light sensor
     logger.info('Reading light sensor')

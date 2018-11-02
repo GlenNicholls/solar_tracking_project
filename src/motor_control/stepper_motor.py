@@ -29,7 +29,7 @@ class stepper_motor:
   #End __init__
   
   #TODO: Pass parameters using enum
-  def move_motor(axis, dir, deg):
+  def move_motor(self, axis, dir, deg):
     if axis == AZ:
       steps = deg*DEGAZ
     elif axis == EL:
@@ -46,7 +46,7 @@ class stepper_motor:
     MOT.output(axis,ENABLE)
       
     for step in range(0, steps):
-      MOT.output(CLK, DISABLE) #pulse the clock pin
+      MOT.output(CLK, DISABLE)  #pulse the clock pin
       time.sleep(SPEED)
       MOT.output(CLK, ENABLE)
       time.sleep(SPEED)
