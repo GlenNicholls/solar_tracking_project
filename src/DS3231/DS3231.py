@@ -65,7 +65,7 @@ class DS3231(object):
                        longitude = 0.00
                        ):
         # instantiate logger
-        self.logger = logging.getLogger(logger+ '.' +__name__)
+        self.logger = logging.getLogger(logger+ '.' + __name__)
         self.logger.info('creating an instance of the {}'.format(__name__))
         
         # constants

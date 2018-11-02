@@ -17,8 +17,8 @@ class system_monitor(object):
               globally in the without calling this function for the other readings.
     '''
     def __init__(self, logger='main_logger', wlan_interface='wlan0'):
-        self.logger = logging.getLogger(logger+ '.' +__name__)
-        self.logger.info('creating an instance of the system monitor')
+        self.logger = logging.getLogger(logger+ '.' + __name__)
+        self.logger.info('creating an instance of the {}'.format(__name__))
         self._wlan_interface = wlan_interface.lower()
         self._wlan_out = []
         self._temp_C   = 0.0
