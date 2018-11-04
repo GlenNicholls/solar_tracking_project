@@ -19,4 +19,5 @@
 	*solartrack1.cpb: Fixed level shifter direction issue
 			Changed diode package size back to 1206
 			Updated silkscreen to reflect schematic
+			Added better usb connector (thru hole)
 			
