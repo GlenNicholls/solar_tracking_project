@@ -8,7 +8,9 @@ from test_utils import testUtils
 
 # init logger
 logger_name = 'main_logger'
-testUtils(logger_name)
+logger = logging.getLogger(logger_name)
+logger.setLevel(logging.INFO)
+#testUtils(logger_name)
 
 # init ADC
 CLK        = 21 # BCM pin numbering
@@ -61,5 +63,89 @@ battery_power = ( main_logger          = logger_name
                   vdiv_R1              = vdiv_battery_R1,
                   vdiv_R2              = vdiv_battery_R2
                  )
+
+
 logger.info('Monitoring power measurements')
 
+
+''' Helpers
+'''
+current_thresh = 0.01
+voltage_thresh = 0.1
+power_thresh  = current_thresh * voltage_thresh
+
+
+def get_current(panel=False, battery=False):
+    if not panel and not battery:
+        raise ValueError('Must select power meas for battery or panel')
+
+    if panel:
+        return panel_power.get_current_A()
+    elif battery:
+        return battery_power.get_current_A()
+
+
+def get_voltage(panel=False, battery=False):
+    if not panel and not battery:
+        raise ValueError('Must select power meas for battery or panel')
+
+    if panel:
+        return panel_power.get_voltage_V()
+    elif battery:
+        return battery_power.get_voltage_V()
+
+def get_power(panel=False, battery=False):
+    if not panel and not battery:
+        raise ValueError('Must select power meas for battery or panel')
+
+    if panel:
+        A = panel_power.get_power_W()
+    elif battery:
+        A = battery_power.get_power_W()
+    logger.INFO('Current: {}'.format(A))
+
+
+
+''' Test Routine
+'''
+def test_panel_current (num_checks = 20):
+    for check in range(num_checks):
+        A = get_current(panel=True)
+        assert A < current_thresh # if reading larger than 10mA, no bueno
+    
+        time.sleep(0.25)
+
+def test_panel_voltage (num_checks = 20):
+    for check in range(num_checks):
+        V = get_voltage(panel=True)
+        assert V < voltage_thresh # if reading larger than 100mV, no bueno
+    
+        time.sleep(0.25)
+        
+def test_panel_power (num_checks = 20):
+    for check in range(num_checks):
+        W = get_power(panel=True)
+        assert W < power_thresh # if reading larger than 1mW, no bueno
+    
+        time.sleep(0.25)
+
+def test_battery_current (num_checks = 20):
+    for check in range(num_checks):
+        A = get_current(battery=True)
+        assert A < current_thresh # if reading larger than 10mA, no bueno
+    
+        time.sleep(0.25)
+
+def test_battery_voltage (num_checks = 20):
+    for check in range(num_checks):
+        V = get_voltage(battery=True)
+        assert V < voltage_thresh # if reading larger than 100mV, no bueno
+    
+        time.sleep(0.25)
+        
+def test_battery_power (num_checks = 20):
+    for check in range(num_checks):
+        W = get_power(battery=True)
+        assert W < power_thresh # if reading larger than 1mW, no bueno
+    
+        time.sleep(0.25)
