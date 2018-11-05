@@ -157,7 +157,7 @@ def main():
   #Run setup if needed
   logger.info('Running setup')
   #Move these to a constants file???
-  CLK  = 18
+  CLK  = 18 # TODO: these will not work on the PCB, ensure these are defined with pins from src/power_measurement/test/test_mcp3008.py
   MISO = 23
   MOSI = 24
   CS   = 25
