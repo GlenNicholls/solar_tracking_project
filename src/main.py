@@ -19,7 +19,7 @@ import Adafruit_MCP3008 as ADC
 # TODO: Need to find way to save state for periodically shutting down -GN
 
 # pin definitions here
-#
+# TODO: Note that the Adafruit_MCP3008 adc package requires BCM pin numbering
 #
 #
 i2c_port  = 1 # set to 0 if using gen 1 pi
@@ -157,7 +157,7 @@ def main():
   #Run setup if needed
   logger.info('Running setup')
   #Move these to a constants file???
-  CLK  = 18
+  CLK  = 18 # TODO: these will not work on the PCB, ensure these are defined with pins from src/power_measurement/test/test_mcp3008.py
   MISO = 23
   MOSI = 24
   CS   = 25
