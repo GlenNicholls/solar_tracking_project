@@ -497,16 +497,16 @@ class DS3231(object):
     def get_alarm_1_flag(self):
         alrm_set = bool(self.__get_status() & self._MASK_alrm_1_flag)
         if alrm_set:
-            self.debug('RTC Alarm 1 is set')
+            self.logger.debug('RTC Alarm 1 is set')
         else:
-            self.debug('RTC Alarm 1 is NOT set')
+            self.logger.debug('RTC Alarm 1 is NOT set')
         return alrm_set
 
 
     # Clear alarm 1 flag
     # clears alarm 1 flag without modifying anything in register
     def clear_alarm_1_flag(self):
-        self.debug('Clearing RTC alarm 1 flag')
+        self.logger.debug('Clearing RTC alarm 1 flag')
         current_status = self.__get_status() & 0xFE
         self.__write(self._REG_STATUS, current_status)
 
@@ -516,16 +516,16 @@ class DS3231(object):
     def get_alarm_2_flag(self):
         alrm_set = bool(self.__get_status() & self._MASK_alrm_2_flag)
         if alrm_set:
-            self.debug('RTC Alarm 2 is set')
+            self.logger.debug('RTC Alarm 2 is set')
         else:
-            self.debug('RTC Alarm 2 is NOT set')
+            self.logger.debug('RTC Alarm 2 is NOT set')
         return alrm_set
 
 
     # Clear alarm 2 flag
     # clears alarm 2 flag without modifying anything in register
     def clear_alarm_2_flag():
-        self.debug('Clearing RTC alarm 2 flag')
+        self.logger.debug('Clearing RTC alarm 2 flag')
         current_status = self.__get_status() & 0xFD
         self.__write(self._REG_STATUS, current_status)
 
@@ -534,7 +534,7 @@ class DS3231(object):
     # return boolean
     # asserts true if either alarm was set
     def check_and_clear_alarms(self):
-        self.debug('Checking both RTC alarm flags')
+        self.logger.debug('Checking both RTC alarm flags')
         is_alarm = False
         if self.get_alarm_1_flag():
             is_alarm = True
@@ -550,9 +550,9 @@ class DS3231(object):
     def get_temp_conversion_busy():
         conv_busy = bool(self.__get_status() & self._MASK_busy)
         if conv_busy:
-            self.debug('RTC Temperature is busy')
+            self.logger.debug('RTC Temperature is busy')
         else:
-            self.debug('RTC Temperature is NOT busy')
+            self.logger.debug('RTC Temperature is NOT busy')
         return conv_busy
 
 
