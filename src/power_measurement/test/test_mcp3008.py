@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import sys
 import time
 import logging
@@ -22,10 +20,10 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 # init ADC
-CLK        = 40
-MISO       = 35
-MOSI       = 38
-CS         = 19 
+CLK        = 21 # BCM pin numbering
+MISO       = 19 # BCM pin numbering
+MOSI       = 20 # BCM pin numbering
+CS         = 10 # BCM pin numbering
 NUM_ADC_CH = 8
 adc = MCP3008(clk=CLK, cs=CS, miso=MISO, mosi=MOSI)
 
