@@ -79,30 +79,38 @@ def get_current(panel=False, battery=False):
     if not panel and not battery:
         raise ValueError('Must select power meas for battery or panel')
 
+    A = None
     if panel:
-        return panel_power.get_current_A()
+        A = panel_power.get_current_A()
     elif battery:
-        return battery_power.get_current_A()
+        A =  battery_power.get_current_A()
+    logger.INFO('Current: {} A'.format(A))
+    return A
 
 
 def get_voltage(panel=False, battery=False):
     if not panel and not battery:
         raise ValueError('Must select power meas for battery or panel')
 
+    V = None
     if panel:
-        return panel_power.get_voltage_V()
+        V = panel_power.get_voltage_V()
     elif battery:
-        return battery_power.get_voltage_V()
+        V = battery_power.get_voltage_V()
+    logger.INFO('Voltage: {} V'.format(V))
+    return V
 
 def get_power(panel=False, battery=False):
     if not panel and not battery:
         raise ValueError('Must select power meas for battery or panel')
 
+    W = None
     if panel:
-        A = panel_power.get_power_W()
+        W = panel_power.get_power_W()
     elif battery:
-        A = battery_power.get_power_W()
-    logger.INFO('Current: {}'.format(A))
+        W = battery_power.get_power_W()
+    logger.INFO('Power: {} W'.format(W))
+    return W
 
 
 
