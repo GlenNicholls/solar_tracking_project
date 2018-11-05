@@ -19,7 +19,7 @@ CFLAGS = -Wall -Os -std=gnu99 -mmcu=$(MCU) -I.
 
 AVRDUDE_DBG         = -v
 AVRDUDE_CONF        = ../../../avrdude_gpio.conf
-AVRDUDE_PROGRAMMER  = pi_1
+AVRDUDE_PROGRAMMER  = pi_hat
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 AVRDUDE_ICSP_DLY_us = -i128
 AVRDUDE_FLAGS       = -p $(MCU) -c $(AVRDUDE_PROGRAMMER) -C $(AVRDUDE_CONF) $(AVRDUDE_ICSP_DLY_us) $(AVRDUDE_DBG)
