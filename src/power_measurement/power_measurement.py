@@ -11,7 +11,7 @@ class power_measurement(object):
                        adc_num_bits         = 10,
                        adc_current_channel  = 0,
                        adc_voltage_channel  = 0,
-                       adc_object           = None
+                       adc_object           = None,
                        current_amp_gain     = None,
                        current_amp_Rshunt   = None,
                        vdiv_R1              = None,
