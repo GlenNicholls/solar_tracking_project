@@ -2,6 +2,7 @@
 
 import sys
 import time
+import logging
 import datetime
 import DS3231
 import system_monitor
