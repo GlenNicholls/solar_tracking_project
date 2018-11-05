@@ -19,7 +19,7 @@ import Adafruit_MCP3008 as ADC
 # TODO: Need to find way to save state for periodically shutting down -GN
 
 # pin definitions here
-#
+# TODO: Note that the Adafruit_MCP3008 adc package requires BCM pin numbering
 #
 #
 i2c_port  = 1 # set to 0 if using gen 1 pi
