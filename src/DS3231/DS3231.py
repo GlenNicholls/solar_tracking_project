@@ -65,7 +65,7 @@ class DS3231(object):
                        longitude = 0.00
                        ):
         # instantiate logger
-        self.logger = logging.getLogger(logger+ '.' + __name__)
+        self.logger = logging.getLogger(logger) #+ '.' + __name__)
         self.logger.info('creating an instance of the {}'.format(__name__))
         
         # constants
@@ -288,7 +288,7 @@ class DS3231(object):
             self.logger.warning('Reading RTC time regs is on second boundry, trying again')
             old = new
 
-        self.logger.warning('Reading RTC time regs is stable, seeing: {}'.format(new))
+        self.logger.debug('RTC time regs are stable, time regs are: {}'.format(new))
         return new
 
 
@@ -485,7 +485,7 @@ class DS3231(object):
     # Get Power Lost
     # Returns boolean
     def get_power_lost(self):
-        self.debug('Checking to see if power was lost')
+        self.logger.debug('Checking to see if power was lost')
         power_lost = bool(self.__get_status() & self._MASK_power_lost)
         if power_lost:
             self.logger.warning('Power was lost, check the battery and power supply')
