@@ -65,7 +65,7 @@ class DS3231(object):
                        longitude = 0.00
                        ):
         # instantiate logger
-        self.logger = logging.getLogger(logger) #+ '.' + __name__)
+        self.logger = logging.getLogger(logger+ '.' + __name__)
         self.logger.info('creating an instance of the {}'.format(__name__))
         
         # constants
@@ -446,8 +446,8 @@ class DS3231(object):
     # Write from a datetime.datetime object.
     def set_datetime_now(self):
         dt = datetime.datetime.now()
-        self.__set_datetime(datetime.datetime.now(dt))
-        self.logger.debug('Setting RTC time to datetime.now(): {}'.format())
+        self.__set_datetime(dt)
+        self.logger.debug('Setting RTC time to datetime.now(): {}'.format(dt))
 
 
     # Set alarm
