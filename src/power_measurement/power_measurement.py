@@ -75,7 +75,7 @@ class power_measurement(object):
 
     def __meas_adc_voltage(self, adc_ch):
         read_raw = self.__read_adc_raw(adc_ch)
-        V = read_raw / self._adc_res
+        V = read_raw / self._adc_res * self._v_ref
         self.logger.debug('ADC voltage conversion Vmeas: {} [V]'.format(V))
         return V
 
