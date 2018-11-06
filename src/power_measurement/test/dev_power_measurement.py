@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from test_mcp3008 import *
-from test_current_measurement import *
+from test_power_measurement import *
 import time
 
 # adc test

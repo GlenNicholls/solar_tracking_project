@@ -2,7 +2,7 @@ import sys
 import time
 import logging
 import datetime
-import power_measurement import power_measurement
+from power_measurement import power_measurement
 from Adafruit_MCP3008 import MCP3008
 from test_utils import testUtils
 
@@ -10,7 +10,15 @@ from test_utils import testUtils
 logger_name = 'main_logger'
 logger = logging.getLogger(logger_name)
 logger.setLevel(logging.INFO)
-#testUtils(logger_name)
+# create console handler to log to the terminal
+ch = logging.StreamHandler()
+# set logging level to debug, will switch to info for final version
+ch.setLevel(logging.DEBUG)
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+# add the handlers to logger
+logger.addHandler(ch)
 
 # init ADC
 CLK        = 21 # BCM pin numbering
@@ -38,31 +46,31 @@ curr_sensor_battery_Rshunt = 0.001
 vdiv_battery_R1            = 1000
 vdiv_battery_R2            = 360
 
-panel_power = ( main_logger          = logger_name
-                logger_module_name   = 'panel_power',
-                adc_volt_ref         = adc_vref,
-                adc_num_bits         = adc_num_bits,
-                adc_current_channel  = adc_panel_curr_ch,
-                adc_voltage_channel  = adc_panel_volt_ch,
-                adc_object           = adc,
-                current_amp_gain     = curr_sensor_panel_G,
-                current_amp_Rshunt   = curr_sensor_panel_Rshunt,
-                vdiv_R1              = vdiv_panel_R1,
-                vdiv_R2              = vdiv_panel_R2
-               )
+panel_power = power_measurement( main_logger          = logger_name,
+                                 logger_module_name   = 'panel_power',
+                                 adc_volt_ref         = adc_vref,
+                                 adc_num_bits         = adc_num_bits,
+                                 adc_current_channel  = adc_panel_curr_ch,
+                                 adc_voltage_channel  = adc_panel_volt_ch,
+                                 adc_object           = adc,
+                                 current_amp_gain     = curr_sensor_panel_G,
+                                 current_amp_Rshunt   = curr_sensor_panel_Rshunt,
+                                 vdiv_R1              = vdiv_panel_R1,
+                                 vdiv_R2              = vdiv_panel_R2
+                                )
 
-battery_power = ( main_logger          = logger_name
-                  logger_module_name   = 'battery_power',
-                  adc_volt_ref         = adc_vref,
-                  adc_num_bits         = adc_num_bits,
-                  adc_current_channel  = adc_battery_curr_ch,
-                  adc_voltage_channel  = adc_battery_volt_ch,
-                  adc_object           = adc,
-                  current_amp_gain     = curr_sensor_battery_G,
-                  current_amp_Rshunt   = curr_sensor_battery_Rshunt,
-                  vdiv_R1              = vdiv_battery_R1,
-                  vdiv_R2              = vdiv_battery_R2
-                 )
+battery_power = power_measurement( main_logger          = logger_name,
+                                   logger_module_name   = 'battery_power',
+                                   adc_volt_ref         = adc_vref,
+                                   adc_num_bits         = adc_num_bits,
+                                   adc_current_channel  = adc_battery_curr_ch,
+                                   adc_voltage_channel  = adc_battery_volt_ch,
+                                   adc_object           = adc,
+                                   current_amp_gain     = curr_sensor_battery_G,
+                                   current_amp_Rshunt   = curr_sensor_battery_Rshunt,
+                                   vdiv_R1              = vdiv_battery_R1,
+                                   vdiv_R2              = vdiv_battery_R2
+                                  )
 
 
 logger.info('Monitoring power measurements')
@@ -71,7 +79,7 @@ logger.info('Monitoring power measurements')
 ''' Helpers
 '''
 current_thresh = 0.01
-voltage_thresh = 0.1
+voltage_thresh = 0.15
 power_thresh  = current_thresh * voltage_thresh
 
 
@@ -84,7 +92,7 @@ def get_current(panel=False, battery=False):
         A = panel_power.get_current_A()
     elif battery:
         A =  battery_power.get_current_A()
-    logger.INFO('Current: {} A'.format(A))
+    logger.info('Current: {} A'.format(A))
     return A
 
 
@@ -97,7 +105,7 @@ def get_voltage(panel=False, battery=False):
         V = panel_power.get_voltage_V()
     elif battery:
         V = battery_power.get_voltage_V()
-    logger.INFO('Voltage: {} V'.format(V))
+    logger.info('Voltage: {} V'.format(V))
     return V
 
 def get_power(panel=False, battery=False):
@@ -109,7 +117,7 @@ def get_power(panel=False, battery=False):
         W = panel_power.get_power_W()
     elif battery:
         W = battery_power.get_power_W()
-    logger.INFO('Power: {} W'.format(W))
+    logger.info('Power: {} W'.format(W))
     return W
 
 

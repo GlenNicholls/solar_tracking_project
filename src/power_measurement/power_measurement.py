@@ -1,6 +1,8 @@
 from __future__ import division
+from types import *
 import time
 import logging
+import Adafruit_MCP3008
 
 
 class power_measurement(object):
@@ -19,7 +21,7 @@ class power_measurement(object):
                  ):
 
         # instantiate logger
-        self.logger = logging.getLogger(logger+ '.' + logger_module_name)
+        self.logger = logging.getLogger(main_logger + '.' + logger_module_name)
         self.logger.info('creating an instance of the {}'.format(logger_module_name))
 
         # capture internal config
@@ -32,13 +34,13 @@ class power_measurement(object):
         self._volt_ch = adc_voltage_channel
         self._adc    = adc_object
 
-        if len(tuple(self._curr_ch, self._volt_ch)) > len(set(tuple(self._curr_ch, self._volt_ch))): # appending tuples to check for uniqueness
+        if len((self._curr_ch, self._volt_ch)) > len(set((self._curr_ch, self._volt_ch))): # appending tuples to check for uniqueness
             raise ValueError('ADC channels are not unique!')
-        if type(self._curr_ch != int) or self._curr_ch < 0 or self._curr_ch > 7:
+        if type(self._curr_ch) != int or self._curr_ch < 0 or self._curr_ch > 7:
             raise ValueError('Invalid ADC channel, must be int 0-7!')
         else:
             self.logger.debug('ADC current amplifier channel entered: {}'.format(self._curr_ch))
-        if type(adc_object) != object:
+        if adc_object == None: # not sure how to check for class
             raise ValueError('No ADC object passed by reference!')
 
         # current amplifier attributes
@@ -98,7 +100,7 @@ class power_measurement(object):
     def get_power_W(self):
         V = self.get_voltage_V()
         A = self.get_current_A()
-        W = V * i
+        W = V * A
         self.logger.debug('Measured power: {} [W]'.format(W))
         return W
 
