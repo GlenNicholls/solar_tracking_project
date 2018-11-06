@@ -23,7 +23,7 @@ class stepper_motor:
   def __init__(self): 
     MOT.setwarnings(False)
     MOT.setmode(MOT.BCM)
-    lines = [DIR, EL, CLK, AZ, RST]
+    lines = [DIR, EL, CLK, AZ, RST] # TODO: Make this part of class init
     for pin in lines:  #sets pins 12,13,16,19,26 as outputs
         MOT.setup(pin,MOT.OUT)
   #End __init__

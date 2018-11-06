@@ -47,11 +47,11 @@ class power_measurement(object):
         self._curr_G      = current_amp_gain
         self._curr_Rshunt = current_amp_Rshunt
 
-        if type(self._curr_G) == None:
-            raise ValueError('Invalid current amplifier gain, must be real!')
+        if self._curr_G == None:
+            raise ValueError('Invalid current amplifier gain, must be real value!')
         else:
             self.logger.debug('Current amplifier gain: {}'.format(self._curr_G))
-        if type(self._curr_Rshunt) == None:
+        if self._curr_Rshunt == None:
             raise ValueError('Invalid current amplifier Rshunt, must be real value in [ohms]!')
         else:
             self.logger.debug('Current amplifier Rshunt: {}'.format(self._curr_Rshunt))

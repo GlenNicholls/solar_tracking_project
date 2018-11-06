@@ -27,7 +27,7 @@ class encoder:
 
     # Set up rising edge detectors for each pin
     GPIO.add_event_detect(self.A_pin, GPIO.RISING, callback=self.A_pin_ISR)
-		
+
   # A channel ISR
   def A_pin_ISR(self):
     # Check if channel A is leading channel B (A=1,B=0)
