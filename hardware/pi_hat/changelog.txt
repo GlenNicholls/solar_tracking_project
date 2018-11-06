@@ -10,14 +10,17 @@
 			Fixed pushbutton switch connection to attiny
 			Added filter cap to attiny reset line (Pullup from level shifter)
 
-2017-11-2 Graeme Danforth
+2018-11-2 Graeme Danforth
 	*solartrack1.pcb: Added pullup on tiny-load switch line
 			fixed LED wiring after package-size change
 			Moved microUSB header to edge of board, and rerouted ground slightly to allow this
 
-2017-11-2 Graeme Danforth
-	*solartrack1.cpb: Fixed level shifter direction issue
-			Changed diode package size back to 1206
+2018-11-3 Graeme Danforth
+	*solartrack1.pcb: Fixed level shifter direction issue
+			Changed LED package size back to 1206
 			Updated silkscreen to reflect schematic
 			Added better usb connector (thru hole)
 			
+2017-11-5 Graeme Danforth
+	*solartrack1.pcb: Added headers for power bus
+			Changed LED package size back back to 0603 
