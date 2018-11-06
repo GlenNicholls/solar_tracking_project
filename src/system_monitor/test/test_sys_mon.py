@@ -149,7 +149,7 @@ def test_memory(num_checks=20):
         write_table(string=data, max_str_len=max_str_len, header=False)
 
         assert float(cpu_use_perc)  < 5.0  # tested CPU usage, too high for testing
-        assert float(ram_use_perc)  < 25.0 # tested RAM usage, too high for testing
+        assert float(ram_use_perc)  < 30.0 # tested RAM usage, too high for testing
         assert float(disk_use_perc) < 80.0 # tested DISK usage, if >80%, could run into issues logging
 
         time.sleep(0.5)    
