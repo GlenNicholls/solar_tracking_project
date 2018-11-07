@@ -2,7 +2,6 @@ from __future__ import division
 from types import *
 import time
 import logging
-import Adafruit_MCP3008
 
 
 class power_measurement(object):
@@ -11,8 +10,8 @@ class power_measurement(object):
                        logger_module_name   = 'power_measurement',
                        adc_volt_ref         = 3.3,
                        adc_num_bits         = 10,
-                       adc_current_channel  = 0,
-                       adc_voltage_channel  = 0,
+                       adc_current_channel  = None,
+                       adc_voltage_channel  = None,
                        adc_object           = None,
                        current_amp_gain     = None,
                        current_amp_Rshunt   = None,
@@ -24,11 +23,10 @@ class power_measurement(object):
         self.logger = logging.getLogger(main_logger + '.' + logger_module_name)
         self.logger.info('creating an instance of the {}'.format(logger_module_name))
 
-        # capture internal config
+        # ADC attributes
         self._v_ref        = adc_volt_ref
         self._adc_num_bits = adc_num_bits
         
-        # ADC attributes
         self._adc_res = 2.0**adc_num_bits
         self._curr_ch = adc_current_channel
         self._volt_ch = adc_voltage_channel
