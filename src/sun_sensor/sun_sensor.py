@@ -9,7 +9,6 @@ class sun_sensor(object):
                        logger_module_name = 'sun_sensor',
                        move_motor_thresh_perc = None
                        adc_volt_ref   = 3.3,
-                       adc_num_bits   = 10,
                        adc_ur_sens_ch = None, # upper right sensor channel
                        adc_ul_sens_ch = None, # upper left sensor channel
                        adc_lr_sens_ch = None, # lower right sensor channel
@@ -28,9 +27,7 @@ class sun_sensor(object):
 
         # capture internal config
         self._v_ref        = adc_volt_ref
-        self._adc_num_bits = adc_num_bits
 
-        self._adc_res = 2.0**adc_num_bits
         self._adc_ch  = adc_channel
         self._adc     = adc_object
 
@@ -57,17 +54,17 @@ class sun_sensor(object):
 
 
 
-    def __read_adc_raw(self, adc_ch):
+    def __read_adc(self, adc_ch):
         raw_read = self._adc.read_adc(adc_ch)
         self.logger.debug('ADC raw read value: {}'.format(raw_read))
         return raw_read
 
 
-    def __meas_adc_voltage(self, adc_ch):
-        read_raw = self.__read_adc_raw(adc_ch)
-        V = read_raw / self._adc_res * self._v_ref
-        self.logger.debug('ADC voltage conversion Vmeas: {} [V]'.format(V))
-        return V
+    # def __meas_adc_voltage(self, adc_ch):
+    #     read_raw = self.__read_adc_raw(adc_ch)
+    #     V = read_raw / self._adc_res * self._v_ref
+    #     self.logger.debug('ADC voltage conversion Vmeas: {} [V]'.format(V))
+    #     return V
 
 
     def __get_per_diff(self, v_1, v_2):
@@ -76,6 +73,7 @@ class sun_sensor(object):
         return diff
 
 
+    # TODO: use better noise reduction filter
     def __get_avg(self, diff_1, diff_2):
         avg = (diff_1 + diff_2)/2
         self.logger.debug('Average of difference: {}'.format(avg))
@@ -110,25 +108,25 @@ class sun_sensor(object):
 
 
     def get_diff_upper_perc(self):
-        diff = self.__get_per_diff(self._ul, self._ur)
+        diff = self.__get_per_diff(self.__read_adc(self._ul), self.__read_adc(self._ur))
         self.logger.debug('Sun sensor percent difference for upper left and upper right: {}'.format(diff))
         return diff
 
 
     def get_diff_lower_perc(self):
-        diff = self.__get_per_diff(self._ll, self._lr)
+        diff = self.__get_per_diff(self.__read_adc(self._ll), self.__read_adc(self._lr))
         self.logger.debug('Sun sensor percent difference for lower left and lower right: {}'.format(diff))
         return diff
 
 
     def get_diff_left_perc(self):
-        diff = self.__get_per_diff(self._ul, self._ll)
+        diff = self.__get_per_diff(self.__read_adc(self._ul), self.__read_adc(self._ll))
         self.logger.debug('Sun sensor percent difference for upper left and lower left: {}'.format(diff))
         return diff
 
 
     def get_diff_right_perc(self):
-        diff = self.__get_per_diff(self._ur, self._lr)
+        diff = self.__get_per_diff(self.__read_adc(self._ur), self.__read_adc(self._lr))
         self.logger.debug('Sun sensor percent difference for upper right and lower right: {}'.format(diff))
         return diff
 
@@ -162,7 +160,7 @@ class sun_sensor(object):
 
 
     # TODO: make better name
-    def is_move_motor(self):
+    def move_motor(self):
         horizon, vertical = self.get_all_avg()
         move_horiz_mot = self.eval_horizontal(horizon)
         move_vert_mot = self.eval_horizontal(vertical)
