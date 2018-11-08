@@ -50,8 +50,6 @@ sun_sensor( main_logger        = logger_name,
             adc_object     = adc
            )
 
-def check_sens_channels():
-    for _,adc_ch in enumerate(adc_channels):
 
 ''' Test Routine
 '''
