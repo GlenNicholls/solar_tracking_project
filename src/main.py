@@ -7,11 +7,14 @@ from astral import Astral, Location
 import geocoder
 import pytz
 import os
-from DS3231         import DS3231
-from motor_control  import stepper_motor
-from shaft_encoder  import encoder
-from system_monitor import system_monitor
+
+import sun_sensor
 import Adafruit_MCP3008 as ADC
+from DS3231            import DS3231
+from motor_control     import stepper_motor
+from shaft_encoder     import encoder
+from system_monitor    import system_monitor
+from power_measurement import power_measurement
 
 #NOTE: indentation is 2 spaces
   
@@ -22,14 +25,19 @@ import Adafruit_MCP3008 as ADC
 # TODO: Note that the Adafruit_MCP3008 adc package requires BCM pin numbering
 #
 #
-i2c_port  = 1 # set to 0 if using gen 1 pi
-i2c_addr  = 0x68
 latitude  = 39.7392
 longitude = 104.9903
 
+GPIO_ADC_CLK        = 21 # BCM pin numbering
+GPIO_ADC_MISO       = 19 # BCM pin numbering
+GPIO_ADC_MOSI       = 20 # BCM pin numbering
+GPIO_ADC_CS         = 10 # BCM pin numbering
+
+
+
 
 #Global area
-# TODO: possibly add init_logger()
+# TODO: possibly use init_logger() in test_utils
 logger_name = 'main_app'
 logger = logging.getLogger(logger_name)
 logger.setLevel(logging.DEBUG)
@@ -51,13 +59,99 @@ logger.addHandler(ch)
 ##########################
 # instantiate sub-modules
 ##########################
-rtc = DS3231(logger    = logger_name,
-             i2c_port  = i2c_port,
-             i2c_addr  = i2c_addr,
-             latitude  = latitude,
-             longitude = longitude)
+# Logger names
+logger_rtc_name         = 'rtc'
+logger_sys_mon_name     = 'sys_mon'
+logger_panel_pwr_name   = 'panel_power'
+logger_panel_pwr_name   = 'battery_power'
+logger_sun_sensor_name  = 'sun_sensor'
 
-sys_mon = system_monitor(logger = logger_name)
+# RTC
+i2c_port  = 1 # set to 0 if using gen 1 pi
+i2c_addr  = 0x68
+
+rtc = DS3231( logger_name        = logger_name,
+              logger_module_name = logger_rtc_name,
+              i2c_port  = i2c_port,
+              i2c_addr  = i2c_addr,
+              latitude  = latitude,
+              longitude = longitude
+             )
+
+# System Monitor
+sys_mon = system_monitor( logger_name        = logger_name
+                          logger_module_name = logger_sys_mon_name
+                         )
+
+# ADC
+adc_vref     = 3.3
+adc_num_bits = 10
+
+adc_ch_panel_current     = 0
+adc_ch_panel_voltage     = 3
+adc_ch_battery_current   = 1
+adc_ch_battery_voltage   = 2
+adc_ch_up_right_sun_sens = 4 # can change since connections come in on header
+adc_ch_up_left_sun_sens  = 5 # can change since connections come in on header
+adc_ch_lo_right_sun_sens = 6 # can change since connections come in on header
+adc_ch_lo_left_sun_sens  = 7 # can change since connections come in on header
+
+adc = ADC.MCP3008( clk  = GPIO_ADC_CLK,
+                   cs   = GPIO_ADC_CS,
+                   miso = GPIO_ADC_MISO,
+                   mosi = GPIO_ADC_MOSI
+                  )
+
+# Power Measurements
+curr_sens_gain = 75
+
+curr_sens_panel_Rshunt = 0.3
+vdiv_panel_R1          = 1000
+vdiv_panel_R2          = 160
+
+curr_sens_battery_Rshunt = 0.001
+vdiv_battery_R1            = 1000
+vdiv_battery_R2            = 360
+
+panel_power = power_measurement( logger_name          = logger_name,
+                                 logger_module_name   = logger_panel_pwr_name,
+                                 adc_volt_ref         = adc_vref,
+                                 adc_num_bits         = adc_num_bits,
+                                 adc_current_channel  = adc_ch_panel_current,
+                                 adc_voltage_channel  = adc_ch_panel_voltage,
+                                 adc_object           = adc,
+                                 current_amp_gain     = curr_sens_gain,
+                                 current_amp_Rshunt   = curr_sens_panel_Rshunt,
+                                 vdiv_R1              = vdiv_panel_R1,
+                                 vdiv_R2              = vdiv_panel_R2
+                                )
+
+battery_power = power_measurement( logger_name          = logger_name,
+                                   logger_module_name   = logger_panel_pwr_name,
+                                   adc_volt_ref         = adc_vref,
+                                   adc_num_bits         = adc_num_bits,
+                                   adc_current_channel  = adc_ch_battery_current,
+                                   adc_voltage_channel  = adc_ch_battery_voltage,
+                                   adc_object           = adc,
+                                   current_amp_gain     = curr_sens_gain,
+                                   current_amp_Rshunt   = curr_sens_battery_Rshunt,
+                                   vdiv_R1              = vdiv_battery_R1,
+                                   vdiv_R2              = vdiv_battery_R2
+                                  )
+
+# Sun Sensor
+move_thresh_perc = 0.1
+
+sun_sensor = sun_sensor( logger_name            = logger_name,
+                         logger_module_name     = logger_sun_sensor_name,
+                         move_motor_thresh_perc = move_thresh_perc,
+                         adc_volt_ref           = adc_vref,
+                         adc_ur_sens_ch         = adc_ch_up_right_sun_sens, 
+                         adc_ul_sens_ch         = adc_ch_up_left_sun_sens,  
+                         adc_lr_sens_ch         = adc_ch_lo_right_sun_sens, 
+                         adc_ll_sens_ch         = adc_ch_lo_left_sun_sens,  
+                         adc_object             = adc
+                        )
 
 
 ##########################
