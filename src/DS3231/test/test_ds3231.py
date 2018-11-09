@@ -26,7 +26,7 @@ rtc = DS3231.DS3231(logger    = logger_name,
                     longitude = longitude)
 
 # create system monitor object
-sys_mon = system_monitor.system_monitor(logger = main_logger)
+sys_mon = system_monitor.system_monitor(logger = logger_name)
 
 logger.info('Monitoring DS3231 Information')
 
