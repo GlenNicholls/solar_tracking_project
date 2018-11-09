@@ -31,7 +31,7 @@ lo_right_sens_ch = 6 # can change since connections come in on header
 lo_left_sens_ch  = 7 # can change since connections come in on header
 adc_channels = [up_right_sens_ch, up_left_sens_ch, lo_right_sens_ch, lo_left_sens_ch]
 
-ss = sun_sensor( main_logger        = logger_name,
+ss = sun_sensor( logger_name        = logger_name,
                  logger_module_name = 'sun_sensor',
                  move_motor_thresh_perc = move_thresh_perc,
                  adc_volt_ref   = adc_vref,

@@ -77,7 +77,7 @@ def init_rtc():
     rtc.set_datetime_now()
     logger.info('Power was lost, time updated to: {}'.format(rtc.get_datetime_str()))
   elif rtc.get_power_lost() and not sys_mon.is_wlan_connected():
-    logger.error('Power was lost and no internet connection, cannot update time!')
+    logger.warning('Power was lost and no internet connection, cannot update time!')
   elif not rtc.get_power_lost() and sys_mon.is_wlan_connected():
     rtc.set_datetime_now()
     logger.info('There is an internet connection and power was not lost')

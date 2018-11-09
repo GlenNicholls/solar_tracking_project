@@ -5,19 +5,19 @@ import logging
 
 class sun_sensor(object):
 
-    def __init__ (self, main_logger       = 'main_logger',
-                       logger_module_name = 'sun_sensor',
-                       move_motor_thresh_perc = None,
-                       adc_volt_ref   = 3.3,
-                       adc_ur_sens_ch = None, # upper right sensor channel
-                       adc_ul_sens_ch = None, # upper left sensor channel
-                       adc_lr_sens_ch = None, # lower right sensor channel
-                       adc_ll_sens_ch = None, # lower left sensor channel
-                       adc_object     = None
+    def __init__ (self, logger_name        = 'main_logger',
+                        logger_module_name = 'sun_sensor',
+                        move_motor_thresh_perc = None,
+                        adc_volt_ref   = 3.3,
+                        adc_ur_sens_ch = None, # upper right sensor channel
+                        adc_ul_sens_ch = None, # upper left sensor channel
+                        adc_lr_sens_ch = None, # lower right sensor channel
+                        adc_ll_sens_ch = None, # lower left sensor channel
+                        adc_object     = None
                   ):
 
         # instantiate logger
-        self.logger = logging.getLogger(main_logger + '.' + logger_module_name)
+        self.logger = logging.getLogger(logger_name + '.' + logger_module_name)
         self.logger.info('creating an instance of the {}'.format(logger_module_name))
 
         # logic thresh

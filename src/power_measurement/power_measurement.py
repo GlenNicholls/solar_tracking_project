@@ -6,7 +6,7 @@ import logging
 
 class power_measurement(object):
     
-    def __init__(self, main_logger          = 'main_logger',
+    def __init__(self, logger_name          = 'main_logger',
                        logger_module_name   = 'power_measurement',
                        adc_volt_ref         = 3.3,
                        adc_num_bits         = 10,
@@ -20,7 +20,7 @@ class power_measurement(object):
                  ):
 
         # instantiate logger
-        self.logger = logging.getLogger(main_logger + '.' + logger_module_name)
+        self.logger = logging.getLogger(logger_name + '.' + logger_module_name)
         self.logger.info('creating an instance of the {}'.format(logger_module_name))
 
         # ADC attributes

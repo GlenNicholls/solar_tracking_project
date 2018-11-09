@@ -19,14 +19,14 @@ i2c_port  = 1 # set to 0 if using gen 1 pi
 i2c_addr  = 0x68
 latitude  = 39.7392
 longitude = 104.9903
-rtc = DS3231.DS3231(logger    = logger_name,
-                    i2c_port  = i2c_port,
-                    i2c_addr  = i2c_addr,
-                    latitude  = latitude,
-                    longitude = longitude)
+rtc = DS3231.DS3231(logger_name = logger_name,
+                    i2c_port    = i2c_port,
+                    i2c_addr    = i2c_addr,
+                    latitude    = latitude,
+                    longitude   = longitude)
 
 # create system monitor object
-sys_mon = system_monitor.system_monitor(logger = logger_name)
+sys_mon = system_monitor.system_monitor(logger_name = logger_name)
 
 logger.info('Monitoring DS3231 Information')
 

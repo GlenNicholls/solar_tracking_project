@@ -16,9 +16,14 @@ class system_monitor(object):
               look incorrect. Can fix by always calling get_cpu_temp_C and using this value
               globally in the without calling this function for the other readings.
     '''
-    def __init__(self, logger='main_logger', wlan_interface='wlan0'):
-        self.logger = logging.getLogger(logger+ '.' + __name__)
-        self.logger.info('creating an instance of the {}'.format(__name__))
+    def __init__(self, logger_name        ='main_logger', 
+                       logger_module_name = 'sys_mon',
+                       wlan_interface='wlan0'
+                ):
+
+        self.logger = logging.getLogger(logger_name + '.' + logger_module_name)
+        self.logger.info('creating an instance of the {}'.format(logger_module_name))
+
         self._wlan_interface = wlan_interface.lower()
         self._wlan_out = []
         self._temp_C   = 0.0

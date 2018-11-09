@@ -37,7 +37,7 @@ curr_sensor_battery_Rshunt = 0.001
 vdiv_battery_R1            = 1000
 vdiv_battery_R2            = 360
 
-panel_power = power_measurement( main_logger          = logger_name,
+panel_power = power_measurement( logger_name          = logger_name,
                                  logger_module_name   = 'panel_power',
                                  adc_volt_ref         = adc_vref,
                                  adc_num_bits         = adc_num_bits,
