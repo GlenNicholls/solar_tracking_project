@@ -10,7 +10,7 @@ logger = test_handle.init_logger()
 
 
 logger.info('Monitoring system information')
-sys_mon = system_monitor.system_monitor(logger=main_logger)
+sys_mon = system_monitor.system_monitor(logger=logger_name)
 
 
 def get_wifi_wlan():
