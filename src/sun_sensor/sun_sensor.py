@@ -68,12 +68,20 @@ class sun_sensor(object):
     def __get_per_diff(self, v_1, v_2):
         num_diff = v_1 - v_2
         den_diff = v_1 + v_2
-
+        
         if den_diff == 0.0:
             diff = 0.0
+            self.logger.warning('num 1 ({}) + num 2 ({}) returns zero!'.format(v_1, v_2))
             self.logger.warning('Divide by zero occuring. Returning zero')
         else:
             diff = num_diff/(den_diff / 2)
+        # if v_1 == 0 or v_2 == 0:
+        #     diff = 0.0
+        #     self.logger.warning('Cannot check % difference with either number as zero')
+        # elif v_1 > v_2:
+        #     diff = (1 - v_2/v_1) * 100
+        # else:
+        #     diff = (1 - v_1/v_2) * 100
         self.logger.debug('Difference is: {}'.format(diff))
         return diff
 
@@ -113,25 +121,33 @@ class sun_sensor(object):
 
 
     def get_diff_upper_perc(self):
-        diff = self.__get_per_diff(self.__read_adc(self._ul), self.__read_adc(self._ur))
+        ul = self.__read_adc(self._ul)
+        ur = self.__read_adc(self._ur)
+        diff = self.__get_per_diff(ul, ur)
         self.logger.debug('Sun sensor percent difference for upper left and upper right: {}'.format(diff))
         return diff
 
 
     def get_diff_lower_perc(self):
-        diff = self.__get_per_diff(self.__read_adc(self._ll), self.__read_adc(self._lr))
+        ll = self.__read_adc(self._ll)
+        lr = self.__read_adc(self._lr)
+        diff = self.__get_per_diff(ll, lr)
         self.logger.debug('Sun sensor percent difference for lower left and lower right: {}'.format(diff))
         return diff
 
 
     def get_diff_left_perc(self):
-        diff = self.__get_per_diff(self.__read_adc(self._ul), self.__read_adc(self._ll))
+        ul = self.__read_adc(self._ul)
+        ll = self.__read_adc(self._ll)
+        diff = self.__get_per_diff(ul, ll)
         self.logger.debug('Sun sensor percent difference for upper left and lower left: {}'.format(diff))
         return diff
 
 
     def get_diff_right_perc(self):
-        diff = self.__get_per_diff(self.__read_adc(self._ur), self.__read_adc(self._lr))
+        ur = self.__read_adc(self._ur)
+        lr = self.__read_adc(self._lr)
+        diff = self.__get_per_diff(ur, lr)
         self.logger.debug('Sun sensor percent difference for upper right and lower right: {}'.format(diff))
         return diff
 

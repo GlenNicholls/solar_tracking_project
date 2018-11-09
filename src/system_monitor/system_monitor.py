@@ -157,7 +157,10 @@ class system_monitor(object):
                 break
             else:
                 link_quality = None
-                self.logger.warning('Poor link quality')
+        if link_quality == None:
+            self.logger.error('Could not get link quality!')
+        elif link_quality < 2:
+            self.logger.warning('Poor link quality Level! link quality: {}'.format(link_quality))
         return link_quality
 
     def get_wlan_rx_pwr(self):
@@ -169,7 +172,10 @@ class system_monitor(object):
                 break
             else:
                 rx_power = None
-                self.logger.warning('Poor Rx Power Level!')
+        if rx_power == None:
+            self.logger.error('Could not get Rx power Level!')
+        elif rx_power < -65:
+            self.logger.warning('Poor Rx Power Level! Rx Power Level: {}'.format(rx_power))
         return rx_power
 
     # get wifi name
