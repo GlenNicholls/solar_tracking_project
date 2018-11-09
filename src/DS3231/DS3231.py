@@ -59,7 +59,7 @@ class DS3231(object):
     # change port to 0 if old gen 1 pi, else leave default
     # addr should not change as this is embedded in RTC
     def __init__(self, logger_name        ='main_logger',
-                       logger_module_name = 'rtc'
+                       logger_module_name = 'rtc',
                        i2c_port  = 1,
                        i2c_addr  = 0x68,
                        latitude  = 0.00,

@@ -50,7 +50,7 @@ panel_power = power_measurement( logger_name          = logger_name,
                                  vdiv_R2              = vdiv_panel_R2
                                 )
 
-battery_power = power_measurement( main_logger          = logger_name,
+battery_power = power_measurement( logger_name          = logger_name,
                                    logger_module_name   = 'battery_power',
                                    adc_volt_ref         = adc_vref,
                                    adc_num_bits         = adc_num_bits,
