@@ -21,24 +21,48 @@ from power_measurement import power_measurement
 # TODO: Need to set up pi to add this main.py routine to startup -GN
 # TODO: Need to find way to save state for periodically shutting down -GN
 
-# pin definitions here
-# TODO: Note that the Adafruit_MCP3008 adc package requires BCM pin numbering
-#
-#
+##########################
+# GPIO Pin Definitions
+##########################
+# Shaft Encoders
+GPIO_SE_AZIMUTH_A   = 5  # TODO: BCM??
+GPIO_SE_AZIMUTH_B   = 11 # TODO: BCM??
+GPIO_SE_ELEVATION_A = 26 # TODO: BCM??
+GPIO_SE_ELEVATION_B = 13 # TODO: BCM??
+
+# ADC
+GPIO_ADC_CLK  = 21 # BCM pin numbering
+GPIO_ADC_MISO = 19 # BCM pin numbering
+GPIO_ADC_MOSI = 20 # BCM pin numbering
+GPIO_ADC_CS   = 10 # BCM pin numbering
+
+# RTC is accounted for based on I2C channel
+
+# ATTiny
+# Program pins accounted for in Makefile
+GPIO_UC_PWR_ACK_TX  = 25 # TODO: BCM??
+GPIO_UC_FAULT_RX    = 7  # TODO: BCM??
+GPIO_UC_DEV_MODE_RX = 8  # TODO: BCM??
+
+# Motor Control
+# TODO: Mike
+
+##########################
+# instantiate sub-modules
+##########################
+# User location
 latitude  = 39.7392
 longitude = 104.9903
 
-GPIO_ADC_CLK        = 21 # BCM pin numbering
-GPIO_ADC_MISO       = 19 # BCM pin numbering
-GPIO_ADC_MOSI       = 20 # BCM pin numbering
-GPIO_ADC_CS         = 10 # BCM pin numbering
-
-
-
-
-#Global area
-# TODO: possibly use init_logger() in test_utils
+# Logger
 logger_name = 'main_app'
+logger_rtc_name         = 'rtc'
+logger_sys_mon_name     = 'sys_mon'
+logger_panel_pwr_name   = 'panel_power'
+logger_panel_pwr_name   = 'battery_power'
+logger_sun_sensor_name  = 'sun_sensor'
+
+# TODO: possibly use init_logger() in test_utils
 logger = logging.getLogger(logger_name)
 logger.setLevel(logging.DEBUG)
 # create console handler to log to the terminal
@@ -53,18 +77,6 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 ch.setFormatter(formatter)
 # add the handlers to logger
 logger.addHandler(ch)
-#End Global area
-
-
-##########################
-# instantiate sub-modules
-##########################
-# Logger names
-logger_rtc_name         = 'rtc'
-logger_sys_mon_name     = 'sys_mon'
-logger_panel_pwr_name   = 'panel_power'
-logger_panel_pwr_name   = 'battery_power'
-logger_sun_sensor_name  = 'sun_sensor'
 
 # RTC
 i2c_port  = 1 # set to 0 if using gen 1 pi
@@ -110,8 +122,8 @@ vdiv_panel_R1          = 1000
 vdiv_panel_R2          = 160
 
 curr_sens_battery_Rshunt = 0.001
-vdiv_battery_R1            = 1000
-vdiv_battery_R2            = 360
+vdiv_battery_R1          = 1000
+vdiv_battery_R2          = 360
 
 panel_power = power_measurement( logger_name          = logger_name,
                                  logger_module_name   = logger_panel_pwr_name,
@@ -196,7 +208,7 @@ def get_location(lat, lng):
   except:
     logger.warn('Get location from IP Failed, using defaults. =(')
 
-  logger.info("Lattitude: [" + str(lat) + "], Longitude: [" + str(lng) + "]")
+  logger.info('Lattitude: [{}], Longitude: [{}]'.format(lat, lng))
   return lat, lng 
 #End get_location
 
@@ -250,12 +262,6 @@ def main():
   
   #Run setup if needed
   logger.info('Running setup')
-  #Move these to a constants file???
-  CLK  = 18 # TODO: these will not work on the PCB, ensure these are defined with pins from src/power_measurement/test/test_mcp3008.py
-  MISO = 23
-  MOSI = 24
-  CS   = 25
-  adc = ADC.MCP3008(clk=CLK, cs=CS, miso=MISO, mosi=MOSI)
   
   #Load stored parameters
   logger.info('Loading stored prarmeters')
@@ -284,7 +290,7 @@ def main():
   
   #Get current position from shart encoders
   logger.warn('Get current position from shaft encoders NOT DEFINED')
-  encoder_az = encoder(5,11,2000)
+  encoder_az = encoder(5,11,2000) # TODO: Use format I have defined above
   #a is 29 on PI
   #b is 23 on PI
   init_encoder_az = encoder_az.get_degrees()
