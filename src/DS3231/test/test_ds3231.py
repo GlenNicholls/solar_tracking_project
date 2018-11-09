@@ -6,19 +6,12 @@ import logging
 import datetime
 import DS3231
 import system_monitor
+from test_utils import testUtils
 
-main_logger = 'main_logger'
-logger = logging.getLogger(main_logger)
-logger.setLevel(logging.INFO)
-# create console handler to log to the terminal
-ch = logging.StreamHandler()
-# set logging level to debug, will switch to info for final version
-ch.setLevel(logging.DEBUG)
-# create formatter and add it to the handlers
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-# add the handlers to logger
-logger.addHandler(ch)
+# init logger
+logger_name = 'main_logger'
+test_handle = testUtils(logger_name)
+logger = test_handle.init_logger()
 
 
 # create RTC object
@@ -26,7 +19,7 @@ i2c_port  = 1 # set to 0 if using gen 1 pi
 i2c_addr  = 0x68
 latitude  = 39.7392
 longitude = 104.9903
-rtc = DS3231.DS3231(logger    = main_logger,
+rtc = DS3231.DS3231(logger    = logger_name,
                     i2c_port  = i2c_port,
                     i2c_addr  = i2c_addr,
                     latitude  = latitude,

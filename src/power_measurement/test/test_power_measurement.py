@@ -8,17 +8,8 @@ from test_utils import testUtils
 
 # init logger
 logger_name = 'main_logger'
-logger = logging.getLogger(logger_name)
-logger.setLevel(logging.INFO)
-# create console handler to log to the terminal
-ch = logging.StreamHandler()
-# set logging level to debug, will switch to info for final version
-ch.setLevel(logging.DEBUG)
-# create formatter and add it to the handlers
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-# add the handlers to logger
-logger.addHandler(ch)
+test_handle = testUtils(logger_name)
+logger = test_handle.init_logger()
 
 # init ADC
 CLK        = 21 # BCM pin numbering
