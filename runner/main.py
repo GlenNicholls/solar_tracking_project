@@ -10,6 +10,7 @@ import os
 
 import sun_sensor
 import Adafruit_MCP3008 as ADC
+from utils             import utils
 from DS3231            import DS3231
 from motor_control     import stepper_motor
 from shaft_encoder     import encoder
@@ -47,6 +48,8 @@ GPIO_UC_DEV_MODE_RX = 8  # TODO: BCM??
 # Motor Control
 # TODO: Mike
 
+# TODO: add init_pins() to init directions and such
+
 ##########################
 # instantiate sub-modules
 ##########################
@@ -62,21 +65,8 @@ logger_panel_pwr_name   = 'panel_power'
 logger_panel_pwr_name   = 'battery_power'
 logger_sun_sensor_name  = 'sun_sensor'
 
-# TODO: possibly use init_logger() in test_utils
-logger = logging.getLogger(logger_name)
-logger.setLevel(logging.DEBUG)
-# create console handler to log to the terminal
-ch = logging.StreamHandler()
-# create file handler to log the state for next reboot
-#fh = logging.FileHandler('state.log')
-# set logging level to debug, will switch to info for final version
-ch.setLevel(logging.DEBUG)
-#fh.setLevel(logging.DEBUG)
-# create formatter and add it to the handlers
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-# add the handlers to logger
-logger.addHandler(ch)
+util_handle = utils(logger_name)
+logger = util_handle.init_logger()
 
 # RTC
 i2c_port  = 1 # set to 0 if using gen 1 pi
@@ -84,10 +74,10 @@ i2c_addr  = 0x68
 
 rtc = DS3231( logger_name        = logger_name,
               logger_module_name = logger_rtc_name,
-              i2c_port  = i2c_port,
-              i2c_addr  = i2c_addr,
-              latitude  = latitude,
-              longitude = longitude
+              i2c_port           = i2c_port,
+              i2c_addr           = i2c_addr,
+              latitude           = latitude,
+              longitude          = longitude
              )
 
 # System Monitor
@@ -189,7 +179,7 @@ def init_rtc():
     logger.info('There is an internet connection and power was not lost')
     logger.info('Time updated to: {}'.format(rtc.get_datetime_str()))
   else:
-    logger.info('Power was not lost and no connection to update time')
+    logger.warning('Power was not lost and no connection to update time')
 
 # TODO: add get_all_params() and print these
 # def init_sys_mon():
@@ -206,7 +196,7 @@ def get_location(lat, lng):
     lng = g.latlng[1]
     logger.info('Get location from IP Successfull! =)')
   except:
-    logger.warn('Get location from IP Failed, using defaults. =(')
+    logger.warning('Get location from IP Failed, using defaults. =(')
 
   logger.info('Lattitude: [{}], Longitude: [{}]'.format(lat, lng))
   return lat, lng 
@@ -234,6 +224,7 @@ todo: list for uC stuff -GN
 '''
 
 def shutdown():
+  # TODO: add flag for nighttime and add this to rtc.set_alarm_sunrise() check
   logger.info('Initiating Shutdown')
 
   # TODO: logic below
@@ -289,6 +280,7 @@ def main():
   now = pytz.timezone('US/Mountain').localize(datetime.now())
   
   #Get current position from shart encoders
+  # TODO: lol ^^^
   logger.warn('Get current position from shaft encoders NOT DEFINED')
   encoder_az = encoder(5,11,2000) # TODO: Use format I have defined above
   #a is 29 on PI
