@@ -3,12 +3,12 @@ import time
 import logging
 import datetime
 from Adafruit_MCP3008 import MCP3008
-from test_utils import testUtils
+from utils import utils
 
 
 # init logger
 logger_name = 'main_logger'
-test_handle = testUtils(logger_name)
+test_handle = utils(logger_name)
 logger = test_handle.init_logger()
 
 # init ADC

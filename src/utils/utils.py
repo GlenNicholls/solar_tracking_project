@@ -4,7 +4,7 @@ import logging
 import datetime
 
 
-class testUtils(object):
+class utils(object):
     def __init__ (self, logger_name = 'main_logger', debug=False):
         self._logger_name = logger_name
         self._dbg = debug
