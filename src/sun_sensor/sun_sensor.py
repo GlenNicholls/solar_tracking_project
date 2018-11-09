@@ -7,7 +7,7 @@ class sun_sensor(object):
 
     def __init__ (self, main_logger       = 'main_logger',
                        logger_module_name = 'sun_sensor',
-                       move_motor_thresh_perc = None
+                       move_motor_thresh_perc = None,
                        adc_volt_ref   = 3.3,
                        adc_ur_sens_ch = None, # upper right sensor channel
                        adc_ul_sens_ch = None, # upper left sensor channel
@@ -27,8 +27,6 @@ class sun_sensor(object):
 
         # capture internal config
         self._v_ref        = adc_volt_ref
-
-        self._adc_ch  = adc_channel
         self._adc     = adc_object
 
         adc_ch_tuple = (adc_ur_sens_ch, adc_ul_sens_ch, adc_lr_sens_ch, adc_ll_sens_ch)
@@ -68,7 +66,14 @@ class sun_sensor(object):
 
 
     def __get_per_diff(self, v_1, v_2):
-        diff = (v_1-v_2)/((v_1+v_2)/2)
+        num_diff = v_1 - v_2
+        den_diff = v_1 + v_2
+
+        if den_diff == 0.0:
+            diff = 0.0
+            self.logger.warning('Divide by zero occuring. Returning zero')
+        else:
+            diff = num_diff/(den_diff / 2)
         self.logger.debug('Difference is: {}'.format(diff))
         return diff
 

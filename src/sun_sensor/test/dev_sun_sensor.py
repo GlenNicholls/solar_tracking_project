@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from sun_sensor import *
+from test_sun_sensor import *
 
 test_sens_channels()
 test_sun_sensor_differences()
