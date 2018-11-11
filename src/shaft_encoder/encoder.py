@@ -1,5 +1,5 @@
+from __future__ import division
 import RPi.GPIO as GPIO  
-
 
 class encoder:
 

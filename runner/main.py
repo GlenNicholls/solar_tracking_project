@@ -10,6 +10,7 @@ import os
 
 import sun_sensor
 import Adafruit_MCP3008 as ADC
+import RPi.GPIO         as GPIO  
 from utils             import utils
 from DS3231            import DS3231
 from motor_control     import stepper_motor
@@ -25,30 +26,30 @@ from power_measurement import power_measurement
 ##########################
 # GPIO Pin Definitions
 ##########################
+# NOTE: Using BCM pin numbering for all
 # Shaft Encoders
-GPIO_SE_AZIMUTH_A   = 5  # TODO: BCM??
-GPIO_SE_AZIMUTH_B   = 11 # TODO: BCM??
-GPIO_SE_ELEVATION_A = 26 # TODO: BCM??
-GPIO_SE_ELEVATION_B = 13 # TODO: BCM??
+PIN_SE_AZIMUTH_A   = 5  
+PIN_SE_AZIMUTH_B   = 11 
+PIN_SE_ELEVATION_A = 26 
+PIN_SE_ELEVATION_B = 13 
 
 # ADC
-GPIO_ADC_CLK  = 21 # BCM pin numbering
-GPIO_ADC_MISO = 19 # BCM pin numbering
-GPIO_ADC_MOSI = 20 # BCM pin numbering
-GPIO_ADC_CS   = 10 # BCM pin numbering
+PIN_ADC_CLK  = 21 
+PIN_ADC_MISO = 19 
+PIN_ADC_MOSI = 20 
+PIN_ADC_CS   = 10 
 
 # RTC is accounted for based on I2C channel
 
 # ATTiny
-# Program pins accounted for in Makefile
-GPIO_UC_PWR_ACK_TX  = 25 # TODO: BCM??
-GPIO_UC_FAULT_RX    = 7  # TODO: BCM??
-GPIO_UC_DEV_MODE_RX = 8  # TODO: BCM??
+# NOTE: Program pins accounted for in Makefile
+PIN_UC_PWR_ACK_TX  = 25 
+PIN_UC_FAULT_RX    = 7  
+PIN_UC_DEV_MODE_RX = 8  
 
 # Motor Control
 # TODO: Mike
 
-# TODO: add init_pins() to init directions and such
 
 ##########################
 # instantiate sub-modules
@@ -62,7 +63,7 @@ logger_name = 'main_app'
 logger_rtc_name         = 'rtc'
 logger_sys_mon_name     = 'sys_mon'
 logger_panel_pwr_name   = 'panel_power'
-logger_panel_pwr_name   = 'battery_power'
+logger_battery_pwr_name = 'battery_power'
 logger_sun_sensor_name  = 'sun_sensor'
 
 util_handle = utils(logger_name)
@@ -98,10 +99,10 @@ adc_ch_up_left_sun_sens  = 5 # can change since connections come in on header
 adc_ch_lo_right_sun_sens = 6 # can change since connections come in on header
 adc_ch_lo_left_sun_sens  = 7 # can change since connections come in on header
 
-adc = ADC.MCP3008( clk  = GPIO_ADC_CLK,
-                   cs   = GPIO_ADC_CS,
-                   miso = GPIO_ADC_MISO,
-                   mosi = GPIO_ADC_MOSI
+adc = ADC.MCP3008( clk  = PIN_ADC_CLK,
+                   cs   = PIN_ADC_CS,
+                   miso = PIN_ADC_MISO,
+                   mosi = PIN_ADC_MOSI
                   )
 
 # Power Measurements
@@ -129,7 +130,7 @@ panel_power = power_measurement( logger_name          = logger_name,
                                 )
 
 battery_power = power_measurement( logger_name          = logger_name,
-                                   logger_module_name   = logger_panel_pwr_name,
+                                   logger_module_name   = logger_battery_pwr_name,
                                    adc_volt_ref         = adc_vref,
                                    adc_num_bits         = adc_num_bits,
                                    adc_current_channel  = adc_ch_battery_current,
@@ -159,7 +160,36 @@ sun_sensor = sun_sensor( logger_name            = logger_name,
 ##########################
 # init packages
 ##########################
+def init_pins():
+  # mode
+  logger.info('Setting GPIO pin mode to BCM')
+  GPIO.setmode(GPIO.BCM)
+
+  # direction
+  logger.info('Setting GPIO pin directions')
+  # SE
+  GPIO.setup(PIN_SE_AZIMUTH_A,   GPIO.IN)
+  GPIO.setup(PIN_SE_AZIMUTH_B,   GPIO.IN)
+  GPIO.setup(PIN_SE_ELEVATION_A, GPIO.IN)
+  GPIO.setup(PIN_SE_ELEVATION_B, GPIO.IN)
+
+  # ADC taken care of by package
+
+  # ATTiny
+  GPIO.setup(PIN_UC_PWR_ACK_TX,  GPIO.OUT)
+  GPIO.setup(PIN_UC_FAULT_RX,    GPIO.IN)
+  GPIO.setup(PIN_UC_DEV_MODE_RX, GPIO.IN)
+
+  # Motors 
+  # TODO: Mike
+
+
+def init_phat():
+  logger.info('Setting Pi Hat ACK high')
+
+
 def init_rtc():
+  # TODO: only do config if timedelta is greater than some thresh
   rtc.configure_rtc()
 
   # Initial checks for time accuracy
@@ -181,8 +211,8 @@ def init_rtc():
   else:
     logger.warning('Power was not lost and no connection to update time')
 
+
 # TODO: add get_all_params() and print these
-# def init_sys_mon():
 
 
 ##########################
@@ -353,4 +383,7 @@ def main():
 
   
 if __name__ == '__main__':
+    # init_pins()
+    # init_phat()
+    # init_rtc()
     main()
