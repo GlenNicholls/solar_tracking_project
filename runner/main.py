@@ -222,6 +222,26 @@ def init_rtc():
 ##########################
 # Helpers
 ##########################
+def pin_is_set(pin):
+  return GPIO.input(pin)
+
+
+def turn_pin_on(pin):
+  GPIO.output(pin, GPIO.HIGH)
+
+
+def turn_pin_off(pin):
+    GPIO.output(pin, GPIO.LOW)
+
+
+def set_module_log_level_dbg(module_name):
+    logging.getLogger(module_name).setLevel(logging.DEBUG)
+
+
+def set_module_log_level_info(module_name):
+    logging.getLogger(module_name).setLevel(logging.INFO)
+
+
 def get_location(lat, lng):
   try:
     logger.info('Getting location from IP')
@@ -248,17 +268,6 @@ def get_location_astral(lat, lng, elev):
   return loc
 #End get_location_astral
 
-
-def pin_is_set(pin):
-  return GPIO.input(pin)
-
-
-def turn_pin_on(pin):
-  GPIO.output(pin, GPIO.HIGH)
-
-
-def turn_pin_off(pin):
-    GPIO.output(pin, GPIO.LOW)
 
 '''
 todo: list for uC stuff -GN
