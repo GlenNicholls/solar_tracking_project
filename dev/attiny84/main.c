@@ -138,14 +138,13 @@ static inline void initMCU(void)
   initPortB();
 
   // Set start-up state when uC first gets power
-  // todo: fix start up glitch when uC sees first alarm after power on
   // todo: add clear all GPIO flags or something
   setPinStartupState();
 
   // Configure all interrupts
   initInterrupts();
-  initTimer0();
-  initTimer1();
+  initTimer0(); // debounce timer
+  initTimer1(); // big timer for longer wait checks
 
   // Configure clocks
   initClock();
@@ -207,7 +206,12 @@ static inline void goToSleep(void)
   sleep_cpu();
 
   // interrupt condition has occured
-  _delay_us(100); // give processor enough time to set INT flags
+  //_delay_us(100); // give processor enough time to set INT flags
+  _NOP(); // DBG
+  _NOP(); // DBG
+  _NOP(); // DBG
+  _NOP(); // DBG
+  _NOP(); // DBG
 
   // manually disable sleep per suggestion in datasheet
   sleep_disable();
@@ -239,7 +243,7 @@ ISR(PCINT0_vect)
 
 
 /*****************************
- * Push Button ISR
+ * Push Button & RTC Alrm ISR
  *****************************/
 ISR(PCINT1_vect)
 {
@@ -325,9 +329,10 @@ ISR(TIM0_COMPA_vect) // Debounce timer
 
 
 /*****************************
- * Timer 1 Compare A ISR
+ * Timer 1 Compare ISR
  *****************************/
-ISR(TIM1_COMPA_vect) // long delay timer for checking RTC and allowing pi to shutdown safely.
+// long delay timer for checking RTC and allowing pi to shutdown safely.
+ISR(TIM1_COMPA_vect)
 {
   if (checkAlarmFlagIsSet()) // Need to check alarm and make sure ack is on
   {
@@ -369,6 +374,25 @@ ISR(TIM1_COMPA_vect) // long delay timer for checking RTC and allowing pi to shu
   }
 
   // turn timer off
+  stopBigTimer();
+}
+
+// shorter timer for forcefully clearing FAULT flag
+// This will not turn power on as this is only for manually clearing FAULT!!!
+ISR(TIM1_COMPB_vect)
+{
+  if (buttonIsOn()) // if button held by user for ~3s, clear FAULT
+  {
+    CLR_FAULT_FLAG;
+    stopBigTimer();
+  }
+}
+
+// timer should be stopped before this
+// if we ever get here, set FAULT and attempt to turn timer off again
+ISR(TIM1_OVF_vect)
+{
+  SET_FAULT_FLAG;
   stopBigTimer();
 }
 

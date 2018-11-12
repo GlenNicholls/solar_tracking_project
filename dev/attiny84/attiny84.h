@@ -88,12 +88,14 @@ static inline void goToSleep           (void);
 #error You must define F_CPU
 #else
   // not supporting any higher freqs since this would require global counter
+  // this is also supposed to be low power, so those freqs are pointless
   #if (F_CPU == 2000000)
     #define CLOCK_DIV         clock_div_4
     #define TIMER_0_PRESCALE  TIMER_PRESCALE_256
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
     #define TIMER_0_OCRA      125
     #define TIMER_1_OCRA      65535
+    #define TIMER_1_OCRB      6000
 
   #elif (F_CPU == 1000000)
     #define CLOCK_DIV         clock_div_8
@@ -101,6 +103,7 @@ static inline void goToSleep           (void);
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
     #define TIMER_0_OCRA      65
     #define TIMER_1_OCRA      40000
+    #define TIMER_1_OCRB      3000
 
   #elif (F_CPU == 500000)
     #define CLOCK_DIV         clock_div_16
@@ -108,6 +111,7 @@ static inline void goToSleep           (void);
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
     #define TIMER_0_OCRA      125
     #define TIMER_1_OCRA      20000
+    #define TIMER_1_OCRB      1500
 
   #elif (F_CPU == 250000)
     #define CLOCK_DIV         clock_div_32
@@ -115,6 +119,7 @@ static inline void goToSleep           (void);
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
     #define TIMER_0_OCRA      65
     #define TIMER_1_OCRA      10000
+    #define TIMER_1_OCRB      750
 
   #elif (F_CPU == 125000)
     #define CLOCK_DIV         clock_div_64
@@ -122,6 +127,7 @@ static inline void goToSleep           (void);
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
     #define TIMER_0_OCRA      35
     #define TIMER_1_OCRA      5000
+    #define TIMER_1_OCRB      375
 
   #elif (F_CPU == 62500)
     #define CLOCK_DIV         clock_div_128
@@ -129,6 +135,7 @@ static inline void goToSleep           (void);
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
     #define TIMER_0_OCRA      125
     #define TIMER_1_OCRA      2500
+    #define TIMER_1_OCRB      185
 
   #elif (F_CPU == 31250)
     #define CLOCK_DIV         clock_div_256
@@ -136,6 +143,7 @@ static inline void goToSleep           (void);
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_256
     #define TIMER_0_OCRA      65
     #define TIMER_1_OCRA      5000
+    #define TIMER_1_OCRB      750
 
   #else
     #error Unsupported value for F_CPU
@@ -197,15 +205,16 @@ static inline void initTimer0(void)
 static inline void initTimer1(void)
 {
   // Clear timer on compare match
-  SET_TIMER_1_REG1_MODE_CTC;
-  SET_TIMER_1_REG2_MODE_CTC;
+  SET_TIMER_1_REG1_MODE_NORMAL;
+  SET_TIMER_1_REG2_MODE_NORMAL;
 
   // Make sure it isn't free-running
   TURN_TIMER_1_OFF;
   CLR_TIMER_1_COUNT;
 
   // Enable compare match INT
-  TIMSK1 |= _BV(OCIE1A);
+  TIMSK1 |= _BV(OCIE1A); // flag for startup/shutdown
+  TIMSK1 |= _BV(OCIE1B); // flag for clearing FAULT
 }
 
 // 8-bit timer
@@ -235,11 +244,11 @@ static inline void stopDebounceTimer(void)
 // 16-bit timer
 static inline void startBigTimer(void)
 {
-  // 1/(F_CPU/(prescale*(1 + timer_compare))) = ~41s
+  // 1/(F_CPU/(prescale*(1 + timer_compare)))
 
   // Output compare reg
-  //OCR1A = 2000;// DBG
-  OCR1A = TIMER_1_OCRA;
+  OCR1A = TIMER_1_OCRA; // ~41s wait for startup/shutdown
+  OCR1B = TIMER_1_OCRB; // ~3s wait for clearing FAULT
 
   // Activate timer with prescalar 1024
   TURN_TIMER_1_ON;
