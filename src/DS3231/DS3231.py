@@ -433,14 +433,18 @@ class DS3231(object):
 
     # get datetime timedelta
     # return tuple of difference between RTC datetime and datetime.datetime.now
-    def get_datetime_delta(self):
+    def get_datetime_delta(self, return_all=False):
         rtc_datetime = self.get_datetime()
         local_now = datetime.datetime.now()
         delta = local_now - rtc_datetime
-        self.logger.debug('RTC datetime: {}'.format(rtc_datetime))
-        self.logger.debug('Local Time: {}'.format(local_now))
-        self.logger.debug('RTC and Local time delta: {}'.format(delta))
-        return delta
+        self.logger.info('RTC datetime: {}'.format(rtc_datetime))
+        self.logger.info('Local Time: {}'.format(local_now))
+        self.logger.info('RTC and Local time delta: {}'.format(delta))
+
+        if return_all:
+            return rtc_datetime, local_now, delta
+        else:
+            return delta
 
 
     # write datetime.now

@@ -184,21 +184,25 @@ def init_pins():
   # TODO: Mike
 
 
-def init_phat():
+def init_pi_hat():
   logger.info('Setting Pi Hat ACK high')
+  turn_pin_on(PIN_UC_PWR_ACK_TX)
+
+  logger.info('Checking Pi Hat FAULT')
+  if bit_is_set(PIN_UC_FAULT_RX):
+    logger.error('Pi Hat power circuit FAULT! Check circuit and functionality before clearing condition!')
+    # TODO: email user or something
 
 
 def init_rtc():
+  # Initial checks for time accuracy
+  rtc_now, local_now, delta = rtc.get_datetime_delta(return_all=True)
+
   # TODO: only do config if timedelta is greater than some thresh
   rtc.configure_rtc()
 
-  # Initial checks for time accuracy
-  logger.info('Checking time')
-  logger.info('RTCs current time: {}'.format(rtc.get_datetime_str()))
-  logger.info('Current NTP time: {}'.format(datetime.datetime.now()))
-
   # update RTC if power was lost or if we have internet connection
-  logger.info('Checking to see if power was lost or if there is an internet connection')
+  logger.info('Checking to see if RTC power was lost or if there is an internet connection')
   if rtc.get_power_lost() and sys_mon.is_wlan_connected():
     rtc.set_datetime_now()
     logger.info('Power was lost, time updated to: {}'.format(rtc.get_datetime_str()))
@@ -232,6 +236,7 @@ def get_location(lat, lng):
   return lat, lng 
 #End get_location
 
+
 def get_location_astral(lat, lng, elev):
   loc = Location()
   loc.name = 'solar_tracker'
@@ -242,6 +247,18 @@ def get_location_astral(lat, lng, elev):
   loc.elevation = elev
   return loc
 #End get_location_astral
+
+
+def pin_is_set(pin):
+  return GPIO.input(pin)
+
+
+def turn_pin_on(pin):
+  GPIO.output(pin, GPIO.HIGH)
+
+
+def turn_pin_off(pin):
+    GPIO.output(pin, GPIO.LOW)
 
 '''
 todo: list for uC stuff -GN
@@ -377,6 +394,8 @@ def main():
     logger.info('Moving to sunrise position for tomorrow NOT DEFINED')
   #End if else
 
+  # TODO: use GPIO.cleanup() or GPIO.cleanup([channels]) somewhere before shutdown.
+
   shutdown()
   
 #End main()
@@ -384,6 +403,6 @@ def main():
   
 if __name__ == '__main__':
     # init_pins()
-    # init_phat()
+    # init_pi_hat()
     # init_rtc()
     main()
