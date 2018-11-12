@@ -539,14 +539,25 @@ class DS3231(object):
     # return boolean
     # asserts true if either alarm was set
     def check_and_clear_alarms(self):
-        self.logger.debug('Checking both RTC alarm flags')
+        self.logger.info('Checking both RTC alarm flags')
         is_alarm = False
+
         if self.get_alarm_1_flag():
+            self.logger.info('Alarm 1 set, clearing alarm.')
             is_alarm = True
             self.clear_alarm_1_flag()
+
+            if self.get_alarm_1_flag():
+                self.logger.error('Could not clear Alarm 1!')
+
         if self.get_alarm_2_flag():
+            self.logger.info('Alarm 2 set, clearing alarm.')
             is_alarm = True
             self.clear_alarm_2_flag()
+
+            if self.get_alarm_2_flag():
+                self.logger.error('Could not clear Alarm 2!')
+
         return is_alarm
 
 

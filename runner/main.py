@@ -195,33 +195,39 @@ def init_pi_hat():
 
 
 def init_rtc():
+  # Checking RTC alarms
+  rtc.check_and_clear_alarms()
+
   # Initial checks for time accuracy
   rtc_now, local_now, delta = rtc.get_datetime_delta(return_all=True)
+  diff_hr, diff_min, diff_sec = str(delta).split(':') # NOTE: will bomb very first time RTC is configured due to date difference
 
-  # TODO: only do config if timedelta is greater than some thresh
-  rtc.configure_rtc()
+  # config rtc
+  rtc.configure_rtc() # should not cause issues as alarms are already cleared
 
   # update RTC if power was lost or if we have internet connection
-  logger.info('Checking to see if RTC power was lost or if there is an internet connection')
-  if rtc.get_power_lost() and sys_mon.is_wlan_connected():
-    rtc.set_datetime_now()
-    logger.info('Power was lost, time updated to: {}'.format(rtc.get_datetime_str()))
-  elif rtc.get_power_lost() and not sys_mon.is_wlan_connected():
-    logger.warning('Power was lost and no internet connection, cannot update time!')
-  elif not rtc.get_power_lost() and sys_mon.is_wlan_connected():
-    rtc.set_datetime_now()
-    logger.info('There is an internet connection and power was not lost')
-    logger.info('Time updated to: {}'.format(rtc.get_datetime_str()))
+  if rtc.get_power_lost():
+    logger.error('RTC Power was lost. Check the battery of the system and for the RTC!')
   else:
-    logger.warning('Power was not lost and no connection to update time')
+    logger.info('RTC power was not lost, system healthy.')
 
+  if diff_sec > 2.0:
+    logger.info('RTC time is off, attempting to re-adjust')
 
-# TODO: add get_all_params() and print these
+    if sys_mon.is_wlan_connected():
+      logger.info('There is an internet connection, adjusting RTC time')
+      rtc.set_datetime_now()
+    else:
+      logger.error('No internet connection, unable to adjust RTC time!')
+  else:
+    logger.info('RTC time is accurate, skipping adjustment routine')
+
 
 
 ##########################
 # Helpers
 ##########################
+# TODO: put some of these in utils package
 def pin_is_set(pin):
   return GPIO.input(pin)
 
@@ -231,15 +237,15 @@ def turn_pin_on(pin):
 
 
 def turn_pin_off(pin):
-    GPIO.output(pin, GPIO.LOW)
+  GPIO.output(pin, GPIO.LOW)
 
 
-def set_module_log_level_dbg(module_name):
-    logging.getLogger(module_name).setLevel(logging.DEBUG)
+def set_module_log_level_dbg(logger_name, logger_module_name):
+  logging.getLogger(logger_name + '.' + logger_module_name).setLevel(logging.DEBUG)
 
 
 def set_module_log_level_info(module_name):
-    logging.getLogger(module_name).setLevel(logging.INFO)
+  logging.getLogger(logger_name + '.' + logger_module_name).setLevel(logging.INFO)
 
 
 def get_location(lat, lng):
@@ -404,6 +410,7 @@ def main():
   #End if else
 
   # TODO: use GPIO.cleanup() or GPIO.cleanup([channels]) somewhere before shutdown.
+  #       cleanup() may cause issues with AVRDude, so specifying used channels is probably needed
 
   shutdown()
   
@@ -411,7 +418,8 @@ def main():
 
   
 if __name__ == '__main__':
-    # init_pins()
-    # init_pi_hat()
-    # init_rtc()
-    main()
+  # TODO: need to add check at beginning for log levels
+  # init_pins()
+  # init_pi_hat()
+  # init_rtc()
+  main()
