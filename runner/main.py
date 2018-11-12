@@ -200,10 +200,11 @@ def init_rtc():
 
   # Initial checks for time accuracy
   rtc_now, local_now, delta = rtc.get_datetime_delta(return_all=True)
-  diff_hr, diff_min, diff_sec = str(delta).split(':') # NOTE: will bomb very first time RTC is configured due to date difference
+  #diff_hr, diff_min, diff_sec = str(delta).split(':') # NOTE: will bomb very first time RTC is configured due to date difference
 
   # config rtc
-  rtc.configure_rtc() # should not cause issues as alarms are already cleared
+  if delta.days > 0:
+    rtc.configure_rtc()
 
   # update RTC if power was lost or if we have internet connection
   if rtc.get_power_lost():
@@ -211,7 +212,7 @@ def init_rtc():
   else:
     logger.info('RTC power was not lost, system healthy.')
 
-  if diff_sec > 2.0:
+  if delta.seconds > 2.0:
     logger.info('RTC time is off, attempting to re-adjust')
 
     if sys_mon.is_wlan_connected():
@@ -284,33 +285,26 @@ todo: list for uC stuff -GN
    >>> shutdown -h now immediately
 5) will think about other cases that need to be accounted for in here
 '''
-
-def shutdown():
+# TODO: determine how time will be passed in for update alarm and the error checking for this value
+def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
+  
   # TODO: add flag for nighttime and add this to rtc.set_alarm_sunrise() check
   logger.info('Initiating Shutdown')
 
   # TODO: logic below
   '''
-  while DEV_MODE_PIN_IS_ON:
-    sleep(some time) # set timer and after really long time issue error
-
   # if we want to power down between update periods do this, else set alarm for sunrise
   if (periodic sleep during tracking is desired):
     # TODO: change name to set_alarm_delta() as this name seems dumb now that I read it again
     rtc.set_alarm_now_delta(minutes=?, seconds=?) # values propagated down and calculation done based on user update deg frequency
   else:
     rtc.set_alarm_sunrise()
-  ack_pin = 0
+  turn_pin_off(PIN_UC_PWR_ACK_TX) #uC will now wait ~45 seconds to pull power
   os.system('shutdown now -h')
   '''
 #End shutdown
 
 def main():
-  # todo: very first step should be using the check_and_clear_alarms() from DS3231
-  #       and verifying again that the alarms were cleared. If not, user needs to 
-  #       be notified and some checks about if we can talk to the device should be done.
-  #       if this happens, system cannot shutdown
- 
   logger.info("Current UTC time: {}".format(datetime.utcnow()))
   
   #Run setup if needed
@@ -410,8 +404,12 @@ def main():
   #End if else
 
   # TODO: use GPIO.cleanup() or GPIO.cleanup([channels]) somewhere before shutdown.
-  #       cleanup() may cause issues with AVRDude, so specifying used channels is probably needed
-
+  #       cleanup() may cause issues with AVRDude, so specifying used channels as [] or () is probably needed
+  # TODO: check pin_is_set(PIN_UC_DEV_MODE_RX) to determine if we will use time.sleep() for the desired amount of time
+  #       or if we can actually shutdown and set an alarm. If true, must operate inside a while True: loop and send email to user 
+  #       if they forget to take the device out of dev mode after an hour or something.
+  # TODO: measure power of shutdown/power up to see if it is worth it during day. If it is, make sure we aren't shutting down if next alarm will be
+  #       before amount of time it takes to shutdown
   shutdown()
   
 #End main()

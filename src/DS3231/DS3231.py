@@ -433,6 +433,7 @@ class DS3231(object):
 
     # get datetime timedelta
     # return tuple of difference between RTC datetime and datetime.datetime.now
+    # TODO: consider relativedelta from datetime to have later end time come first.
     def get_datetime_delta(self, return_all=False):
         rtc_datetime = self.get_datetime()
         local_now = datetime.datetime.now()
