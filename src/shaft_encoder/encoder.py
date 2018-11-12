@@ -6,7 +6,8 @@ class encoder:
   def __init__(self, logger_name        = 'main_logger',
                      logger_module_name = 'shaft_encoder',
                      a_pin              = None,
-                     b_pin              = None, 
+                     b_pin              = None,
+                     init_count         = 0, 
                      ppr                = 0
                 ):
     # instantiate logger
@@ -37,7 +38,10 @@ class encoder:
       self.logger.debug('Shaft encoder PPR: {}'.format(ppr))
     
     # Define global count variables
-    self.a_count = 0
+    self.a_count = init_count
+
+    if type(self.a_count) != int or self.a_count < 0 or self.a_count > self.ppr:
+      raise ValueError('Initial count value must be integer 0-ppr')
     
     # Configure interrupts
     self.CFG_Encoder_Int()

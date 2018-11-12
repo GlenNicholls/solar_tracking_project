@@ -156,6 +156,11 @@ sun_sensor = sun_sensor( logger_name            = logger_name,
                          adc_object             = adc
                         )
 
+# TODO: Shaft encoders here
+# also note need to pull in stored parameters before hand to set counter in class each time system starts
+
+# TODO: motor control
+
 
 ##########################
 # init packages
@@ -200,7 +205,6 @@ def init_rtc():
 
   # Initial checks for time accuracy
   rtc_now, local_now, delta = rtc.get_datetime_delta(return_all=True)
-  #diff_hr, diff_min, diff_sec = str(delta).split(':') # NOTE: will bomb very first time RTC is configured due to date difference
 
   # config rtc
   if delta.days > 0:
@@ -213,7 +217,7 @@ def init_rtc():
     logger.info('RTC power was not lost, system healthy.')
 
   if delta.seconds > 2.0:
-    logger.info('RTC time is off, attempting to re-adjust')
+    logger.info('RTC time is not accurate, attempting to re-adjust')
 
     if sys_mon.is_wlan_connected():
       logger.info('There is an internet connection, adjusting RTC time')
@@ -245,7 +249,7 @@ def set_module_log_level_dbg(logger_name, logger_module_name):
   logging.getLogger(logger_name + '.' + logger_module_name).setLevel(logging.DEBUG)
 
 
-def set_module_log_level_info(module_name):
+def set_module_log_level_info(logger_name, logger_module_name):
   logging.getLogger(logger_name + '.' + logger_module_name).setLevel(logging.INFO)
 
 
@@ -305,10 +309,10 @@ def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
 #End shutdown
 
 def main():
-  logger.info("Current UTC time: {}".format(datetime.utcnow()))
+  logger.info("Current UTC time: {}".format(datetime.utcnow())) # TODO: can remove once init_rtc() is uncommented
   
   #Run setup if needed
-  logger.info('Running setup')
+  logger.info('Running setup') # TODO: setup should happen outside of main
   
   #Load stored parameters
   logger.info('Loading stored prarmeters')
@@ -337,7 +341,7 @@ def main():
   
   #Get current position from shart encoders
   # TODO: lol ^^^
-  logger.warn('Get current position from shaft encoders NOT DEFINED')
+  logger.warning('Get current position from shaft encoders NOT DEFINED')
   encoder_az = encoder(5,11,2000) # TODO: Use format I have defined above
   #a is 29 on PI
   #b is 23 on PI
@@ -362,7 +366,7 @@ def main():
     
     #Move to calculated sun posistion
     motor = stepper_motor()
-    deg_az = int(round(solar_az - prev_solar_az))
+    deg_az = int(round(solar_az - prev_solar_az)) # TODO: why are we rounding?
     if deg_az < 0:
       #dir = stepper_motor.EAST
       dir = 0
@@ -372,7 +376,7 @@ def main():
     #motor.move_motor(stepper_motor.AZ, dir, deg_az)
     motor.move_motor(19, dir, deg_az)
     
-    deg_el = int(round(solar_el - prev_solar_el))
+    deg_el = int(round(solar_el - prev_solar_el)) # TODO: reference note above about rounding
     if deg_el < 0:
       #dir = stepper_motor.SOUTH
       dir = 0
@@ -417,6 +421,7 @@ def main():
   
 if __name__ == '__main__':
   # TODO: need to add check at beginning for log levels
+  # TODO: how do we want to pull info from state file?
   # init_pins()
   # init_pi_hat()
   # init_rtc()
