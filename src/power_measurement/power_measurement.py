@@ -80,9 +80,11 @@ class power_measurement(object):
     
     # current measurement
     # current=(Vmeas/Gain)**2/R_shunt
+    # current = (Vmeas/Gain)/R_shunt
     def get_current_A(self):
         Vmeas = self.__meas_adc_voltage(self._curr_ch)
-        A = (Vmeas / self._curr_G) ** 2 / self._curr_Rshunt
+        # A = (Vmeas / self._curr_G) ** 2 / self._curr_Rshunt
+        A = (Vmeas/self._curr_G) / self._curr_Rshunt
         self.logger.debug('Measured current: {} [A]'.format(A))
         return A
 
