@@ -1,5 +1,6 @@
 from __future__ import division
 import RPi.GPIO as GPIO  
+import utils.hardware as HW
 
 class encoder:
 
@@ -47,14 +48,14 @@ class encoder:
     self.CFG_Encoder_Int()
 
   def CFG_Encoder_Int(self):
-    self.logger.info('Initializing pin directions and enabling interrupts on specified channels')
+    self.logger.info('Initializing rising edge INT on pin {}'.format(self.A_pin))
 
-    #set up gpio module
-    GPIO.setmode(GPIO.BCM)
-  
-    # Set up Pins as inputs, with internal pull 
-    GPIO.setup(self.A_pin, GPIO.IN)
-    GPIO.setup(self.B_pin, GPIO.IN)
+    # #set up gpio module                         
+    # GPIO.setmode(GPIO.BCM)                      
+    #                                             
+    # # Set up Pins as inputs, with internal pull 
+    # GPIO.setup(self.A_pin, GPIO.IN)             
+    # GPIO.setup(self.B_pin, GPIO.IN)             
 
     # Set up rising edge detectors for each pin
     GPIO.add_event_detect(self.A_pin, GPIO.RISING, callback=self.A_pin_ISR)
@@ -64,7 +65,7 @@ class encoder:
     # Check if channel A is leading channel B (A=1,B=0)
     # If channel A leads, rotation is CCW
     # Increment/Decrement position counter based on direction
-    if GPIO.input(self.B_pin):
+    if HW.pin_is_set(self.B_pin):
       #CCW
       self.a_count += 1
     else:
@@ -73,7 +74,7 @@ class encoder:
 
 
   def get_degrees(self):
-    deg = (self.a_count)*360/self.ppr
+    deg = self.a_count * 360.0 / self.ppr
     self.logger.debug('Shaft encoder degrees: {}'.format(deg))
     return deg
   
