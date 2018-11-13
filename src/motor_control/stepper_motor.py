@@ -25,7 +25,7 @@ class stepper_motor:
     MOT.setmode(MOT.BCM)
     lines = [DIR, EL, CLK, AZ, RST] # TODO: Make this part of class init
     for pin in lines:  #sets pins 12,13,16,19,26 as outputs
-        MOT.setup(pin,MOT.OUT)
+        MOT.setup(pin,MOT.OUT) # TODO: should be done in main
   #End __init__
   
   #TODO: Pass parameters using enum

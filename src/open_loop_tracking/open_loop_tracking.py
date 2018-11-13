@@ -124,6 +124,7 @@ def AZELCalculator(JDN,time,Lat,Long,TZ):
     return(AZ,EL,sn,sr,ss)
 
 
+# TODO: below can be simplified, use function
 H = (int)(time.strftime('%H',localtime()))
 M = (int)(time.strftime('%M',localtime()))
 Y = (int)(time.strftime('%Y',localtime()))
@@ -132,15 +133,17 @@ D = (int)(time.strftime('%d',localtime()))
 TZ = (int)(time.strftime('%z',localtime()))/100
 doy = (int)(time.strftime('%j',localtime()))
 time = H/24+M/1400
-Y,Mo,D,H,M,TZ
+Y,Mo,D,H,M,TZ # TODO: not sure what this does
 
 
+# TODO: lat/long should be defined as class parameter
 Lat = 38.89; #Entered Latitude
 Long = -104.8 #Entered Longitude
 time = H/24+M/1440
 JDN = (Y-1900-29)*365+29*366+doy+1 #Julian Date Number based on year
 
 
+# TODO: get/set below
 AZnow,ELnow,noon,sunrise,sunset = AZELCalculator(JDN,time,Lat,Long,TZ)
 
 AZsr,ELsr,_,_,_ = AZELCalculator(JDN,sunrise,Lat,Long,TZ)
