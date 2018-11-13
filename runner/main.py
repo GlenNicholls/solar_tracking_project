@@ -11,7 +11,7 @@ import os
 import sun_sensor
 import Adafruit_MCP3008 as ADC
 import RPi.GPIO         as GPIO  
-from utils             import utils
+from utils             import utils, hardware
 from DS3231            import DS3231
 from motor_control     import stepper_motor
 from shaft_encoder     import encoder
@@ -65,6 +65,7 @@ logger_sys_mon_name     = 'sys_mon'
 logger_panel_pwr_name   = 'panel_power'
 logger_battery_pwr_name = 'battery_power'
 logger_sun_sensor_name  = 'sun_sensor'
+logger_hw_name          = 'hardware_info'
 
 util_handle = utils(logger_name)
 logger = util_handle.init_logger()
@@ -161,6 +162,11 @@ sun_sensor = sun_sensor( logger_name            = logger_name,
 
 # TODO: motor control
 
+# Hardware abstraction
+hw_handle = hardware( logger_name        = logger_name,
+                      logger_module_name = logger_hw_name 
+                     )
+
 
 ##########################
 # init packages
@@ -191,7 +197,7 @@ def init_pins():
 
 def init_pi_hat():
   logger.info('Setting Pi Hat ACK high')
-  turn_pin_on(PIN_UC_PWR_ACK_TX)
+  hw_handle.turn_pin_on(PIN_UC_PWR_ACK_TX)
 
   logger.info('Checking Pi Hat FAULT')
   if bit_is_set(PIN_UC_FAULT_RX):
@@ -232,27 +238,7 @@ def init_rtc():
 ##########################
 # Helpers
 ##########################
-# TODO: put some of these in utils package
-def pin_is_set(pin):
-  return GPIO.input(pin)
-
-
-def turn_pin_on(pin):
-  GPIO.output(pin, GPIO.HIGH)
-
-
-def turn_pin_off(pin):
-  GPIO.output(pin, GPIO.LOW)
-
-
-def set_module_log_level_dbg(logger_name, logger_module_name):
-  logging.getLogger(logger_name + '.' + logger_module_name).setLevel(logging.DEBUG)
-
-
-def set_module_log_level_info(logger_name, logger_module_name):
-  logging.getLogger(logger_name + '.' + logger_module_name).setLevel(logging.INFO)
-
-
+# TODO: where should these go
 def get_location(lat, lng):
   try:
     logger.info('Getting location from IP')
@@ -282,7 +268,7 @@ def get_location_astral(lat, lng, elev):
 
 '''
 todo: list for uC stuff -GN
-1) startup should drive uC ack pin high
+x 1) startup should drive uC ack pin high
 2) FAULT pin should be an interrupt. If this ever goes high, need to somehow
    issue text/email/tweet notifying user that uC has experienced an issue
 4) once dev mode pin from uC is low, then drive ack pin to uC low and commence
@@ -303,8 +289,8 @@ def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
     rtc.set_alarm_now_delta(minutes=?, seconds=?) # values propagated down and calculation done based on user update deg frequency
   else:
     rtc.set_alarm_sunrise()
-  turn_pin_off(PIN_UC_PWR_ACK_TX) #uC will now wait ~45 seconds to pull power
-  os.system('shutdown now -h')
+  hw_handle.turn_pin_off(PIN_UC_PWR_ACK_TX) #uC will now wait ~45 seconds to pull power
+  os.system('sudo shutdown now -h')
   '''
 #End shutdown
 

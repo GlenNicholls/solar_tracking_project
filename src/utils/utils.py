@@ -4,7 +4,7 @@ import logging
 import datetime
 
 
-class utils(object):
+class utils:
     def __init__ (self, logger_name = 'main_logger', debug=False):
         self._logger_name = logger_name
         self._dbg = debug
@@ -30,11 +30,20 @@ class utils(object):
 
         return logger
 
+    def set_module_log_level_dbg(logger_module_name, logger_name=self._logger_name):
+        logging.getLogger(logger_name + '.' + logger_module_name).setLevel(logging.DEBUG)
+    
+    
+    def set_module_log_level_info(logger_module_name, logger_name=self._logger_name):
+        logging.getLogger(logger_name + '.' + logger_module_name).setLevel(logging.INFO)
+
+
     def __write_table_header(self, string=[], max_str_len=None):
         str_to_write = ''
         for i, str_enum in enumerate(string):
             str_to_write += '| {:^{buff_len}} '.format(str_enum, buff_len=max_str_len)
         print(str_to_write + '|')
+
 
     def __write_table_body(self, string=[], max_str_len=None):
         str_to_write = ''
@@ -44,6 +53,8 @@ class utils(object):
             str_to_write += '| {:^{buff_len}} '.format(str_enum, buff_len=max_str_len)
         print(str_to_write + '|')
 
+
+    # TODO: scale float precision to max size - some fixed amount
     def write_table(self, string=[], max_str_len=None, header=False):
         if max_str_len == None or type(max_str_len) != int or max_str_len <= 1:
             raise ValueError('Max string length must be integer >= 1')
@@ -55,3 +66,31 @@ class utils(object):
             self.__write_table_header(string, max_str_len)
         else:
             self.__write_table_body(string, max_str_len)
+
+
+
+import RPi.GPIO as GPIO  
+
+class hardware:
+    def __init__(self, logger_name        = 'main_logger',
+                       logger_module_name = 'hardware'
+                ):
+        self.logger = logging.getLogger(logger_name + '.' + logger_module_name)
+        self.logger.info('creating an instance of the {}'.format(logger_module_name))
+
+
+    def pin_is_set(self, pin):
+        pin_state = GPIO.input(pin)
+        self.logger.debug('Pin {} state: {}'.format(pin, pin_state))
+        return pin_state
+
+    
+    def turn_pin_on(self, pin):
+        self.logger.debug('Setting pin {} HIGH'.format(pin))
+        GPIO.output(pin, GPIO.HIGH)
+
+
+    def turn_pin_off(self, pin):
+        self.logger.debug('Setting pin {} LOW'.format(pin))
+        GPIO.output(pin, GPIO.LOW)
+
