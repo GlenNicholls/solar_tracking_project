@@ -172,6 +172,10 @@ hw_handle = hardware( logger_name        = logger_name,
 # init packages
 ##########################
 def init_pins():
+  # debug
+  logger.info('Setting GPIO pin warnings to true')
+  GPIO.setwarnings(True)
+
   # mode
   logger.info('Setting GPIO pin mode to BCM')
   GPIO.setmode(GPIO.BCM)
