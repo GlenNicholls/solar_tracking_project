@@ -8,15 +8,17 @@ import geocoder
 import pytz
 import os
 
-import sun_sensor
 import Adafruit_MCP3008 as ADC
 import RPi.GPIO         as GPIO  
+
+import sun_sensor
 from utils             import utils, hardware
 from DS3231            import DS3231
 from motor_control     import stepper_motor
 from shaft_encoder     import encoder
 from system_monitor    import system_monitor
 from power_measurement import power_measurement
+from stepper_motor     import stepper_motor
 
 #NOTE: indentation is 2 spaces
   
@@ -49,6 +51,11 @@ PIN_UC_DEV_MODE_RX = 8
 
 # Motor Control
 # TODO: Mike
+PIN_MOT_ELEVATION = None
+PIN_MOT_AZIMUTH   = None
+PIN_MOT_DIRECTION = None
+PIN_MOT_CLOCK     = None
+PIN_MOT_RESET     = None
 
 
 ##########################
@@ -63,8 +70,11 @@ logger_name = 'main_app'
 logger_rtc_name         = 'rtc'
 logger_sys_mon_name     = 'sys_mon'
 logger_panel_pwr_name   = 'panel_power'
+logger_az_encoder_name  = 'azimuth_encoder'
+logger_el_encoder_name  = 'elevation_encoder'
 logger_battery_pwr_name = 'battery_power'
 logger_sun_sensor_name  = 'sun_sensor'
+logger_motor_name       = 'motor'
 logger_hw_name          = 'hardware_info'
 
 util_handle = utils(logger_name)
@@ -145,7 +155,6 @@ battery_power = power_measurement( logger_name          = logger_name,
 
 # Sun Sensor
 move_thresh_perc = 0.1
-
 sun_sensor = sun_sensor( logger_name            = logger_name,
                          logger_module_name     = logger_sun_sensor_name,
                          move_motor_thresh_perc = move_thresh_perc,
@@ -159,8 +168,35 @@ sun_sensor = sun_sensor( logger_name            = logger_name,
 
 # TODO: Shaft encoders here
 # also note need to pull in stored parameters before hand to set counter in class each time system starts
+az_encoder = encoder( logger_name        = logger_name,
+                      logger_module_name = logger_az_encoder_name,
+                      a_pin              = PIN_SE_AZIMUTH_A,
+                      b_pin              = PIN_SE_AZIMUTH_B,
+                      init_count         = 0, # TODO: load from file
+                      ppr                = 0
+                     )
+
+el_encoder = encoder( logger_name        = logger_name,
+                      logger_module_name = logger_el_encoder_name,
+                      a_pin              = PIN_SE_ELEVATION_A,
+                      b_pin              = PIN_SE_ELEVATION_B,
+                      init_count         = 0, # TODO: load from file
+                      ppr                = 0
+                     )
 
 # TODO: motor control
+az_steps_per_deg = 50
+el_steps_per_deg = 62
+motor = stepper_motor( logger_name        = logger_name,
+                       logger_module_name = logger_motor_name,
+                       pin_elevation      = PIN_MOT_ELEVATION,
+                       pin_azimuth        = PIN_MOT_AZIMUTH,
+                       pin_direction      = PIN_MOT_DIRECTION,
+                       pin_clock          = PIN_MOT_CLOCK,
+                       pin_reset          = PIN_MOT_RESET,
+                       az_steps_per_deg   = az_steps_per_deg,
+                       el_steps_per_deg   = el_steps_per_deg 
+                      )
 
 # Hardware abstraction
 hw_handle = hardware( logger_name        = logger_name,
@@ -172,6 +208,10 @@ hw_handle = hardware( logger_name        = logger_name,
 # init packages
 ##########################
 def init_pins():
+  # debug
+  logger.info('Setting GPIO pin warnings to true')
+  GPIO.setwarnings(True)
+
   # mode
   logger.info('Setting GPIO pin mode to BCM')
   GPIO.setmode(GPIO.BCM)
@@ -193,6 +233,11 @@ def init_pins():
 
   # Motors 
   # TODO: Mike
+  GPIO.setup(PIN_MOT_AZIMUTH,   GPIO.OUT)
+  GPIO.setup(PIN_MOT_ELEVATION, GPIO.OUT)
+  GPIO.setup(PIN_MOT_DIRECTION, GPIO.OUT)
+  GPIO.setup(PIN_MOT_CLOCK,     GPIO.OUT)
+  GPIO.setup(PIN_MOT_RESET,     GPIO.OUT)
 
 
 def init_pi_hat():

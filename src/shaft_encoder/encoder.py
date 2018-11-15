@@ -22,7 +22,7 @@ class encoder:
     if len((self.A_pin, self.B_pin)) > len(set((self.A_pin, self.B_pin))):
       raise ValueError('GPIO pin numbers must be unique integers!')
     if self.A_pin == None or type(self.A_pin) != int:
-      raise ValueError('GPIO Must be integer!')
+      raise ValueError('GPIO must be an integer!')
     else:
       self.logger.debug('Shaft encoder A pin: {}'.format(A_pin))
     if self.B_pin == None or type(self.B_pin) != int:
