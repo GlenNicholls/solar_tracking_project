@@ -70,7 +70,8 @@ logger_name = 'main_app'
 logger_rtc_name         = 'rtc'
 logger_sys_mon_name     = 'sys_mon'
 logger_panel_pwr_name   = 'panel_power'
-logger_encoder_name     = 'shaft_encoder'
+logger_az_encoder_name  = 'azimuth_encoder'
+logger_el_encoder_name  = 'elevation_encoder'
 logger_battery_pwr_name = 'battery_power'
 logger_sun_sensor_name  = 'sun_sensor'
 logger_motor_name       = 'motor'
@@ -154,7 +155,6 @@ battery_power = power_measurement( logger_name          = logger_name,
 
 # Sun Sensor
 move_thresh_perc = 0.1
-
 sun_sensor = sun_sensor( logger_name            = logger_name,
                          logger_module_name     = logger_sun_sensor_name,
                          move_motor_thresh_perc = move_thresh_perc,
@@ -168,9 +168,21 @@ sun_sensor = sun_sensor( logger_name            = logger_name,
 
 # TODO: Shaft encoders here
 # also note need to pull in stored parameters before hand to set counter in class each time system starts
-shaft_encoder = encoder( logger_name        = logger_name,
-                         logger_module_name = logger_encoder_name,
-                        )
+az_encoder = encoder( logger_name        = logger_name,
+                      logger_module_name = logger_az_encoder_name,
+                      a_pin              = PIN_SE_AZIMUTH_A,
+                      b_pin              = PIN_SE_AZIMUTH_B,
+                      init_count         = 0, # TODO: load from file
+                      ppr                = 0
+                     )
+
+el_encoder = encoder( logger_name        = logger_name,
+                      logger_module_name = logger_el_encoder_name,
+                      a_pin              = PIN_SE_ELEVATION_A,
+                      b_pin              = PIN_SE_ELEVATION_B,
+                      init_count         = 0, # TODO: load from file
+                      ppr                = 0
+                     )
 
 # TODO: motor control
 az_steps_per_deg = 50
@@ -221,6 +233,11 @@ def init_pins():
 
   # Motors 
   # TODO: Mike
+  GPIO.setup(PIN_MOT_AZIMUTH,   GPIO.OUT)
+  GPIO.setup(PIN_MOT_ELEVATION, GPIO.OUT)
+  GPIO.setup(PIN_MOT_DIRECTION, GPIO.OUT)
+  GPIO.setup(PIN_MOT_CLOCK,     GPIO.OUT)
+  GPIO.setup(PIN_MOT_RESET,     GPIO.OUT)
 
 
 def init_pi_hat():
