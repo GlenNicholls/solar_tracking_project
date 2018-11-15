@@ -70,6 +70,7 @@ logger_name = 'main_app'
 logger_rtc_name         = 'rtc'
 logger_sys_mon_name     = 'sys_mon'
 logger_panel_pwr_name   = 'panel_power'
+logger_encoder_name     = 'shaft_encoder'
 logger_battery_pwr_name = 'battery_power'
 logger_sun_sensor_name  = 'sun_sensor'
 logger_motor_name       = 'motor'
@@ -167,6 +168,9 @@ sun_sensor = sun_sensor( logger_name            = logger_name,
 
 # TODO: Shaft encoders here
 # also note need to pull in stored parameters before hand to set counter in class each time system starts
+shaft_encoder = encoder( logger_name        = logger_name,
+                         logger_module_name = logger_encoder_name,
+                        )
 
 # TODO: motor control
 az_steps_per_deg = 50
