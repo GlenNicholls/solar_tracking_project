@@ -8,15 +8,17 @@ import geocoder
 import pytz
 import os
 
-import sun_sensor
 import Adafruit_MCP3008 as ADC
 import RPi.GPIO         as GPIO  
+
+import sun_sensor
 from utils             import utils, hardware
 from DS3231            import DS3231
 from motor_control     import stepper_motor
 from shaft_encoder     import encoder
 from system_monitor    import system_monitor
 from power_measurement import power_measurement
+from stepper_motor     import stepper_motor
 
 #NOTE: indentation is 2 spaces
   
@@ -49,6 +51,11 @@ PIN_UC_DEV_MODE_RX = 8
 
 # Motor Control
 # TODO: Mike
+PIN_MOT_ELEVATION = None
+PIN_MOT_AZIMUTH   = None
+PIN_MOT_DIRECTION = None
+PIN_MOT_CLOCK     = None
+PIN_MOT_RESET     = None
 
 
 ##########################
@@ -65,6 +72,7 @@ logger_sys_mon_name     = 'sys_mon'
 logger_panel_pwr_name   = 'panel_power'
 logger_battery_pwr_name = 'battery_power'
 logger_sun_sensor_name  = 'sun_sensor'
+logger_motor_name       = 'motor'
 logger_hw_name          = 'hardware_info'
 
 util_handle = utils(logger_name)
@@ -161,6 +169,18 @@ sun_sensor = sun_sensor( logger_name            = logger_name,
 # also note need to pull in stored parameters before hand to set counter in class each time system starts
 
 # TODO: motor control
+az_steps_per_deg = 50
+el_steps_per_deg = 62
+motor = stepper_motor( logger_name        = logger_name,
+                       logger_module_name = logger_motor_name,
+                       pin_elevation      = PIN_MOT_ELEVATION,
+                       pin_azimuth        = PIN_MOT_AZIMUTH,
+                       pin_direction      = PIN_MOT_DIRECTION,
+                       pin_clock          = PIN_MOT_CLOCK,
+                       pin_reset          = PIN_MOT_RESET,
+                       az_steps_per_deg   = az_steps_per_deg,
+                       el_steps_per_deg   = el_steps_per_deg 
+                      )
 
 # Hardware abstraction
 hw_handle = hardware( logger_name        = logger_name,
