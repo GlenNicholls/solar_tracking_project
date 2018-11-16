@@ -257,7 +257,7 @@ def init_pi_hat():
   hw_handle.set_pin_high(PIN_UC_PWR_ACK_TX)
 
   logger.info('Checking Pi Hat FAULT')
-  if hardware.pin_is_set(PIN_UC_FAULT_RX):
+  if hw_handle.pin_is_set(PIN_UC_FAULT_RX):
     logger.error('Pi Hat power circuit FAULT! Check circuit and functionality before clearing condition!')
     # TODO: email user or something
 
