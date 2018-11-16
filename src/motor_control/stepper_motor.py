@@ -6,9 +6,9 @@ from enum import Enum
 
 class MotorCtrl_t(Enum):
     WEST    = 0
-    NORTH   = 1
+    NORTH   = 0
     EAST    = 1
-    SOUTH   = 0
+    SOUTH   = 1
     ENABLE  = 1
     DISABLE = 0
 
