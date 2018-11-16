@@ -120,12 +120,12 @@ adc = ADC.MCP3008( clk  = PIN_ADC_CLK,
 curr_sens_gain = 75
 
 curr_sens_panel_Rshunt = 0.3
-vdiv_panel_R1          = 1000
-vdiv_panel_R2          = 160
+vdiv_panel_R1          = 100000
+vdiv_panel_R2          = 16000
 
 curr_sens_battery_Rshunt = 0.001
-vdiv_battery_R1          = 1000
-vdiv_battery_R2          = 360
+vdiv_battery_R1          = 100000
+vdiv_battery_R2          = 36000
 
 panel_power = power_measurement( logger_name          = logger_name,
                                  logger_module_name   = logger_panel_pwr_name,
