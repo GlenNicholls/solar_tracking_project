@@ -242,7 +242,7 @@ def init_pins():
 
 def init_pi_hat():
   logger.info('Setting Pi Hat ACK high')
-  hw_handle.turn_pin_on(PIN_UC_PWR_ACK_TX)
+  hw_handle.set_pin_high(PIN_UC_PWR_ACK_TX)
 
   logger.info('Checking Pi Hat FAULT')
   if bit_is_set(PIN_UC_FAULT_RX):
@@ -334,7 +334,7 @@ def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
     rtc.set_alarm_now_delta(minutes=?, seconds=?) # values propagated down and calculation done based on user update deg frequency
   else:
     rtc.set_alarm_sunrise()
-  hw_handle.turn_pin_off(PIN_UC_PWR_ACK_TX) #uC will now wait ~45 seconds to pull power
+  hw_handle.set_pin_low(PIN_UC_PWR_ACK_TX) #uC will now wait ~45 seconds to pull power
   os.system('sudo shutdown now -h')
   '''
 #End shutdown

@@ -85,12 +85,12 @@ class hardware:
         return pin_state
 
     
-    def turn_pin_on(self, pin):
+    def set_pin_high(self, pin):
         self.logger.debug('Setting pin {} HIGH'.format(pin))
         GPIO.output(pin, GPIO.HIGH)
 
 
-    def turn_pin_off(self, pin):
+    def set_pin_low(self, pin):
         self.logger.debug('Setting pin {} LOW'.format(pin))
         GPIO.output(pin, GPIO.LOW)
 
