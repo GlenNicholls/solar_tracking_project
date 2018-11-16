@@ -1,0 +1,35 @@
+component, component_pin, net_name, pi_pin, pi_pin_bcm, direction, notes
+
+# Shaft Encoders
+SE, az_a, AZIMUTH_A,   29, 5,  OUT, lvl-shifted
+SE, az_b, AZIMUTH_B,   23, 11, OUT, lvl-shifted
+SE, el_a, ELEVATION_A, 37, 26, OUT, lvl-shifted
+SE, el_a, ELEVATION_B, 33, 13, OUT, lvl-shifted
+
+# ADC
+ADC, 10, CS,   19, 10, NULL, comms initiated by Adafruit software
+ADC, 11, DIN,  38, 20, NULL, comms initiated by Adafruit software
+ADC, 12, DOUT, 35, 19, NULL, comms initiated by Adafruit software
+ADC, 13, SCK,  40, 21, NULL, comms initiated by Adafruit software
+
+# RTC
+RTC, 7, SDA, 3, 2, NULL, lvl-shifted with DNP low-side resistor comms initiated by smbus
+RTC, 8, SCL, 5, 3, NULL, lvl-shifted with DNP low-side resistor comms initiated by smbus
+
+# ATTiny
+UC, 4,  RST_N,       36, 16, NULL, lvl-shifted and vcc to main power and not used since programming taken care of by avrdude
+UC, 6,  PWR_ACK_TX,  22, 25, OUT,  lvl-shifted
+UC, 7,  MOSI,        18, 24, NULL, lvl-shifted and not used since programming taken care of by avrdude
+UC, 8,  MISO,        16, 23, NULL, lvl-shifted and not used since programming taken care of by avrdude
+UC, 9,  SCK,         32, 12, NULL, lvl-shifted and not used since programming taken care of by avrdude
+UC, 10, DEV_MODE_RX, 24, 8,  IN,   lvl-shifted 
+UC, 12, FAULT_RX,    26, 7,  IN,   lvl-shifted 
+
+# Motor Controller
+MOT, , , 31, 6,  , 
+MOT, , , 21, 9,  , 
+MOT, , , 28, 1,  , 
+MOT, , , 15, 22, , 
+MOT, , , 13, 27, , 
+MOT, , , 11, 17, , 
+MOT, , , 12, 18, , 
