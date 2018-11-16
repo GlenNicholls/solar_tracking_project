@@ -88,9 +88,9 @@ You should see an output similar to this:
 ## 4) Check wiring of programming wires and the clock fuses of device
 Check using this command that you can talk to ATTiny85A:
 
-    cd misc_dev/
+    cd dev/
 
-    sudo avrdude -p t84 -C avrdude_gpio.conf -c pi_1 -e -v
+    sudo avrdude -p t84 -C avrdude_gpio.conf -c pi_hat -e -v
 
 If this does not work, double check that the pins used below match the Pi's BCM pin numbers. Double check schematic
 and wiring as well:
@@ -99,7 +99,7 @@ and wiring as well:
     # Linux GPIO configuration for avrdude.
     # Change the lines below to the GPIO pins connected to the AVR.
     programmer
-        id    = "pi_1";
+        id    = "pi_hat";
         desc  = "Use the Linux sysfs interface to bitbang GPIO lines";
         type  = "linuxgpio";
         reset = 23;
