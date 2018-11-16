@@ -30,11 +30,11 @@ class utils:
 
         return logger
 
-    def set_module_log_level_dbg(self, logger_module_name, logger_name=self._logger_name):
+    def set_module_log_level_dbg(self, logger_module_name, logger_name):
         logging.getLogger(logger_name + '.' + logger_module_name).setLevel(logging.DEBUG)
     
     
-    def set_module_log_level_info(self, logger_module_name, logger_name=self._logger_name):
+    def set_module_log_level_info(self, logger_module_name, logger_name):
         logging.getLogger(logger_name + '.' + logger_module_name).setLevel(logging.INFO)
 
 
