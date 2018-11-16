@@ -14,7 +14,7 @@ from Adafruit_MCP3008.MCP3008 import MCP3008
 from sun_sensor        import sun_sensor
 from utils             import utils, hardware
 from DS3231            import DS3231
-from motor_control     import stepper_motor#, MotorCtrl_t
+from motor_control     import stepper_motor, MotorCtrl_t
 from shaft_encoder     import encoder
 from system_monitor    import system_monitor
 from power_measurement import power_measurement
