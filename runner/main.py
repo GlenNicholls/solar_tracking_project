@@ -436,10 +436,18 @@ def main():
     motor.move_motor(PIN_MOT_ELEVATION, dir, deg_el)
 
     final_encoder_az = az_encoder.get_degrees()
-    logger.info('Shaft encoder final: [{}]'.format(final_encoder_az))
+    logger.info('Azimuth shaft encoder final: [{}]'.format(final_encoder_az))
+    
+    final_encoder_el = el_encoder.get_degrees()
+    logger.info('Elevation shaft encoder final: [{}]'.format(final_encoder_el))
 
-    degrees_move_encoder = final_encoder_az - init_encoder_az
-    logger.info('Shaft encoder degrees moved: [{}]'.format(degrees_move_encoder))
+
+
+    degrees_move_az = final_encoder_az - init_encoder_az
+    logger.info('Azimuth shaft encoder degrees moved: [{}]'.format(degrees_move_az))
+    
+    degrees_move_el = final_encoder_el - init_encoder_el
+    logger.info('Elevation shaft encoder degrees moved: [{}]'.format(degrees_move_el))
     
     #Read light sensor
     logger.info('Reading light sensor')
