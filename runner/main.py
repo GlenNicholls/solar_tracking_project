@@ -246,7 +246,7 @@ def init_pins():
   GPIO.setup(PIN_MOT_DIRECTION, GPIO.OUT)  
   
   # Limit Switches
-  logger.info('Setting GPIO pin directions for motor control driver L297')
+  logger.info('Setting GPIO pin directions for limit switches')
   
   GPIO.setup(PIN_LIM_SW_AZIMUTH,   GPIO.IN)
   GPIO.setup(PIN_LIM_SW_ELEVATION, GPIO.IN)
