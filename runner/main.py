@@ -8,10 +8,10 @@ import geocoder
 import pytz
 import os
 
-import Adafruit_MCP3008 as ADC
 import RPi.GPIO         as GPIO
-import sun_sensor
+from Adafruit_MCP3008.MCP3008 import MCP3008
 
+from sun_sensor        import sun_sensor
 from utils             import utils, hardware
 from DS3231            import DS3231
 from motor_control     import stepper_motor
@@ -110,11 +110,11 @@ adc_ch_up_left_sun_sens  = 5 # can change since connections come in on header
 adc_ch_lo_right_sun_sens = 6 # can change since connections come in on header
 adc_ch_lo_left_sun_sens  = 7 # can change since connections come in on header
 
-adc = ADC.MCP3008( clk  = PIN_ADC_CLK,
-                   cs   = PIN_ADC_CS,
-                   miso = PIN_ADC_MISO,
-                   mosi = PIN_ADC_MOSI
-                  )
+adc = MCP3008( clk  = PIN_ADC_CLK,
+               cs   = PIN_ADC_CS,
+               miso = PIN_ADC_MISO,
+               mosi = PIN_ADC_MOSI
+              )
 
 # Power Measurements
 curr_sens_gain = 75
@@ -155,25 +155,26 @@ battery_power = power_measurement( logger_name          = logger_name,
 
 # Sun Sensor
 move_thresh_perc = 0.1
-sun_sensor = sun_sensor( logger_name            = logger_name,
-                         logger_module_name     = logger_sun_sensor_name,
-                         move_motor_thresh_perc = move_thresh_perc,
-                         adc_volt_ref           = adc_vref,
-                         adc_ur_sens_ch         = adc_ch_up_right_sun_sens,
-                         adc_ul_sens_ch         = adc_ch_up_left_sun_sens,
-                         adc_lr_sens_ch         = adc_ch_lo_right_sun_sens,
-                         adc_ll_sens_ch         = adc_ch_lo_left_sun_sens,
-                         adc_object             = adc
-                        )
+sun_sensors = sun_sensor( logger_name            = logger_name,
+                          logger_module_name     = logger_sun_sensor_name,
+                          move_motor_thresh_perc = move_thresh_perc,
+                          adc_volt_ref           = adc_vref,
+                          adc_ur_sens_ch         = adc_ch_up_right_sun_sens,
+                          adc_ul_sens_ch         = adc_ch_up_left_sun_sens,
+                          adc_lr_sens_ch         = adc_ch_lo_right_sun_sens,
+                          adc_ll_sens_ch         = adc_ch_lo_left_sun_sens,
+                          adc_object             = adc
+                         )
 
 # TODO: Shaft encoders here
-# also note need to pull in stored parameters before hand to set counter in class each time system starts
+# also note need to pull in stored parameters beforehand to set counter in class each time system starts
+SE_ppr = 2000
 az_encoder = encoder( logger_name        = logger_name,
                       logger_module_name = logger_az_encoder_name,
                       a_pin              = PIN_SE_AZIMUTH_A,
                       b_pin              = PIN_SE_AZIMUTH_B,
                       init_count         = 0, # TODO: load from file
-                      ppr                = 0
+                      ppr                = SE_ppr
                      )
 
 el_encoder = encoder( logger_name        = logger_name,
@@ -181,7 +182,7 @@ el_encoder = encoder( logger_name        = logger_name,
                       a_pin              = PIN_SE_ELEVATION_A,
                       b_pin              = PIN_SE_ELEVATION_B,
                       init_count         = 0, # TODO: load from file
-                      ppr                = 0
+                      ppr                = SE_ppr
                      )
 
 # TODO: motor control
@@ -248,6 +249,11 @@ def init_pi_hat():
   if bit_is_set(PIN_UC_FAULT_RX):
     logger.error('Pi Hat power circuit FAULT! Check circuit and functionality before clearing condition!')
     # TODO: email user or something
+
+
+def init_shaft_encoders():
+  az_encoder.CFG_Encoder_Int()
+  el_encoder.CFG_Encoder_Int()
 
 
 def init_rtc():
@@ -455,5 +461,6 @@ if __name__ == '__main__':
   # TODO: how do we want to pull info from state file?
   # init_pins()
   # init_pi_hat()
+  # init_shaft_encoders()
   # init_rtc()
   main()

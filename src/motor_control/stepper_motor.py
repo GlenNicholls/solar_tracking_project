@@ -1,4 +1,5 @@
 import time
+import logging
 import RPi.GPIO as MOT
 from enum import Enum, unique
 

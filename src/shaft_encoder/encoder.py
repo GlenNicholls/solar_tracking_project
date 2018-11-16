@@ -1,4 +1,5 @@
 from __future__ import division
+import logging
 import RPi.GPIO as GPIO  
 from utils import hardware as HW
 
@@ -24,19 +25,19 @@ class encoder:
     if self.A_pin == None or type(self.A_pin) != int:
       raise ValueError('GPIO must be an integer!')
     else:
-      self.logger.debug('Shaft encoder A pin: {}'.format(A_pin))
+      self.logger.debug('Shaft encoder A pin: {}'.format(self.A_pin))
     if self.B_pin == None or type(self.B_pin) != int:
       raise ValueError('GPIO Must be integer!')
     else:
-      self.logger.debug('Shaft encoder B pin: {}'.format(B_pin))
+      self.logger.debug('Shaft encoder B pin: {}'.format(self.B_pin))
 
     # Define pulses per revolution (2000 for chosen encoders)
     self.ppr = ppr
 
     if type(self.ppr) != int or self.ppr == 0:
-      raise ValueError('GPIO Must be integer >0!')
+      raise ValueError('Pulse per revolution Must be integer >0!')
     else:
-      self.logger.debug('Shaft encoder PPR: {}'.format(ppr))
+      self.logger.debug('Shaft encoder PPR: {}'.format(self.ppr))
     
     # Define global count variables
     self.a_count = init_count
@@ -45,7 +46,7 @@ class encoder:
       raise ValueError('Initial count value must be integer 0-ppr')
     
     # Configure interrupts
-    self.CFG_Encoder_Int()
+    #self.CFG_Encoder_Int()
 
   def CFG_Encoder_Int(self):
     self.logger.info('Initializing rising edge INT on pin {}'.format(self.A_pin))
