@@ -428,7 +428,7 @@ def main():
       dir_el = MotorCtrl_t.SOUTH
     else:
       dir_el = MotorCtrl_t.NORTH
-    print(dir)
+    print(dir_el)
     motor.move_motor(PIN_MOT_ELEVATION, dir_el, deg_el)
 
     final_encoder_az = az_encoder.get_degrees()
