@@ -79,6 +79,7 @@ class stepper_motor(object):
       return
       
     self.logger.debug('Move motor routine commencing')
+    print(type(MotorCtrl_t.ENABLE))
     MOT.output(self._clk, MotorCtrl_t.ENABLE)  #sets clock pin high, falling edge
     MOT.output(self._dir, dir)     #sets motor direction 1 = W/N, 0 = E/S
     MOT.output(axis, MotorCtrl_t.DISABLE)
