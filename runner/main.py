@@ -9,16 +9,16 @@ import pytz
 import os
 
 import Adafruit_MCP3008 as ADC
-import RPi.GPIO         as GPIO  
-
+import RPi.GPIO         as GPIO
 import sun_sensor
+
 from utils             import utils, hardware
 from DS3231            import DS3231
 from motor_control     import stepper_motor
 from shaft_encoder     import encoder
 from system_monitor    import system_monitor
 from power_measurement import power_measurement
-from stepper_motor     import stepper_motor
+
 
 #NOTE: indentation is 2 spaces
   
@@ -93,7 +93,7 @@ rtc = DS3231( logger_name        = logger_name,
              )
 
 # System Monitor
-sys_mon = system_monitor( logger_name        = logger_name
+sys_mon = system_monitor( logger_name        = logger_name,
                           logger_module_name = logger_sys_mon_name
                          )
 
@@ -159,10 +159,10 @@ sun_sensor = sun_sensor( logger_name            = logger_name,
                          logger_module_name     = logger_sun_sensor_name,
                          move_motor_thresh_perc = move_thresh_perc,
                          adc_volt_ref           = adc_vref,
-                         adc_ur_sens_ch         = adc_ch_up_right_sun_sens, 
-                         adc_ul_sens_ch         = adc_ch_up_left_sun_sens,  
-                         adc_lr_sens_ch         = adc_ch_lo_right_sun_sens, 
-                         adc_ll_sens_ch         = adc_ch_lo_left_sun_sens,  
+                         adc_ur_sens_ch         = adc_ch_up_right_sun_sens,
+                         adc_ul_sens_ch         = adc_ch_up_left_sun_sens,
+                         adc_lr_sens_ch         = adc_ch_lo_right_sun_sens,
+                         adc_ll_sens_ch         = adc_ch_lo_left_sun_sens,
                          adc_object             = adc
                         )
 
@@ -195,12 +195,12 @@ motor = stepper_motor( logger_name        = logger_name,
                        pin_clock          = PIN_MOT_CLOCK,
                        pin_reset          = PIN_MOT_RESET,
                        az_steps_per_deg   = az_steps_per_deg,
-                       el_steps_per_deg   = el_steps_per_deg 
+                       el_steps_per_deg   = el_steps_per_deg
                       )
 
 # Hardware abstraction
 hw_handle = hardware( logger_name        = logger_name,
-                      logger_module_name = logger_hw_name 
+                      logger_module_name = logger_hw_name
                      )
 
 
@@ -231,7 +231,7 @@ def init_pins():
   GPIO.setup(PIN_UC_FAULT_RX,    GPIO.IN)
   GPIO.setup(PIN_UC_DEV_MODE_RX, GPIO.IN)
 
-  # Motors 
+  # Motors
   # TODO: Mike
   GPIO.setup(PIN_MOT_AZIMUTH,   GPIO.OUT)
   GPIO.setup(PIN_MOT_ELEVATION, GPIO.OUT)

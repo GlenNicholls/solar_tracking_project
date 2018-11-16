@@ -18,9 +18,8 @@ class MotorCtrl_t(Enum):
     ENABLE  = 1
     DISABLE = 0
 
-SPEED = 0.001 #Time delay to control the speed
 
-class stepper_motor:
+class stepper_motor(object):
 
   def __init__(self, logger_name        = 'main_logger', 
                      logger_module_name = 'stepper_motor',
@@ -35,7 +34,9 @@ class stepper_motor:
     # instantiate logger
     self.logger = logging.getLogger(logger_name + '.' + logger_module_name)
     self.logger.info('creating an instance of the {}'.format(logger_module_name))
-    
+
+    self._speed = 0.001
+
     # define pin numbers
     self._dir = pin_direction
     self._el  = pin_elevation
@@ -94,9 +95,9 @@ class stepper_motor:
     self.logger.debug('Pulsing clock {} times'.format(steps))
     for _ in range(steps): #pulse the clock pin
       MOT.output(self._clk, MotorCtrl_t.DISABLE)
-      time.sleep(SPEED)
+      time.sleep(self._speed)
       MOT.output(self._clk, MotorCtrl_t.ENABLE)
-      time.sleep(SPEED)
+      time.sleep(self._speed)
     
     self.logger.debug('Motor move finished. Disabling specified axis motor')
     MOT.output(axis, DISABLE)

@@ -1,6 +1,6 @@
 from __future__ import division
 import RPi.GPIO as GPIO  
-import utils.hardware as HW
+from utils import hardware as HW
 
 class encoder:
 

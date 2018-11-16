@@ -3,8 +3,9 @@ import time
 import logging
 import datetime
 
+import RPi.GPIO as GPIO
 
-class utils:
+class utils(object):
     def __init__ (self, logger_name = 'main_logger', debug=False):
         self._logger_name = logger_name
         self._dbg = debug
@@ -69,9 +70,7 @@ class utils:
 
 
 
-import RPi.GPIO as GPIO  
-
-class hardware:
+class hardware(object):
     def __init__(self, logger_name        = 'main_logger',
                        logger_module_name = 'hardware'
                 ):
