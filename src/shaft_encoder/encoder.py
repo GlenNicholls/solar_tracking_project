@@ -66,7 +66,7 @@ class encoder:
     # Check if channel A is leading channel B (A=1,B=0)
     # If channel A leads, rotation is CCW
     # Increment/Decrement position counter based on direction
-    if HW.pin_is_set(self.B_pin):
+    if GPIO.input(self.B_pin):
       #CCW
       self.a_count += 1
     else:
