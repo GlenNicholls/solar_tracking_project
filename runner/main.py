@@ -418,10 +418,10 @@ def main():
     deg_az = int(round(solar_az - prev_solar_az)) # TODO: why are we rounding?
     if deg_az < 0:
       #dir = stepper_motor.EAST
-      dir = EAST
+      dir = MotorCtrl_t.EAST
     else:
       #dir = stepper_motor.WEST
-      dir = WEST
+      dir = MotorCtrl_t.WEST
     #motor.move_motor(19, dir, deg_az)
     motor.move_motor(PIN_MOT_AZIMUTH, MotorCtrl_t.EAST, deg_az)
 
@@ -429,10 +429,10 @@ def main():
     deg_el = int(round(solar_el - prev_solar_el)) # TODO: reference note above about rounding
     if deg_el < 0:
       #dir = stepper_motor.SOUTH
-      dir = SOUTH
+      dir = MotorCtrl_t.SOUTH
     else:
       #dir = stepper_motor.NORTH
-      dir = NORTH
+      dir = MotorCtrl_t.NORTH
     motor.move_motor(PIN_MOT_ELEVATION, dir, deg_el)
 
     final_encoder_az = az_encoder.get_degrees()
