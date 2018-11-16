@@ -474,5 +474,5 @@ if __name__ == '__main__':
   init_pins()
   init_pi_hat()
   init_shaft_encoders()
-  init_rtc()
+  # init_rtc()
   main()
