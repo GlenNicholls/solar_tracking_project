@@ -59,7 +59,7 @@ class encoder:
     # GPIO.setup(self.B_pin, GPIO.IN)             
 
     # Set up rising edge detectors for each pin
-    GPIO.add_event_detect(self.A_pin, GPIO.RISING, callback=self.A_pin_ISR)
+    GPIO.add_event_detect(self.A_pin, GPIO.RISING, callback=self.A_pin_ISR())
 
   # A channel ISR
   def A_pin_ISR(self):

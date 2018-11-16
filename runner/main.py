@@ -369,8 +369,8 @@ def main():
   long = -97.8
   elev = 6000
   
-  prev_solar_az = 123.0
-  prev_solar_el = 16.0
+  prev_solar_az = 200.0
+  prev_solar_el = 10.0
   
   #Load user specifice parameters
   logger.warn('Loading user specified parameters NOT DEFINED')
