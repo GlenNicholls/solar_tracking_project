@@ -422,14 +422,16 @@ def main():
       dir_az = MotorCtrl_t.WEST
     motor.move_motor(PIN_MOT_AZIMUTH, dir_az, deg_az)
     print(dir_az)
+    print(deg_az)
     
     deg_el = int(round(solar_el - prev_solar_el)) # TODO: reference note above about rounding
     if deg_el < 0:
       dir_el = MotorCtrl_t.SOUTH
     else:
       dir_el = MotorCtrl_t.NORTH
-    print(dir_el)
     motor.move_motor(PIN_MOT_ELEVATION, dir_el, deg_el)
+    print(dir_el)
+    print(deg_el)
 
     final_encoder_az = az_encoder.get_degrees()
     logger.info('Azimuth shaft encoder final: [{}]'.format(final_encoder_az))
