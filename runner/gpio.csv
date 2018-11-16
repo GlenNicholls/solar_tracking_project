@@ -26,10 +26,12 @@ UC, 10, DEV_MODE_RX, 24, 8,  IN,   lvl-shifted
 UC, 12, FAULT_RX,    26, 7,  IN,   lvl-shifted 
 
 # Motor Controller
-MOT, , , 31, 6,  , 
-MOT, , , 21, 9,  , 
-MOT, , , 28, 1,  , 
-MOT, , , 15, 22, , 
-MOT, , , 13, 27, , 
-MOT, , , 11, 17, , 
-MOT, , , 12, 18, , 
+MOT, 10, AZIMUTH_EN,   15, 22, OUT, enable for azimuth motor driver
+MOT, 10, ELEVATION_EN, 13, 27, OUT, enable for elevation motor driver 
+MOT, 20, RESET_N,      31, 6,  OUT, shared between both L297 driver chips 
+MOT, 18, CLOCK_N,      21, 9,  OUT, shared between both L297 driver chips
+MOT, 17, DIRECTION,    28, 1,  OUT, shared between both L297 driver chips
+
+# Limit Switches 
+LIM_SW, 0, AZIMUTH,   11, 17, IN, 
+LIM_SW, 0, ELEVATION, 12, 18, IN, 

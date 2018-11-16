@@ -14,7 +14,7 @@ from Adafruit_MCP3008.MCP3008 import MCP3008
 from sun_sensor        import sun_sensor
 from utils             import utils, hardware
 from DS3231            import DS3231
-from motor_control     import stepper_motor
+from motor_control     import stepper_motor, MotorCtrl_t
 from shaft_encoder     import encoder
 from system_monitor    import system_monitor
 from power_measurement import power_measurement
@@ -50,12 +50,15 @@ PIN_UC_FAULT_RX    = 7
 PIN_UC_DEV_MODE_RX = 8  
 
 # Motor Control
-# TODO: Mike
-PIN_MOT_ELEVATION = None
-PIN_MOT_AZIMUTH   = None
-PIN_MOT_DIRECTION = None
-PIN_MOT_CLOCK     = None
-PIN_MOT_RESET     = None
+PIN_MOT_ELEVATION = 22
+PIN_MOT_AZIMUTH   = 27
+PIN_MOT_RESET     = 6
+PIN_MOT_CLOCK     = 9
+PIN_MOT_DIRECTION = 1
+
+# Limit switches
+PIN_LIM_SW_AZIMUTH   = 17
+PIN_LIM_SW_ELEVATION = 18
 
 
 ##########################
@@ -216,10 +219,10 @@ def init_pins():
   # mode
   logger.info('Setting GPIO pin mode to BCM')
   GPIO.setmode(GPIO.BCM)
+  
+  # SE  
+  logger.info('Setting GPIO pin directions for shaft encoder')
 
-  # direction
-  logger.info('Setting GPIO pin directions')
-  # SE
   GPIO.setup(PIN_SE_AZIMUTH_A,   GPIO.IN)
   GPIO.setup(PIN_SE_AZIMUTH_B,   GPIO.IN)
   GPIO.setup(PIN_SE_ELEVATION_A, GPIO.IN)
@@ -228,17 +231,25 @@ def init_pins():
   # ADC taken care of by package
 
   # ATTiny
+  logger.info('Setting GPIO pin directions for ATTiny control')
+
   GPIO.setup(PIN_UC_PWR_ACK_TX,  GPIO.OUT)
   GPIO.setup(PIN_UC_FAULT_RX,    GPIO.IN)
   GPIO.setup(PIN_UC_DEV_MODE_RX, GPIO.IN)
 
   # Motors
-  # TODO: Mike
+  logger.info('Setting GPIO pin directions for motor control driver L297')
   GPIO.setup(PIN_MOT_AZIMUTH,   GPIO.OUT)
   GPIO.setup(PIN_MOT_ELEVATION, GPIO.OUT)
-  GPIO.setup(PIN_MOT_DIRECTION, GPIO.OUT)
-  GPIO.setup(PIN_MOT_CLOCK,     GPIO.OUT)
   GPIO.setup(PIN_MOT_RESET,     GPIO.OUT)
+  GPIO.setup(PIN_MOT_CLOCK,     GPIO.OUT)
+  GPIO.setup(PIN_MOT_DIRECTION, GPIO.OUT)  
+  
+  # Limit Switches
+  logger.info('Setting GPIO pin directions for motor control driver L297')
+  
+  GPIO.setup(PIN_LIM_SW_AZIMUTH,   GPIO.IN)
+  GPIO.setup(PIN_LIM_SW_ELEVATION, GPIO.IN)
 
 
 def init_pi_hat():
@@ -343,8 +354,8 @@ def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
   hw_handle.set_pin_low(PIN_UC_PWR_ACK_TX) #uC will now wait ~45 seconds to pull power
   os.system('sudo shutdown now -h')
   '''
-#End shutdown
 
+  
 def main():
   logger.info("Current UTC time: {}".format(datetime.utcnow())) # TODO: can remove once init_rtc() is uncommented
   
@@ -353,7 +364,7 @@ def main():
   
   #Load stored parameters
   logger.info('Loading stored prarmeters')
-  #need to load from parameter file or similar, hard coded for now
+  # TODO: need to load from parameter file or similar, hard coded for now
   lat = 37.8
   long = -97.8
   elev = 6000
@@ -377,53 +388,54 @@ def main():
   now = pytz.timezone('US/Mountain').localize(datetime.now())
   
   #Get current position from shart encoders
-  # TODO: lol ^^^
+  # lol ^^^
   logger.warning('Get current position from shaft encoders NOT DEFINED')
-  encoder_az = encoder(5,11,2000) # TODO: Use format I have defined above
-  #a is 29 on PI
-  #b is 23 on PI
-  init_encoder_az = encoder_az.get_degrees()
-  logger.info('Shaft encoder initial: [{}]'.format(init_encoder_az))
+  init_encoder_az = az_encoder.get_degrees()
+  init_encoder_el = el_encoder.get_degrees()
+
+  logger.info('Shaft encoder azimuth: [{}] deg'.format(init_encoder_az))
+  logger.info('Shaft encoder elevation: [{}] deg'.format(init_encoder_el))
+
   
   #Get current position from motors
   logger.warn('Get current position from motors NOT DEFINED')
   
   if now > sun_dict['sunrise'] and now < sun_dict['sunset']:
     daytime = True
-    print("Daytime")
+    logger.info("Daytime")
   else:
     daytime = False
-    print("Nighttime")
+    logger.info("Nighttime")
     
   if daytime: #this will be the if check from above, implemented this way for development
     #Get solar position
     solar_az = loc_astral.solar_azimuth(datetime.now())
     solar_el = loc_astral.solar_elevation(datetime.now())
-    logger.info('Next Solar Azimuth: [{}], Next Solar Elevation: [{}]'.format(solar_az, solar_el))
+    logger.info('Next Solar Azimuth: [{}] deg'.format(solar_az))
+    logger.info('Next solar elevation: [{}] deg'.format(solar_el))
     
     #Move to calculated sun posistion
-    motor = stepper_motor()
     deg_az = int(round(solar_az - prev_solar_az)) # TODO: why are we rounding?
     if deg_az < 0:
       #dir = stepper_motor.EAST
-      dir = 0
+      dir = MotorCtrl_t.EAST
     else:
       #dir = stepper_motor.WEST
-      dir = 1
-    #motor.move_motor(stepper_motor.AZ, dir, deg_az)
-    motor.move_motor(19, dir, deg_az)
+      dir = MotorCtrl_t.WEST
+    #motor.move_motor(19, dir, deg_az)
+    motor.move_motor(PIN_MOT_AZIMUTH, MotorCtrl_t.EAST, deg_az)
+
     
     deg_el = int(round(solar_el - prev_solar_el)) # TODO: reference note above about rounding
     if deg_el < 0:
       #dir = stepper_motor.SOUTH
-      dir = 0
+      dir = MotorCtrl_t.SOUTH
     else:
       #dir = stepper_motor.NORTH
-      dir = 1
-    #motor.move_motor(stepper_motor.EL, dir, deg_el)
-    motor.move_motor(13, dir, deg_el)
+      dir = MotorCtrl_t.NORTH
+    motor.move_motor(PIN_MOT_ELEVATION, dir, deg_el)
 
-    final_encoder_az = encoder_az.get_degrees()
+    final_encoder_az = az_encoder.get_degrees()
     logger.info('Shaft encoder final: [{}]'.format(final_encoder_az))
 
     degrees_move_encoder = final_encoder_az - init_encoder_az
@@ -459,8 +471,8 @@ def main():
 if __name__ == '__main__':
   # TODO: need to add check at beginning for log levels
   # TODO: how do we want to pull info from state file?
-  # init_pins()
-  # init_pi_hat()
-  # init_shaft_encoders()
-  # init_rtc()
+  init_pins()
+  init_pi_hat()
+  init_shaft_encoders()
+  init_rtc()
   main()

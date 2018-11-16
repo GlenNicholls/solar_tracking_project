@@ -1,16 +1,9 @@
 import time
 import logging
 import RPi.GPIO as MOT
-from enum import Enum, unique
+from enum import Enum
 
-#TODO: Define a constants file???
-#Constants
-# WEST = 0
-# NORTH = 0
-# EAST = 1
-# SOUTH = 1
-# ENABLE = 1
-# DISABLE = 0
+
 class MotorCtrl_t(Enum):
     WEST    = 0
     NORTH   = 0
@@ -102,6 +95,3 @@ class stepper_motor(object):
     
     self.logger.debug('Motor move finished. Disabling specified axis motor')
     MOT.output(axis, DISABLE)
-  #End move_motor
-  
-#End stepper_motor
