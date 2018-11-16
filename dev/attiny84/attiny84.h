@@ -93,7 +93,7 @@ static inline void goToSleep           (void);
     #define CLOCK_DIV         clock_div_4
     #define TIMER_0_PRESCALE  TIMER_PRESCALE_256
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
-    #define TIMER_0_OCRA      125
+    #define TIMER_0_OCRA      250
     #define TIMER_1_OCRA      65535
     #define TIMER_1_OCRB      6000
 
@@ -101,7 +101,7 @@ static inline void goToSleep           (void);
     #define CLOCK_DIV         clock_div_8
     #define TIMER_0_PRESCALE  TIMER_PRESCALE_256
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
-    #define TIMER_0_OCRA      65
+    #define TIMER_0_OCRA      130
     #define TIMER_1_OCRA      40000
     #define TIMER_1_OCRB      3000
 
@@ -109,7 +109,7 @@ static inline void goToSleep           (void);
     #define CLOCK_DIV         clock_div_16
     #define TIMER_0_PRESCALE  TIMER_PRESCALE_64
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
-    #define TIMER_0_OCRA      125
+    #define TIMER_0_OCRA      250
     #define TIMER_1_OCRA      20000
     #define TIMER_1_OCRB      1500
 
@@ -117,7 +117,7 @@ static inline void goToSleep           (void);
     #define CLOCK_DIV         clock_div_32
     #define TIMER_0_PRESCALE  TIMER_PRESCALE_64
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
-    #define TIMER_0_OCRA      65
+    #define TIMER_0_OCRA      130
     #define TIMER_1_OCRA      10000
     #define TIMER_1_OCRB      750
 
@@ -125,7 +125,7 @@ static inline void goToSleep           (void);
     #define CLOCK_DIV         clock_div_64
     #define TIMER_0_PRESCALE  TIMER_PRESCALE_64
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
-    #define TIMER_0_OCRA      35
+    #define TIMER_0_OCRA      70
     #define TIMER_1_OCRA      5000
     #define TIMER_1_OCRB      375
 
@@ -133,7 +133,7 @@ static inline void goToSleep           (void);
     #define CLOCK_DIV         clock_div_128
     #define TIMER_0_PRESCALE  TIMER_PRESCALE_8
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_1024
-    #define TIMER_0_OCRA      125
+    #define TIMER_0_OCRA      250
     #define TIMER_1_OCRA      2500
     #define TIMER_1_OCRB      185
 
@@ -141,7 +141,7 @@ static inline void goToSleep           (void);
     #define CLOCK_DIV         clock_div_256
     #define TIMER_0_PRESCALE  TIMER_PRESCALE_8
     #define TIMER_1_PRESCALE  TIMER_PRESCALE_256
-    #define TIMER_0_OCRA      65
+    #define TIMER_0_OCRA      130
     #define TIMER_1_OCRA      5000
     #define TIMER_1_OCRB      750
 
