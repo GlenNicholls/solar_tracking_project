@@ -417,19 +417,19 @@ def main():
     #Move to calculated sun posistion
     deg_az = int(round(solar_az - prev_solar_az)) # TODO: why are we rounding?
     if deg_az < 0:
-      dir = MotorCtrl_t.EAST
+      dir_az = MotorCtrl_t.EAST
     else:
-      dir = MotorCtrl_t.WEST
-    motor.move_motor(PIN_MOT_AZIMUTH, MotorCtrl_t.EAST, deg_az)
-    print(dir)
+      dir_az = MotorCtrl_t.WEST
+    motor.move_motor(PIN_MOT_AZIMUTH, dir_az, deg_az)
+    print(dir_az)
     
     deg_el = int(round(solar_el - prev_solar_el)) # TODO: reference note above about rounding
     if deg_el < 0:
-      dir = MotorCtrl_t.SOUTH
+      dir_el = MotorCtrl_t.SOUTH
     else:
-      dir = MotorCtrl_t.NORTH
+      dir_el = MotorCtrl_t.NORTH
     print(dir)
-    motor.move_motor(PIN_MOT_ELEVATION, dir, deg_el)
+    motor.move_motor(PIN_MOT_ELEVATION, dir_el, deg_el)
 
     final_encoder_az = az_encoder.get_degrees()
     logger.info('Azimuth shaft encoder final: [{}]'.format(final_encoder_az))
