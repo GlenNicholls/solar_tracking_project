@@ -369,7 +369,7 @@ def main():
   long = -97.8
   elev = 6000
   
-  prev_solar_az = 222.0
+  prev_solar_az = 210.0
   prev_solar_el = 10.0
   
   #Load user specifice parameters
