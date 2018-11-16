@@ -79,20 +79,19 @@ class stepper_motor(object):
       return
       
     self.logger.debug('Move motor routine commencing')
-    print(type(MotorCtrl_t.ENABLE))
-    MOT.output(self._clk, MotorCtrl_t.ENABLE)  #sets clock pin high, falling edge
-    MOT.output(self._dir, dir)     #sets motor direction 1 = W/N, 0 = E/S
-    MOT.output(axis, MotorCtrl_t.DISABLE)
+    MOT.output(self._clk, MotorCtrl_t.ENABLE.value)  #sets clock pin high, falling edge
+    MOT.output(self._dir, dir.value)     #sets motor direction 1 = W/N, 0 = E/S
+    MOT.output(axis, MotorCtrl_t.DISABLE.value)
     MOT.output(self._rst, 1)       #resets to starting configuration 1010
     MOT.output(self._rst, 0)       #starts reset
     MOT.output(self._rst, 1)       #ends reset
-    MOT.output(axis, MotorCtrl_t.ENABLE)
+    MOT.output(axis, MotorCtrl_t.ENABLE.value)
       
     self.logger.debug('Pulsing clock {} times'.format(steps))
     for _ in range(steps): #pulse the clock pin
-      MOT.output(self._clk, MotorCtrl_t.DISABLE)
+      MOT.output(self._clk, MotorCtrl_t.DISABLE.value)
       time.sleep(self._speed)
-      MOT.output(self._clk, MotorCtrl_t.ENABLE)
+      MOT.output(self._clk, MotorCtrl_t.ENABLE.value)
       time.sleep(self._speed)
     
     self.logger.debug('Motor move finished. Disabling specified axis motor')
