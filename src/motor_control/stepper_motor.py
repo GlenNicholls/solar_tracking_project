@@ -95,4 +95,4 @@ class stepper_motor(object):
       time.sleep(self._speed)
     
     self.logger.debug('Motor move finished. Disabling specified axis motor')
-    MOT.output(axis, DISABLE)
+    MOT.output(axis, MotorCtrl_t.DISABLE.value)
