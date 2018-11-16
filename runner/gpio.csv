@@ -1,4 +1,4 @@
-component, component_pin, net_name, pi_pin, pi_pin_bcm, direction, notes
+Component,Component Pin,Net Name,Pi Pin,Pi Pin BCM,Pin Direction,Notes
 
 # Shaft Encoders
 SE, az_a, AZIMUTH_A,   29, 5,  OUT, lvl-shifted
