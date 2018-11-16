@@ -41,6 +41,7 @@ class stepper_motor(object):
     self._pin_t = (self._dir, self._el, self._clk, self._az, self._rst)
     
     if len(self._pin_t) > len(set(self._pin_t)):
+      print(self._pint_t)
       raise ValueError('GPIO pin numbers must be unique integers!')
     for _, pin in enumerate(self._pin_t):
       if pin == None or type(pin) != int:
