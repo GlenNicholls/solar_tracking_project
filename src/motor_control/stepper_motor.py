@@ -1,17 +1,15 @@
 import time
 import logging
 import RPi.GPIO as MOT
-from enum import Enum
+from enum import Enum, unique
 
-
+@unique
 class MotorCtrl_t(Enum):
   IDLE    = -1 # so we don't move and if it gets passed to motor move, an error will be raised
   WEST    = 0
-  NORTH   = 0
-  EAST    = 1
-  SOUTH   = 1
-  ENABLE  = 1
-  DISABLE = 0
+  NORTH   = 1
+  EAST    = 2
+  SOUTH   = 3
 
 
 class stepper_motor(object):
@@ -31,6 +29,8 @@ class stepper_motor(object):
     self.logger.info('creating an instance of the {}'.format(logger_module_name))
 
     self._speed = 0.001
+    self._EN = 1
+    self._DIS = 0
 
     # define pin numbers
     self._dir = pin_direction
@@ -69,6 +69,19 @@ class stepper_motor(object):
     if not isinstance(dir, MotorCtrl_t):
       raise ValueError('Direction is not of direction type enumerate')
 
+    mot_dir = -1 # induce error if we somehow don't update
+    if dir == MotorCtrl_t.IDLE:
+      self.logger.debug('Motor is in IDLE mode, not moving')
+      return
+    elif dir == MotorCtrl_t.WEST:
+      mot_dir = 0
+    elif  dir == MotorCtrl_t.NORTH:
+      mot_dir = 0
+    elif dir == MotorCtrl_t.EAST:
+      mot_dir = 1
+    elif dir == MotorCtrl_t.SOUTH:
+      mot_dir = 1
+    
     if axis == self._az:
       steps = deg * self._deg_az
       self.logger.debug('Moving azimuth {} degrees which is {} steps'.format(deg, steps))
@@ -80,20 +93,20 @@ class stepper_motor(object):
       return
       
     self.logger.debug('Move motor routine commencing')
-    MOT.output(self._clk, MotorCtrl_t.ENABLE.value)  #sets clock pin high, falling edge
-    MOT.output(self._dir, dir.value)     #sets motor direction 1 = W/N, 0 = E/S
-    MOT.output(axis, MotorCtrl_t.DISABLE.value)
-    MOT.output(self._rst, 1)       #resets to starting configuration 1010
-    MOT.output(self._rst, 0)       #starts reset
-    MOT.output(self._rst, 1)       #ends reset
-    MOT.output(axis, MotorCtrl_t.ENABLE.value)
+    MOT.output(self._clk, self._EN) #sets clock pin high, falling edge
+    MOT.output(self._dir, mot_dir)  #sets motor direction 0 = W/N, 1 = E/S
+    MOT.output(axis, self._DIS)    
+    MOT.output(self._rst, 1)        #resets to starting configuration 1010
+    MOT.output(self._rst, 0)        #starts reset
+    MOT.output(self._rst, 1)        #ends reset
+    MOT.output(axis, self._EN)
       
     self.logger.debug('Pulsing clock {} times'.format(steps))
     for _ in range(steps): #pulse the clock pin
-      MOT.output(self._clk, MotorCtrl_t.DISABLE.value)
+      MOT.output(self._clk, self._DIS)
       time.sleep(self._speed)
-      MOT.output(self._clk, MotorCtrl_t.ENABLE.value)
+      MOT.output(self._clk, self._EN)
       time.sleep(self._speed)
     
     self.logger.debug('Motor move finished. Disabling specified axis motor')
-    MOT.output(axis, MotorCtrl_t.DISABLE.value)
+    MOT.output(axis, self._DIS)
