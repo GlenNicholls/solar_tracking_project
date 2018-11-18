@@ -369,7 +369,7 @@ def main():
   long = -97.8
   elev = 6000
   
-  prev_solar_az = 210.0
+  prev_solar_az = 242.0
   prev_solar_el = 7.0
   
   #Load user specifice parameters
@@ -420,7 +420,7 @@ def main():
       dir_az = MotorCtrl_t.EAST
     else:
       dir_az = MotorCtrl_t.WEST
-    motor.move_motor(PIN_MOT_AZIMUTH, dir_az, deg_az)
+    #motor.move_motor(PIN_MOT_AZIMUTH, dir_az, deg_az)
     print(dir_az)
     print(deg_az)
     
@@ -429,7 +429,7 @@ def main():
       dir_el = MotorCtrl_t.SOUTH
     else:
       dir_el = MotorCtrl_t.NORTH
-    motor.move_motor(PIN_MOT_ELEVATION, dir_el, deg_el)
+    #motor.move_motor(PIN_MOT_ELEVATION, dir_el, deg_el)
     print(dir_el)
     print(deg_el)
 
