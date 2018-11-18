@@ -466,6 +466,7 @@ def main():
     logger.info('Desired azimuth direction: {}'.format(az_dir))
     logger.info('Desired elevation direction: {}'.format(el_dir))
     motor.move_motor(PIN_MOT_ELEVATION, el_dir, 0.5)
+    motor.move_motor(PIN_MOT_AZIMUTH, el_dir, 0.5)
     #time.sleep(0.01)
 
   # TODO: use GPIO.cleanup() or GPIO.cleanup([channels]) somewhere before shutdown.
