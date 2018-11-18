@@ -88,8 +88,8 @@ def test_sun_sensor_differences(num_checks=20):
         test_handle.write_table(string=data, max_str_len=max_str_len, header=False)
 
         # TODO: add parameter threshold
-        assert abs(az) < 3.0 # unconnected should yield next to zero difference
-        assert abs(el) < 3.0 # unconnected should yield next to zero difference
+        assert abs(az) < mot_move_raw_thresh # unconnected should yield next to zero difference
+        assert abs(el) < mot_move_raw_thresh # unconnected should yield next to zero difference
 
         time.sleep(0.15)
 
@@ -113,8 +113,8 @@ def test_sun_sensor_averages(num_checks=20):
         test_handle.write_table(string=data, max_str_len=max_str_len, header=False)
 
         # TODO: add parameter threshold
-        assert abs(az) < 3.0  # unconnected should yield next to zero difference
-        assert abs(el) < 3.0  # unconnected should yield next to zero difference
+        assert abs(az) < mot_move_raw_thresh  # unconnected should yield next to zero difference
+        assert abs(el) < mot_move_raw_thresh  # unconnected should yield next to zero difference
 
         time.sleep(0.15)
 
@@ -123,6 +123,8 @@ def test_motor_move_flags(num_checks=20):
     for check_num in range(num_checks):
         az_avg, el_av = ss.get_avg_all()
         az_dir, el_dir = ss.get_motor_direction_all()
+        logger.info('Azimuth direction: {}'.format(az_dir))
+        logger.info('Elevation direction: {}'.format(el_dir))
 
         if abs(az_avg) > move_thresh_perc:
             assert az_dir != DIRECTION.IDLE # motor flag should be -1 or 1
@@ -140,6 +142,8 @@ def test_motor_move_direction(num_checks=20):
     for check_num in range(num_checks):
         az_avg, el_av = ss.get_avg_all()
         az_dir, el_dir = ss.get_motor_direction_all()
+        logger.info('Azimuth direction: {}'.format(az_dir))
+        logger.info('Elevation direction: {}'.format(el_dir))
 
         if abs(az_avg) > move_thresh_perc:
             if az_avg  > 0.0:
