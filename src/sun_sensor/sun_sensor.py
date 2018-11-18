@@ -2,6 +2,9 @@ from __future__ import division
 import time
 import logging
 
+import motor_control.MotorCtrl_t as DIRECTION
+
+
 
 class sun_sensor(object):
 
@@ -20,8 +23,11 @@ class sun_sensor(object):
         self.logger = logging.getLogger(logger_name + '.' + logger_module_name)
         self.logger.info('creating an instance of the {}'.format(logger_module_name))
 
+        # number of averages for measurements
+        self._num_avgs = 20
+        
         # logic thresh
-        self._thresh_perc = move_motor_thresh_perc
+        self._thresh_perc = mot_move_thresh
         if self._thresh_perc == None or self._thresh_perc <= 0.0 or self._thresh_perc >= 100.0:
             raise ValueError('Invalid threshold for motor movement, must be float [0-100]!')
 
@@ -33,18 +39,18 @@ class sun_sensor(object):
         if len(adc_ch_tuple) > len(set(adc_ch_tuple)): # appending tuples to check for uniqueness
             raise ValueError('ADC channels are not unique!')
 
-        self._ur = adc_north_sens_ch
-        self._ul = adc_east_sens_ch
-        self._lr = adc_south_sens_ch
-        self._ll = adc_west_sens_ch
+        self._north = adc_north_sens_ch
+        self._east = adc_east_sens_ch
+        self._south = adc_south_sens_ch
+        self._west = adc_west_sens_ch
 
-        if self._ur not in range(8):
+        if self._north not in range(8):
             raise ValueError('Invalid ADC channel, must be int 0-7!')
-        if self._ul not in range(8):
+        if self._east not in range(8):
             raise ValueError('Invalid ADC channel, must be int 0-7!')
-        if self._lr not in range(8):
+        if self._south not in range(8):
             raise ValueError('Invalid ADC channel, must be int 0-7!')
-        if self._ll not in range(8):
+        if self._west not in range(8):
             raise ValueError('Invalid ADC channel, must be int 0-7!')
 
         if adc_object == None: # not sure how to check for class
@@ -54,15 +60,8 @@ class sun_sensor(object):
 
     def __read_adc(self, adc_ch):
         raw_read = self._adc.read_adc(adc_ch)
-        self.logger.debug('ADC raw read value: {}'.format(raw_read))
+        self.logger.debug('ADC channel {} raw read value: {}'.format(adc_ch, raw_read))
         return raw_read
-
-
-    # def __meas_adc_voltage(self, adc_ch):
-    #     read_raw = self.__read_adc_raw(adc_ch)
-    #     V = read_raw / self._adc_res * self._v_ref
-    #     self.logger.debug('ADC voltage conversion Vmeas: {} [V]'.format(V))
-    #     return V
 
 
     def __get_per_diff(self, v_1, v_2):
@@ -93,9 +92,9 @@ class sun_sensor(object):
         return avg
 
 
-    def eval_horizontal(self, avg_diff_horizon):
-        if abs(avg_diff_horizon) > self._thresh_perc:
-            if avg_diff_horizon < 0.0:
+    def eval_azimuth(self, avg_diff_azimuth):
+        if abs(avg_diff_azimuth) > self._thresh_perc:
+            if avg_diff_azimuth < 0.0:
                 self.logger.debug('Moving horizon left')
                 return 1 # move left
             else:
@@ -107,9 +106,9 @@ class sun_sensor(object):
 
 
     # TODO: use single eval function for both vertical/horizontal
-    def eval_vertical(self, avg_diff_vertical):
-        if abs(avg_diff_vertical) > self._thresh_perc:
-            if avg_diff_vertical < 0.0:
+    def eval_elevation(self, avg_diff_elevation):
+        if abs(avg_diff_elevation) > self._thresh_perc:
+            if avg_diff_elevation < 0.0:
                 self.logger.debug('Moving vertical up')
                 return -1 # move left
             else:
@@ -120,70 +119,62 @@ class sun_sensor(object):
             return 0
 
 
-    def get_diff_upper_perc(self):
-        ul = self.__read_adc(self._ul)
-        ur = self.__read_adc(self._ur)
-        diff = self.__get_per_diff(ul, ur)
-        self.logger.debug('Sun sensor percent difference for upper left and upper right: {}'.format(diff))
+    def get_diff_azimuth(self):
+        east = self._read_adc(self._east)
+        west = self._read_adc(self._west)
+        diff = self._get_per_diff(east, west)
+        self.logger.debug('Azimuth difference for east and west sensors: {}'.format(diff))
         return diff
-
-
-    def get_diff_lower_perc(self):
-        ll = self.__read_adc(self._ll)
-        lr = self.__read_adc(self._lr)
-        diff = self.__get_per_diff(ll, lr)
-        self.logger.debug('Sun sensor percent difference for lower left and lower right: {}'.format(diff))
+    
+    
+    def get_diff_elevation(self):
+        north = self._read_adc(self._north)
+        south = self._read_adc(self._south)
+        diff  = self._get_per_diff(north, south)
+        self.logger.debug('Elevation difference for north and south sensors: {}'.format(diff))
         return diff
+        
+    def get_diff_all(self):
+        azimuth   = self.get_diff_azimuth()
+        elevation = self.get_diff_elevation()
+        return azimuth, elevation
+      
 
-
-    def get_diff_left_perc(self):
-        ul = self.__read_adc(self._ul)
-        ll = self.__read_adc(self._ll)
-        diff = self.__get_per_diff(ul, ll)
-        self.logger.debug('Sun sensor percent difference for upper left and lower left: {}'.format(diff))
-        return diff
-
-
-    def get_diff_right_perc(self):
-        ur = self.__read_adc(self._ur)
-        lr = self.__read_adc(self._lr)
-        diff = self.__get_per_diff(ur, lr)
-        self.logger.debug('Sun sensor percent difference for upper right and lower right: {}'.format(diff))
-        return diff
-
-
-    def get_all_diff_perc(self):
-        upper = self.get_diff_upper_perc()
-        lower = self.get_diff_lower_perc()
-        left  = self.get_diff_left_perc()
-        right = self.get_diff_right_perc()
-        return (upper, lower, left, right)
-
-
-    # TODO: change all horizon/vertical to azimuth/elevation to make clear
-    def get_avg_horizon(self):
-        upper, lower, _, _ = self.get_all_diff_perc()
-        avg = self.__get_avg(upper, lower)
-        self.logger.debug('Sun sensor horizon average: {}'.format(avg))
+    def get_avg_azimuth(self):
+        avg = 0
+        azimuth = 0
+        for i in range(self._num_avgs):
+            azimuth += self.get_diff_azimuth()
+        avg = azimuth/self._num_avgs
+        self.logger.debug('Sun sensor azimuth average: {}'.format(avg))
         return avg
-
-    def get_avg_vertical(self):
-        _, _, left, right = self.get_all_diff_perc()
-        avg = self.__get_avg(left, right)
-        self.logger.debug('Sun sensor vertical average: {}'.format(avg))
+    
+    def get_avg_elevation(self):
+        avg = 0
+        elevation = 0
+        for i in range(self._num_avgs):
+            elevation += self.get_diff_elevation()
+        avg = elevation/self._num_avgs
+        self.logger.debug('Sun sensor elevation average: {}'.format(avg))
         return avg
-
-
-    def get_all_avg(self):
-        horizon  = self.get_avg_horizon()
-        vertical = self.get_avg_vertical()
-        return (horizon, vertical)
-
-
-    # TODO: make better name
-    def move_motor(self):
+    
+    
+    def get_avg_all(self):
+        azimuth   = self.get_avg_azimuth()
+        elevation = self.get_avg_elevation()
+        return (azimuth, elevation)
+    
+    def get_motor_direction_azimuth(self):
+    
+    def get_motor_direction_elevation(self):
+    
+    def get_motor_direction_all(self):
         horizon, vertical = self.get_all_avg()
-        move_horiz_mot = self.eval_horizontal(horizon)
-        move_vert_mot = self.eval_vertical(vertical)
-        return (move_horiz_mot, move_vert_mot)
+        move_horiz_mot = self.eval_azimuth(horizon)
+        move_vert_mot = self.eval_elevation(vertical)
+        return (move_horiz_mot, move_vert_mot) 
+        
+
+
+    
 
