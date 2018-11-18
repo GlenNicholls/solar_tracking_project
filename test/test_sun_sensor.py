@@ -26,22 +26,22 @@ adc = MCP3008(clk=CLK, cs=CS, miso=MISO, mosi=MOSI)
 # init sun sensor
 adc_vref     = 3.3
 
-move_thresh_perc = 0.1
+mot_move_raw_thresh = 30
 north_sens_ch = 6 
 east_sens_ch  = 7 
 south_sens_ch = 4 
 west_sens_ch  = 5 
 adc_channels = [up_right_sens_ch, up_left_sens_ch, lo_right_sens_ch, lo_left_sens_ch]
 
-ss = sun_sensor( logger_name        = logger_name,
-                 logger_module_name = 'sun_sensor',
-                 mot_move_thresh    = move_thresh_perc,
-                 adc_volt_ref       = adc_vref,
-                 adc_north_sens_ch  = up_right_sens_ch, 
-                 adc_east_sens_ch   = up_left_sens_ch,  
-                 adc_south_sens_ch  = lo_right_sens_ch, 
-                 adc_west_sens_ch   = lo_left_sens_ch,  
-                 adc_object         = adc
+ss = sun_sensor( logger_name          = logger_name,
+                 logger_module_name   = 'sun_sensor',
+                 mot_move_raw_thresh  = mot_move_raw_thresh,
+                 adc_volt_ref         = adc_vref,
+                 adc_north_sens_ch    = up_right_sens_ch, 
+                 adc_east_sens_ch     = up_left_sens_ch,  
+                 adc_south_sens_ch    = lo_right_sens_ch, 
+                 adc_west_sens_ch     = lo_left_sens_ch,  
+                 adc_object           = adc
                 )
 
 
