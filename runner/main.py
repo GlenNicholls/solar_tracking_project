@@ -465,8 +465,8 @@ def main():
     az_dir, el_dir = sun_sensors.get_motor_direction_all()
     logger.info('Desired azimuth direction: {}'.format(az_dir))
     logger.info('Desired elevation direction: {}'.format(el_dir))
-    motor.move_motor(PIN_MOT_ELEVATION, el_dir, 0.1)
-    time.sleep(0.01)
+    motor.move_motor(PIN_MOT_ELEVATION, el_dir, 0.5)
+    #time.sleep(0.01)
 
   # TODO: use GPIO.cleanup() or GPIO.cleanup([channels]) somewhere before shutdown.
   #       cleanup() may cause issues with AVRDude, so specifying used channels as [] or () is probably needed
