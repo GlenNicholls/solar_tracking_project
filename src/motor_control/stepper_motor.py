@@ -102,7 +102,7 @@ class stepper_motor(object):
     MOT.output(axis, self._EN)
       
     self.logger.debug('Pulsing clock {} times'.format(steps))
-    for _ in range(steps): #pulse the clock pin
+    for _ in range(int(steps)): #pulse the clock pin
       MOT.output(self._clk, self._DIS)
       time.sleep(self._speed)
       MOT.output(self._clk, self._EN)
