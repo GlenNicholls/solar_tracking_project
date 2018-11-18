@@ -2,7 +2,7 @@ from __future__ import division
 import time
 import logging
 
-import motor_control.MotorCtrl_t as DIRECTION
+from motor_control import MotorCtrl_t as DIRECTION
 
 
 

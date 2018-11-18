@@ -5,7 +5,7 @@ import datetime
 from sun_sensor import sun_sensor
 from Adafruit_MCP3008 import MCP3008
 from utils import utils
-import motor_control.MotorCtrl_t as DIRECTION
+from motor_control import MotorCtrl_t as DIRECTION
 
 
 
