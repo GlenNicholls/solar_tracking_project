@@ -157,10 +157,10 @@ battery_power = power_measurement( logger_name          = logger_name,
                                   )
 
 # Sun Sensor
-move_thresh_perc = 0.1
+mot_move_raw_thresh = 30
 sun_sensors = sun_sensor( logger_name        = logger_name,
                           logger_module_name = logger_sun_sensor_name,
-                          mot_move_thresh    = move_thresh_perc,
+                          mot_move_thresh    = mot_move_raw_thresh,
                           adc_volt_ref       = adc_vref,
                           adc_north_sens_ch  = adc_ch_north_sun_sens,
                           adc_east_sens_ch   = adc_ch_east_sun_sens,
@@ -439,8 +439,6 @@ def main():
     final_encoder_el = el_encoder.get_degrees()
     logger.info('Elevation shaft encoder final: [{}]'.format(final_encoder_el))
 
-
-
     degrees_move_az = final_encoder_az - init_encoder_az
     logger.info('Azimuth shaft encoder degrees moved: [{}]'.format(degrees_move_az))
     
@@ -461,6 +459,14 @@ def main():
     #Move to sunrise position for tomorrow
     logger.info('Moving to sunrise position for tomorrow NOT DEFINED')
   #End if else
+  
+  # test loop for tracking light
+  while 1:
+    az_dir, el_dir = sun_sensors.get_motor_direction_all()
+    logger.info('Desired azimuth direction: {}'.format(az_dir))
+    logger.info('Desired elevation direction: {}'.format(el_dir))
+    motor.move_motor(PIN_MOT_ELEVATION, el_dir, 0.1)
+    time.sleep(0.01)
 
   # TODO: use GPIO.cleanup() or GPIO.cleanup([channels]) somewhere before shutdown.
   #       cleanup() may cause issues with AVRDude, so specifying used channels as [] or () is probably needed
