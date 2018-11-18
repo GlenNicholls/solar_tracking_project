@@ -74,22 +74,8 @@ class sun_sensor(object):
             self.logger.warning('Divide by zero occuring. Returning zero')
         else:
             diff = num_diff/(den_diff / 2)
-        # if v_1 == 0 or v_2 == 0:
-        #     diff = 0.0
-        #     self.logger.warning('Cannot check % difference with either number as zero')
-        # elif v_1 > v_2:
-        #     diff = (1 - v_2/v_1) * 100
-        # else:
-        #     diff = (1 - v_1/v_2) * 100
         self.logger.debug('Difference is: {}'.format(diff))
         return diff
-
-
-    # TODO: use better noise reduction filter
-    def __get_avg(self, diff_1, diff_2):
-        avg = (diff_1 + diff_2)/2
-        self.logger.debug('Average of difference: {}'.format(avg))
-        return avg
 
 
     def eval_azimuth(self, avg_diff_azimuth):
@@ -165,16 +151,16 @@ class sun_sensor(object):
         return (azimuth, elevation)
     
     def get_motor_direction_azimuth(self):
+        az_avg = self.get_avg_azimuth()
+        mot_dir = self.eval_azimuth(az_avg)
+        return mot_dir
     
     def get_motor_direction_elevation(self):
+        el_avg = self.get_avg_elevation()
+        mot_dir = self.eval_elevation()
+        return mot_dir
     
     def get_motor_direction_all(self):
-        horizon, vertical = self.get_all_avg()
-        move_horiz_mot = self.eval_azimuth(horizon)
-        move_vert_mot = self.eval_elevation(vertical)
-        return (move_horiz_mot, move_vert_mot) 
-        
-
-
-    
-
+        mot_dir_az = self.get_motor_direction_azimuth()
+        mot_dir_el = self.get_motor_direction_elevation()
+        return (mot_dir_az, mot_dir_el) 
