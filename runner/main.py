@@ -157,7 +157,7 @@ battery_power = power_measurement( logger_name          = logger_name,
                                   )
 
 # Sun Sensor
-mot_move_raw_thresh = 30
+mot_move_raw_thresh = 20
 sun_sensors = sun_sensor( logger_name         = logger_name,
                           logger_module_name  = logger_sun_sensor_name,
                           mot_move_raw_thresh = mot_move_raw_thresh,
@@ -466,7 +466,7 @@ def main():
     logger.info('Desired azimuth direction: {}'.format(az_dir))
     logger.info('Desired elevation direction: {}'.format(el_dir))
     motor.move_motor(PIN_MOT_ELEVATION, el_dir, 0.5)
-    motor.move_motor(PIN_MOT_AZIMUTH, el_dir, 0.5)
+    motor.move_motor(PIN_MOT_AZIMUTH, az_dir, 0.5)
     #time.sleep(0.01)
 
   # TODO: use GPIO.cleanup() or GPIO.cleanup([channels]) somewhere before shutdown.
