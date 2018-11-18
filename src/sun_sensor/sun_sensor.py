@@ -163,7 +163,7 @@ class sun_sensor(object):
     
     def get_motor_direction_elevation(self):
         el_avg = self.get_avg_elevation()
-        mot_dir = self.eval_elevation()
+        mot_dir = self.eval_elevation(el_avg)
         return mot_dir
     
     
