@@ -158,15 +158,15 @@ battery_power = power_measurement( logger_name          = logger_name,
 
 # Sun Sensor
 mot_move_raw_thresh = 30
-sun_sensors = sun_sensor( logger_name        = logger_name,
-                          logger_module_name = logger_sun_sensor_name,
-                          mot_move_thresh    = mot_move_raw_thresh,
-                          adc_volt_ref       = adc_vref,
-                          adc_north_sens_ch  = adc_ch_north_sun_sens,
-                          adc_east_sens_ch   = adc_ch_east_sun_sens,
-                          adc_south_sens_ch  = adc_ch_south_sun_sens,
-                          adc_west_sens_ch   = adc_ch_west_sun_sens,
-                          adc_object         = adc
+sun_sensors = sun_sensor( logger_name         = logger_name,
+                          logger_module_name  = logger_sun_sensor_name,
+                          mot_move_raw_thresh = mot_move_raw_thresh,
+                          adc_volt_ref        = adc_vref,
+                          adc_north_sens_ch   = adc_ch_north_sun_sens,
+                          adc_east_sens_ch    = adc_ch_east_sun_sens,
+                          adc_south_sens_ch   = adc_ch_south_sun_sens,
+                          adc_west_sens_ch    = adc_ch_west_sun_sens,
+                          adc_object          = adc
                          )
 
 # TODO: Shaft encoders here
