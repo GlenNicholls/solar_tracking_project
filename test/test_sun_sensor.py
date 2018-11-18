@@ -126,11 +126,11 @@ def test_motor_move_flags(num_checks=20):
         logger.info('Azimuth direction: {}'.format(az_dir))
         logger.info('Elevation direction: {}'.format(el_dir))
 
-        if abs(az_avg) > move_thresh_perc:
+        if abs(az_avg) > mot_move_raw_thresh:
             assert az_dir != DIRECTION.IDLE # motor flag should be -1 or 1
         else:
             assert az_dir == DIRECTION.IDLE # motor flag should not be set
-        if abs(el_av) > move_thresh_perc:
+        if abs(el_av) > mot_move_raw_thresh:
             assert el_dir != DIRECTION.IDLE  # motor flag should be -1 or 1
         else:
             assert el_dir == DIRECTION.IDLE  # motor flag should not be set
@@ -145,14 +145,14 @@ def test_motor_move_direction(num_checks=20):
         logger.info('Azimuth direction: {}'.format(az_dir))
         logger.info('Elevation direction: {}'.format(el_dir))
 
-        if abs(az_avg) > move_thresh_perc:
+        if abs(az_avg) > mot_move_raw_thresh:
             if az_avg  > 0.0:
                 assert az_dir == DIRECTION.WEST 
             else:
                 assert az_dir == DIRECTION.EAST
         else:
             assert az_dir == DIRECTION.IDLE 
-        if abs(el_av) > move_thresh_perc:
+        if abs(el_av) > mot_move_raw_thresh:
             if el_av > 0.0:
                 assert el_dir == DIRECTION.SOUTH 
             else:
