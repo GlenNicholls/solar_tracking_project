@@ -5,15 +5,15 @@ import logging
 
 class sun_sensor(object):
 
-    def __init__ (self, logger_name        = 'main_logger',
-                        logger_module_name = 'sun_sensor',
-                        move_motor_thresh_perc = None,
-                        adc_volt_ref   = 3.3,
-                        adc_ur_sens_ch = None, # upper right sensor channel
-                        adc_ul_sens_ch = None, # upper left sensor channel
-                        adc_lr_sens_ch = None, # lower right sensor channel
-                        adc_ll_sens_ch = None, # lower left sensor channel
-                        adc_object     = None
+    def __init__ (self, logger_name         = 'main_logger',
+                        logger_module_name  = 'sun_sensor',
+                        mot_move_thresh     = None,
+                        adc_volt_ref        = 3.3,
+                        adc_north_sens_ch   = None, # upper right sensor channel
+                        adc_east_sens_ch    = None, # upper left sensor channel
+                        adc_south_sens_ch   = None, # lower right sensor channel
+                        adc_west_sens_ch    = None, # lower left sensor channel
+                        adc_object          = None
                   ):
 
         # instantiate logger
@@ -29,14 +29,14 @@ class sun_sensor(object):
         self._v_ref        = adc_volt_ref
         self._adc     = adc_object
 
-        adc_ch_tuple = (adc_ur_sens_ch, adc_ul_sens_ch, adc_lr_sens_ch, adc_ll_sens_ch)
+        adc_ch_tuple = (adc_north_sens_ch, adc_east_sens_ch, adc_south_sens_ch, adc_west_sens_ch)
         if len(adc_ch_tuple) > len(set(adc_ch_tuple)): # appending tuples to check for uniqueness
             raise ValueError('ADC channels are not unique!')
 
-        self._ur = adc_ur_sens_ch
-        self._ul = adc_ul_sens_ch
-        self._lr = adc_lr_sens_ch
-        self._ll = adc_ll_sens_ch
+        self._ur = adc_north_sens_ch
+        self._ul = adc_east_sens_ch
+        self._lr = adc_south_sens_ch
+        self._ll = adc_west_sens_ch
 
         if self._ur not in range(8):
             raise ValueError('Invalid ADC channel, must be int 0-7!')
@@ -184,6 +184,6 @@ class sun_sensor(object):
     def move_motor(self):
         horizon, vertical = self.get_all_avg()
         move_horiz_mot = self.eval_horizontal(horizon)
-        move_vert_mot = self.eval_horizontal(vertical)
+        move_vert_mot = self.eval_vertical(vertical)
         return (move_horiz_mot, move_vert_mot)
 

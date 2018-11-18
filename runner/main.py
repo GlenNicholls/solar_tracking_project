@@ -108,10 +108,10 @@ adc_ch_panel_current     = 0
 adc_ch_panel_voltage     = 3
 adc_ch_battery_current   = 1
 adc_ch_battery_voltage   = 2
-adc_ch_up_right_sun_sens = 4 # can change since connections come in on header
-adc_ch_up_left_sun_sens  = 5 # can change since connections come in on header
-adc_ch_lo_right_sun_sens = 6 # can change since connections come in on header
-adc_ch_lo_left_sun_sens  = 7 # can change since connections come in on header
+adc_ch_south_sun_sens    = 4 # can change since connections come in on header
+adc_ch_west_sun_sens     = 5 # can change since connections come in on header
+adc_ch_north_sun_sens    = 6 # can change since connections come in on header
+adc_ch_east_sun_sens     = 7 # can change since connections come in on header
 
 adc = MCP3008( clk  = PIN_ADC_CLK,
                cs   = PIN_ADC_CS,
@@ -158,15 +158,15 @@ battery_power = power_measurement( logger_name          = logger_name,
 
 # Sun Sensor
 move_thresh_perc = 0.1
-sun_sensors = sun_sensor( logger_name            = logger_name,
-                          logger_module_name     = logger_sun_sensor_name,
-                          move_motor_thresh_perc = move_thresh_perc,
-                          adc_volt_ref           = adc_vref,
-                          adc_ur_sens_ch         = adc_ch_up_right_sun_sens,
-                          adc_ul_sens_ch         = adc_ch_up_left_sun_sens,
-                          adc_lr_sens_ch         = adc_ch_lo_right_sun_sens,
-                          adc_ll_sens_ch         = adc_ch_lo_left_sun_sens,
-                          adc_object             = adc
+sun_sensors = sun_sensor( logger_name        = logger_name,
+                          logger_module_name = logger_sun_sensor_name,
+                          mot_move_thresh    = move_thresh_perc,
+                          adc_volt_ref       = adc_vref,
+                          adc_north_sens_ch  = adc_ch_north_sun_sens,
+                          adc_east_sens_ch   = adc_ch_east_sun_sens,
+                          adc_south_sens_ch  = adc_ch_south_sun_sens,
+                          adc_west_sens_ch   = adc_ch_west_sun_sens,
+                          adc_object         = adc
                          )
 
 # TODO: Shaft encoders here
