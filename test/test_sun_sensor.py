@@ -37,10 +37,10 @@ ss = sun_sensor( logger_name          = logger_name,
                  logger_module_name   = 'sun_sensor',
                  mot_move_raw_thresh  = mot_move_raw_thresh,
                  adc_volt_ref         = adc_vref,
-                 adc_north_sens_ch    = up_right_sens_ch, 
-                 adc_east_sens_ch     = up_left_sens_ch,  
-                 adc_south_sens_ch    = lo_right_sens_ch, 
-                 adc_west_sens_ch     = lo_left_sens_ch,  
+                 adc_north_sens_ch    = north_sens_ch, 
+                 adc_east_sens_ch     = east_sens_ch,  
+                 adc_south_sens_ch    = south_sens_ch, 
+                 adc_west_sens_ch     = west_sens_ch,  
                  adc_object           = adc
                 )
 
