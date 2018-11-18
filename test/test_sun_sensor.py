@@ -31,7 +31,7 @@ north_sens_ch = 6
 east_sens_ch  = 7 
 south_sens_ch = 4 
 west_sens_ch  = 5 
-adc_channels = [up_right_sens_ch, up_left_sens_ch, lo_right_sens_ch, lo_left_sens_ch]
+adc_channels = [north_sens_ch, east_sens_ch, south_sens_ch, west_sens_ch]
 
 ss = sun_sensor( logger_name          = logger_name,
                  logger_module_name   = 'sun_sensor',
