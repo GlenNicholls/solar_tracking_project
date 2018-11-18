@@ -5,6 +5,8 @@ import datetime
 from sun_sensor import sun_sensor
 from Adafruit_MCP3008 import MCP3008
 from utils import utils
+import motor_control.MotorCtrl_t as DIRECTION
+
 
 
 # init logger
@@ -25,21 +27,21 @@ adc = MCP3008(clk=CLK, cs=CS, miso=MISO, mosi=MOSI)
 adc_vref     = 3.3
 
 move_thresh_perc = 0.1
-up_right_sens_ch = 4 # can change since connections come in on header
-up_left_sens_ch  = 5 # can change since connections come in on header
-lo_right_sens_ch = 6 # can change since connections come in on header
-lo_left_sens_ch  = 7 # can change since connections come in on header
+north_sens_ch = 6 
+east_sens_ch  = 7 
+south_sens_ch = 4 
+west_sens_ch  = 5 
 adc_channels = [up_right_sens_ch, up_left_sens_ch, lo_right_sens_ch, lo_left_sens_ch]
 
 ss = sun_sensor( logger_name        = logger_name,
                  logger_module_name = 'sun_sensor',
-                 move_motor_thresh_perc = move_thresh_perc,
-                 adc_volt_ref   = adc_vref,
-                 adc_ur_sens_ch = up_right_sens_ch, # upper right sensor channel
-                 adc_ul_sens_ch = up_left_sens_ch,  # upper left sensor channel
-                 adc_lr_sens_ch = lo_right_sens_ch, # lower right sensor channel
-                 adc_ll_sens_ch = lo_left_sens_ch,  # lower left sensor channel
-                 adc_object     = adc
+                 mot_move_thresh    = move_thresh_perc,
+                 adc_volt_ref       = adc_vref,
+                 adc_north_sens_ch  = up_right_sens_ch, 
+                 adc_east_sens_ch   = up_left_sens_ch,  
+                 adc_south_sens_ch  = lo_right_sens_ch, 
+                 adc_west_sens_ch   = lo_left_sens_ch,  
+                 adc_object         = adc
                 )
 
 
@@ -70,10 +72,8 @@ def test_sens_channels(num_checks=20):
 def test_sun_sensor_differences(num_checks=20):
     string = []
 
-    string.append('Upper [%]')
-    string.append('Lower [%]')
-    string.append('Left [%]')
-    string.append('Right [%]')
+    string.append('Azimuth Diff')
+    string.append('Elevation Diff')
     max_str_len = len( str(max(string, key=len)) )
     num_cols    = len(string)
 
@@ -81,19 +81,15 @@ def test_sun_sensor_differences(num_checks=20):
 
     for check_num in range(num_checks):
         data = []
-        upper, lower, left, right = ss.get_all_diff_perc()
-        data.append(upper)
-        data.append(lower)
-        data.append(left)
-        data.append(right)
+        az, el = ss.get_diff_all()
+        data.append(az)
+        data.append(el)
 
         test_handle.write_table(string=data, max_str_len=max_str_len, header=False)
 
         # TODO: add parameter threshold
-        assert abs(upper) < 3.0 # unconnected should yield next to zero difference
-        assert abs(lower) < 3.0 # unconnected should yield next to zero difference
-        assert abs(left)  < 3.0 # unconnected should yield next to zero difference
-        assert abs(right) < 3.0 # unconnected should yield next to zero difference
+        assert abs(az) < 3.0 # unconnected should yield next to zero difference
+        assert abs(el) < 3.0 # unconnected should yield next to zero difference
 
         time.sleep(0.15)
 
@@ -101,8 +97,8 @@ def test_sun_sensor_differences(num_checks=20):
 def test_sun_sensor_averages(num_checks=20):
     string = []
 
-    string.append('Avg Horizon [%]')
-    string.append('Avg Vertical [%]')
+    string.append('Avg Azimuth Diff')
+    string.append('Avg Elevation Diff')
     max_str_len = len( str(max(string, key=len)) )
     num_cols    = len(string)
 
@@ -110,54 +106,54 @@ def test_sun_sensor_averages(num_checks=20):
 
     for check_num in range(num_checks):
         data = []
-        horizon, vertical = ss.get_all_avg()
-        data.append(horizon)
-        data.append(vertical)
+        az, el = ss.get_avg_all()
+        data.append(az)
+        data.append(el)
 
         test_handle.write_table(string=data, max_str_len=max_str_len, header=False)
 
         # TODO: add parameter threshold
-        assert abs(horizon)  < 3.0 # unconnected should yield next to zero difference
-        assert abs(vertical) < 3.0 # unconnected should yield next to zero difference
+        assert abs(az) < 3.0  # unconnected should yield next to zero difference
+        assert abs(el) < 3.0  # unconnected should yield next to zero difference
 
         time.sleep(0.15)
 
 
 def test_motor_move_flags(num_checks=20):
     for check_num in range(num_checks):
-        horizon, vertical = ss.get_all_avg()
-        horiz_mov, vert_mov = ss.move_motor()
+        az_avg, el_av = ss.get_avg_all()
+        az_dir, el_dir = ss.get_motor_direction_all()
 
-        if abs(horizon) > move_thresh_perc:
-            assert horiz_mov != 0 # motor flag should be -1 or 1
+        if abs(az_avg) > move_thresh_perc:
+            assert az_dir != DIRECTION.IDLE # motor flag should be -1 or 1
         else:
-            assert horiz_mov == 0 # motor flag should not be set
-        if abs(vertical) > move_thresh_perc:
-            assert vert_mov != 0 # motor flag should be -1 or 1
+            assert az_dir == DIRECTION.IDLE # motor flag should not be set
+        if abs(el_av) > move_thresh_perc:
+            assert el_dir != DIRECTION.IDLE  # motor flag should be -1 or 1
         else:
-            assert vert_mov == 0 # motor flag should not be set
+            assert el_dir == DIRECTION.IDLE  # motor flag should not be set
 
         time.sleep(0.15)
 
 
 def test_motor_move_direction(num_checks=20):
     for check_num in range(num_checks):
-        horizon, vertical = ss.get_all_avg()
-        horiz_mov, vert_mov = ss.move_motor()
+        az_avg, el_av = ss.get_avg_all()
+        az_dir, el_dir = ss.get_motor_direction_all()
 
-        if abs(horizon) > move_thresh_perc:
-            if horizon < 0.0:
-                assert horiz_mov == 1 
+        if abs(az_avg) > move_thresh_perc:
+            if az_avg  > 0.0:
+                assert az_dir == DIRECTION.WEST 
             else:
-                assert horiz_mov == -1
+                assert az_dir == DIRECTION.EAST
         else:
-            assert horiz_mov == 0 
-        if abs(vertical) > move_thresh_perc:
-            if vertical > 0.0:
-                assert vert_mov == 1 
+            assert az_dir == DIRECTION.IDLE 
+        if abs(el_av) > move_thresh_perc:
+            if el_av > 0.0:
+                assert el_dir == DIRECTION.SOUTH 
             else:
-                assert vert_mov == -1
+                assert el_dir == DIRECTION.NORTH
         else:
-            assert vert_mov == 0 
+            assert el_dir == DIRECTION.IDLE 
 
         time.sleep(0.15)

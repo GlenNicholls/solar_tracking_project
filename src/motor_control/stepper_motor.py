@@ -5,12 +5,13 @@ from enum import Enum
 
 
 class MotorCtrl_t(Enum):
-    WEST    = 0
-    NORTH   = 0
-    EAST    = 1
-    SOUTH   = 1
-    ENABLE  = 1
-    DISABLE = 0
+  IDLE    = -1 # so we don't move and if it gets passed to motor move, an error will be raised
+  WEST    = 0
+  NORTH   = 0
+  EAST    = 1
+  SOUTH   = 1
+  ENABLE  = 1
+  DISABLE = 0
 
 
 class stepper_motor(object):

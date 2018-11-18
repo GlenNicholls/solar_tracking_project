@@ -10,12 +10,12 @@ class sun_sensor(object):
 
     def __init__ (self, logger_name         = 'main_logger',
                         logger_module_name  = 'sun_sensor',
-                        mot_move_thresh     = None,
+                        mot_move_raw_thresh = None,
                         adc_volt_ref        = 3.3,
-                        adc_north_sens_ch   = None, # upper right sensor channel
-                        adc_east_sens_ch    = None, # upper left sensor channel
-                        adc_south_sens_ch   = None, # lower right sensor channel
-                        adc_west_sens_ch    = None, # lower left sensor channel
+                        adc_north_sens_ch   = None,
+                        adc_east_sens_ch    = None, 
+                        adc_south_sens_ch   = None, 
+                        adc_west_sens_ch    = None, 
                         adc_object          = None
                   ):
 
@@ -27,8 +27,8 @@ class sun_sensor(object):
         self._num_avgs = 20
         
         # logic thresh
-        self._thresh_perc = mot_move_thresh
-        if self._thresh_perc == None or self._thresh_perc <= 0.0 or self._thresh_perc >= 100.0:
+        self._thresh = mot_move_raw_thresh
+        if self._thresh == None or self._thresh <= 0 or self._thresh >= 1024:
             raise ValueError('Invalid threshold for motor movement, must be float [0-100]!')
 
         # capture internal config
@@ -64,7 +64,7 @@ class sun_sensor(object):
         return raw_read
 
 
-    def __get_per_diff(self, v_1, v_2):
+    def __get_diff(self, v_1, v_2):
         num_diff = v_1 - v_2
         den_diff = v_1 + v_2
         
@@ -79,36 +79,37 @@ class sun_sensor(object):
 
 
     def eval_azimuth(self, avg_diff_azimuth):
-        if abs(avg_diff_azimuth) > self._thresh_perc:
-            if avg_diff_azimuth < 0.0:
-                self.logger.debug('Moving horizon left')
-                return 1 # move left
+        if abs(avg_diff_azimuth) > self._thresh:
+            if avg_diff_azimuth > 0.0:
+                self.logger.debug('Moving azimuth WEST')
+                return DIRECTION.WEST
             else:
-                self.logger.debug('Moving horizon right')
-                return -1 # move right
+                self.logger.debug('Moving azimuth EAST')
+                return DIRECTION.EAST
         else:
-            self.logger.debug('Not greater than thresh, not updating horizon')
-            return 0
+            self.logger.debug('Not greater than thresh, not updating azimuth')
+            return DIRECTION.IDLE
 
 
     # TODO: use single eval function for both vertical/horizontal
     def eval_elevation(self, avg_diff_elevation):
-        if abs(avg_diff_elevation) > self._thresh_perc:
-            if avg_diff_elevation < 0.0:
-                self.logger.debug('Moving vertical up')
-                return -1 # move left
+        if abs(avg_diff_elevation) > self._thresh:
+            if avg_diff_elevation > 0.0:
+                self.logger.debug('Moving elevation SOUTH')
+                return DIRECTION.SOUTH
             else:
-                self.logger.debug('Moving vertical down')
-                return 1 # move right
+                self.logger.debug('Moving elevation NORTH')
+                return DIRECTION.NORTH 
         else:
-            self.logger.debug('Not greater than thresh, not updating vertical')
-            return 0
+            self.logger.debug('Not greater than thresh, not updating elevation')
+            return DIRECTION.IDLE
 
 
     def get_diff_azimuth(self):
         east = self._read_adc(self._east)
         west = self._read_adc(self._west)
-        diff = self._get_per_diff(east, west)
+        diff = east - west
+        #diff = self.__get_diff(east, west)
         self.logger.debug('Azimuth difference for east and west sensors: {}'.format(diff))
         return diff
     
@@ -116,9 +117,11 @@ class sun_sensor(object):
     def get_diff_elevation(self):
         north = self._read_adc(self._north)
         south = self._read_adc(self._south)
-        diff  = self._get_per_diff(north, south)
+        diff = north - south
+        #diff  = self.__get_diff(north, south)
         self.logger.debug('Elevation difference for north and south sensors: {}'.format(diff))
         return diff
+        
         
     def get_diff_all(self):
         azimuth   = self.get_diff_azimuth()
@@ -135,6 +138,7 @@ class sun_sensor(object):
         self.logger.debug('Sun sensor azimuth average: {}'.format(avg))
         return avg
     
+    
     def get_avg_elevation(self):
         avg = 0
         elevation = 0
@@ -150,15 +154,18 @@ class sun_sensor(object):
         elevation = self.get_avg_elevation()
         return (azimuth, elevation)
     
+    
     def get_motor_direction_azimuth(self):
         az_avg = self.get_avg_azimuth()
         mot_dir = self.eval_azimuth(az_avg)
         return mot_dir
     
+    
     def get_motor_direction_elevation(self):
         el_avg = self.get_avg_elevation()
         mot_dir = self.eval_elevation()
         return mot_dir
+    
     
     def get_motor_direction_all(self):
         mot_dir_az = self.get_motor_direction_azimuth()
