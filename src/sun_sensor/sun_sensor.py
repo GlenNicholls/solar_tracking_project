@@ -106,8 +106,8 @@ class sun_sensor(object):
 
 
     def get_diff_azimuth(self):
-        east = self._read_adc(self._east)
-        west = self._read_adc(self._west)
+        east = self.__read_adc(self._east)
+        west = self.__read_adc(self._west)
         diff = east - west
         #diff = self.__get_diff(east, west)
         self.logger.debug('Azimuth difference for east and west sensors: {}'.format(diff))
@@ -115,8 +115,8 @@ class sun_sensor(object):
     
     
     def get_diff_elevation(self):
-        north = self._read_adc(self._north)
-        south = self._read_adc(self._south)
+        north = self.__read_adc(self._north)
+        south = self.__read_adc(self._south)
         diff = north - south
         #diff  = self.__get_diff(north, south)
         self.logger.debug('Elevation difference for north and south sensors: {}'.format(diff))
