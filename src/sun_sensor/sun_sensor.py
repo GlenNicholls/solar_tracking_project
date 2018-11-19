@@ -32,17 +32,17 @@ class sun_sensor(object):
             raise ValueError('Invalid threshold for motor movement, must be float [0-100]!')
 
         # capture internal config
-        self._v_ref        = adc_volt_ref
-        self._adc     = adc_object
+        self._v_ref = adc_volt_ref
+        self._adc   = adc_object
 
         adc_ch_tuple = (adc_north_sens_ch, adc_east_sens_ch, adc_south_sens_ch, adc_west_sens_ch)
         if len(adc_ch_tuple) > len(set(adc_ch_tuple)): # appending tuples to check for uniqueness
             raise ValueError('ADC channels are not unique!')
 
         self._north = adc_north_sens_ch
-        self._east = adc_east_sens_ch
+        self._east  = adc_east_sens_ch
         self._south = adc_south_sens_ch
-        self._west = adc_west_sens_ch
+        self._west  = adc_west_sens_ch
 
         if self._north not in range(8):
             raise ValueError('Invalid ADC channel, must be int 0-7!')

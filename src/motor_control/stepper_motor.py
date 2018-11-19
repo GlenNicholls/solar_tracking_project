@@ -30,9 +30,12 @@ class stepper_motor(object):
     self.logger = logging.getLogger(logger_name + '.' + logger_module_name)
     self.logger.info('creating an instance of the {}'.format(logger_module_name))
 
+    # global variables
     self._speed   = 0.001 # hardcoding here as don't want sys to unintentionally become unstable
     self._ENABLE  = 1
     self._DISABLE = 0
+    self._INT_az  = False
+    self._INT_el  = False
 
     # define pin numbers
     self._dir    = pin_direction
@@ -66,17 +69,56 @@ class stepper_motor(object):
   def configure_limit_switch_INT(self):
     self.logger.info('Initializing rising edge INT on pin [{}, {}]'.format(self._lim_az, self._el))
 
-    # set up rising edge detectors for each pin
-    #GPIO.add_event_detect(self._lim_az, GPIO.RISING, callback=self.__ISR_lim_az)
-    #GPIO.add_event_detect(self._lim_el, GPIO.RISING, callback=self.__ISR_lim_el)
+    # set up logic change detectors for each pin
+    GPIO.add_event_detect(self._lim_az, GPIO.BOTH, callback=self.__ISR_lim_az)
+    GPIO.add_event_detect(self._lim_el, GPIO.BOTH, callback=self.__ISR_lim_el)
 
 
-  #def __ISR_lim_az(self, pin):
-  #
-  #def __ISR_lim_el(self, pin):
+  def __ISR_lim_az(self, pin):
+    if MOT.input(pin):
+      self._INT_az = True
+    else:
+      self._INT_az = False
+  
+
+  def __ISR_lim_el(self, pin):
+    if MOT.input(pin):
+      self._INT_el = True
+    else:
+      self._INT_el = False
   
     
-  #TODO: Pass parameters using enum
+  def __motor_step(self):
+    MOT.output(self._clk, self._DISABLE)
+    time.sleep(self._speed)
+    MOT.output(self._clk, self._ENABLE)
+    time.sleep(self._speed)
+
+
+  def __move_motor_x_steps(self, steps):
+    for i in range(int(steps)):
+      self.__motor_step()
+
+      # break if we see we have hit lim switches
+      if self._INT_az:
+        self.logger.warn('Azimuth limit reached, stepping motor back to safe limit!!!')
+        break
+      if self._INT_el:
+        self.logger.warn('Elevation limit reached, stepping motor back to safe limit!!!')
+        break
+    self.logger.debug('Moved motor {} steps'.format(i+1)) # i starts at zero and goes to x-1
+
+
+  def __activate_mot_move(self, pin, direction):
+    MOT.output(self._clk, self._ENABLE) #sets clock pin high, falling edge
+    MOT.output(self._dir, direction)    #sets motor direction 0 = W/N, 1 = E/S
+    MOT.output(pin, self._DISABLE)    
+    MOT.output(self._rst, self._ENABLE) #resets to starting configuration 1010
+    MOT.output(self._rst, self._ENABLE) #starts reset
+    MOT.output(self._rst, self._ENABLE) #ends reset
+    MOT.output(pin, self._ENABLE)
+
+
   def move_motor(self, axis, dir, deg):
     if not isinstance(dir, MotorCtrl_t):
       raise ValueError('Direction is not of direction type enumerate')
@@ -98,6 +140,7 @@ class stepper_motor(object):
     elif dir == MotorCtrl_t.SOUTH:
       mot_dir = 1
     
+    # calculate num of steps for each axis
     if axis == self._az:
       steps = deg * self._deg_az
       self.logger.debug('Moving azimuth {} degrees which is ~{} steps'.format(deg, steps))
@@ -108,21 +151,19 @@ class stepper_motor(object):
       self.logger.error('Incorrect axis! Expected {} or {}, you passed {}'.format(self._az, self._el, axis))
       return
       
+    # activate motor for desired direction
     self.logger.debug('Move motor routine commencing')
-    MOT.output(self._clk, self._ENABLE) #sets clock pin high, falling edge
-    MOT.output(self._dir, mot_dir)  #sets motor direction 0 = W/N, 1 = E/S
-    MOT.output(axis, self._DISABLE)    
-    MOT.output(self._rst, 1)        #resets to starting configuration 1010
-    MOT.output(self._rst, 0)        #starts reset
-    MOT.output(self._rst, 1)        #ends reset
-    MOT.output(axis, self._ENABLE)
-      
-    self.logger.debug('Pulsing clock {} times'.format(steps))
-    for _ in range(int(steps)): #pulse the clock pin
-      MOT.output(self._clk, self._DISABLE)
-      time.sleep(self._speed)
-      MOT.output(self._clk, self._ENABLE)
-      time.sleep(self._speed)
-    
+    self.__activate_mot_move(axis, mot_dir)
+
+    # step moter desired num of steps
+    self.logger.debug('Moving motor {} steps'.format(steps))
+    self.__move_motor_x_steps(steps)
+
+    # if we hit limit switches, step backwards until safe
+    if self._INT_az or self._INT_el:
+      self.__activate_mot_move(axis, not mot_dir)
+      while self._INT_az or self._INT_el:
+        self.__motor_step()
+
     self.logger.debug('Motor move finished. Disabling specified axis motor')
     MOT.output(axis, self._DISABLE)
