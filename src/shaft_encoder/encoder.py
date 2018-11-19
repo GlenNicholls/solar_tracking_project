@@ -75,3 +75,8 @@ class encoder:
   def get_count(self):
     self.logger.debug('Shaft encoder count: {}'.format(self.a_count))
     return self.a_count
+
+
+  def set_count(self, SE_count):
+    self.logger.info('Setting encoder current count value to: {}'.format(SE_count))
+    self.a_count = SE_count

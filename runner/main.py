@@ -368,33 +368,58 @@ def move_motor_el(direction, degrees):
 
 def move_motors_open_loop(deg_az, deg_el):
   locked = False
+  locked_az = False
+  locked_el = False
   enc_thresh = 0.25 # defining tight threshold for motors
 
-  prev_enc_deg_az, prev_enc_deg_el = get_encoder_positions_deg()
+  # create constant to generate error term later without multiplier
+  desired_deg_az = deg_az
+  desired_deg_el = deg_el
 
   # if encoders aren't reading correct position, loop
   while not locked: # and check_cnt < some_number:
+    # get previous position from encoders
+    prev_deg_az, prev_deg_el = get_encoder_positions_deg()
+
     # get directions for motors
     dir_az, dir_el = get_motors_dir_open_loop(deg_az, deg_el)
 
     # move motors
-    move_motor_az(dir_az, deg_az)
-    move_motor_el(dir_el, deg_el)
+    if not locked_az:
+        move_motor_az(dir_az, deg_az)
+    if not locked_el:
+        move_motor_el(dir_el, deg_el)
 
     # update position for lock check
     new_deg_az, new_deg_el = get_encoder_positions_deg()
 
-    deg_az = new_deg_az - prev_enc_deg_az
-    deg_el = new_deg_el - prev_enc_deg_el
-    logger.info('Azimuth shaft encoder degrees moved: [{}]'.format(deg_az))
-    logger.info('Elevation shaft encoder degrees moved: [{}]'.format(deg_el))
+    enc_moved_deg_az = new_deg_az - prev_deg_az
+    enc_moved_deg_el = new_deg_el - prev_deg_el
+    logger.info('Azimuth shaft encoder degrees moved: [{}]'.format(enc_moved_deg_az))
+    logger.info('Elevation shaft encoder degrees moved: [{}]'.format(enc_moved_deg_el))
 
     # check if locked
-    if deg_az <= enc_thresh:
+    deg_az = new_deg_az - desired_deg_az
+    deg_el = new_deg_el - desired_deg_el
+    err_deg_az = abs(deg_az)
+    err_deg_el = abs(deg_el)
+    if err_deg_az <= enc_thresh:
       logger.info('Azimuth Locked!!!')
-    if deg_el <= enc_thresh:
+      locked_az = True
+    else:
+      logger.warn('Desired Azimuth: [{}] deg'.format(desired_deg_az))
+      logger.warn('Current Azimuth: [{}] deg'.format(new_deg_az))
+      logger.warn('Azimuth error: [{}] deg'.format(err_deg_az))
+
+    if err_deg_el <= enc_thresh:
       logger.info('Elevation Locked!!!')
-    if deg_az <= enc_thresh and deg_el <= enc_thresh:
+      locked_az = True
+    else:
+      logger.warn('Desired Elevation: [{}] deg'.format(desired_deg_el))
+      logger.warn('Current Elevation: [{}] deg'.format(new_deg_el))
+      logger.warn('Elevation error: [{}] deg'.format(err_deg_el))
+
+    if locked_az and locked_el:
       logger.info('Azimuth and elevation are locked!!!')
       locked = True
 
