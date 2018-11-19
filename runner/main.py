@@ -265,8 +265,8 @@ def init_pi_hat():
 
 
 def init_shaft_encoders():
-  az_encoder.CFG_Encoder_Int()
-  el_encoder.CFG_Encoder_Int()
+  az_encoder.configure_encoder_INT()
+  el_encoder.configure_encoder_INT()
 
 
 def init_rtc():

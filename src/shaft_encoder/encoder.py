@@ -44,25 +44,17 @@ class encoder:
 
     if type(self.a_count) != int or self.a_count < 0 or self.a_count > self.ppr:
       raise ValueError('Initial count value must be integer 0-ppr')
-    
-    # Configure interrupts
-    #self.CFG_Encoder_Int()
 
-  def CFG_Encoder_Int(self):
-    self.logger.info('Initializing rising edge INT on pin {}'.format(self.A_pin))
 
-    # #set up gpio module                         
-    # GPIO.setmode(GPIO.BCM)                      
-    #                                             
-    # # Set up Pins as inputs, with internal pull 
-    # GPIO.setup(self.A_pin, GPIO.IN)             
-    # GPIO.setup(self.B_pin, GPIO.IN)             
+  def configure_encoder_INT(self):
+    self.logger.info('Initializing rising edge INT on pin {}'.format(self.A_pin))             
 
     # Set up rising edge detectors for each pin
-    GPIO.add_event_detect(self.A_pin, GPIO.RISING, callback=self.A_pin_ISR)
+    GPIO.add_event_detect(self.A_pin, GPIO.RISING, callback=self.__ISR_pin_a)
+
 
   # A channel ISR
-  def A_pin_ISR(self, pin):
+  def __ISR_pin_a(self, pin):
     # Check if channel A is leading channel B (A=1,B=0)
     # If channel A leads, rotation is CCW
     # Increment/Decrement position counter based on direction
@@ -79,6 +71,7 @@ class encoder:
     self.logger.debug('Shaft encoder degrees: {}'.format(deg))
     return deg
   
+
   def get_count(self):
     self.logger.debug('Shaft encoder count: {}'.format(self.a_count))
     return self.a_count
