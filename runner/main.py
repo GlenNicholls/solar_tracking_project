@@ -104,14 +104,14 @@ sys_mon = system_monitor( logger_name        = logger_name,
 adc_vref     = 3.3
 adc_num_bits = 10
 
-adc_ch_panel_current     = 0
-adc_ch_panel_voltage     = 3
-adc_ch_battery_current   = 1
-adc_ch_battery_voltage   = 2
-adc_ch_south_sun_sens    = 4 # can change since connections come in on header
-adc_ch_west_sun_sens     = 5 # can change since connections come in on header
-adc_ch_north_sun_sens    = 6 # can change since connections come in on header
-adc_ch_east_sun_sens     = 7 # can change since connections come in on header
+adc_ch_panel_current   = 0
+adc_ch_battery_current = 1
+adc_ch_battery_voltage = 2
+adc_ch_panel_voltage   = 3
+adc_ch_south_sun_sens  = 4 
+adc_ch_west_sun_sens   = 5 
+adc_ch_north_sun_sens  = 6 
+adc_ch_east_sun_sens   = 7 
 
 adc = MCP3008( clk  = PIN_ADC_CLK,
                cs   = PIN_ADC_CS,
@@ -122,13 +122,13 @@ adc = MCP3008( clk  = PIN_ADC_CLK,
 # Power Measurements
 curr_sens_gain = 75
 
-curr_sens_panel_Rshunt = 0.3
-vdiv_panel_R1          = 100000
-vdiv_panel_R2          = 16000
+curr_sens_panel_Rshunt = 0.010
+vdiv_panel_R1          = 100e3
+vdiv_panel_R2          = 16e3
 
 curr_sens_battery_Rshunt = 0.001
-vdiv_battery_R1          = 100000
-vdiv_battery_R2          = 36000
+vdiv_battery_R1          = 100e3
+vdiv_battery_R2          = 36e3
 
 panel_power = power_measurement( logger_name          = logger_name,
                                  logger_module_name   = logger_panel_pwr_name,
@@ -169,8 +169,7 @@ sun_sensors = sun_sensor( logger_name         = logger_name,
                           adc_object          = adc
                          )
 
-# TODO: Shaft encoders here
-# also note need to pull in stored parameters beforehand to set counter in class each time system starts
+# Shaft Encoders
 SE_ppr = 2000
 az_encoder = encoder( logger_name        = logger_name,
                       logger_module_name = logger_az_encoder_name,
@@ -188,7 +187,7 @@ el_encoder = encoder( logger_name        = logger_name,
                       ppr                = SE_ppr
                      )
 
-# TODO: motor control
+# Motors
 az_steps_per_deg = 50
 el_steps_per_deg = 62
 motor = stepper_motor( logger_name          = logger_name,
@@ -204,7 +203,7 @@ motor = stepper_motor( logger_name          = logger_name,
                        el_steps_per_deg     = el_steps_per_deg
                       )
 
-# Hardware abstraction
+# HAL
 hw_handle = hardware( logger_name        = logger_name,
                       logger_module_name = logger_hw_name
                      )
@@ -230,7 +229,7 @@ def init_pins():
   GPIO.setup(PIN_SE_ELEVATION_A, GPIO.IN)
   GPIO.setup(PIN_SE_ELEVATION_B, GPIO.IN)
 
-  # ADC taken care of by package
+  # ADC taken care of by Adafruit_MCP3008
 
   # ATTiny
   logger.info('Setting GPIO pin directions for ATTiny control')
@@ -305,6 +304,15 @@ def init_rtc():
 # Helpers
 ##########################
 # TODO: where should these go
+def get_encoder_degrees_all():
+  logger.info('Get current position from shaft encoders')
+  az_deg = az_encoder.get_degrees()
+  el_deg = el_encoder.get_degrees()
+  logger.info('Shaft encoder azimuth: [{}] deg'.format(init_encoder_az))
+  logger.info('Shaft encoder elevation: [{}] deg'.format(init_encoder_el))
+  return az_deg, el_deg
+
+
 def get_location_astral(lat, lng, elev):
   loc = Location()
   loc.name = 'solar_tracker'
@@ -315,6 +323,24 @@ def get_location_astral(lat, lng, elev):
   loc.elevation = elev # TODO: do we need this?
   logger.info('Astral location: {}'.format(loc))
   return loc
+
+
+def get_solar_position_deg(loc_astral):
+  az_deg = loc_astral.solar_azimuth(datetime.now())
+  el_deg = loc_astral.solar_elevation(datetime.now())
+  logger.info('Next Solar Azimuth: [{}] deg'.format(az_deg))
+  logger.info('Next solar elevation: [{}] deg'.format(el_deg))
+  return az_deg, el_deg
+
+
+def is_daytime():
+  now = datetime..now()
+  if now > sun_dict['sunrise'] and now < sun_dict['sunset']:
+    logger.info("Daytime")
+    return True
+  else:
+    logger.info("Nighttime")
+    return False
 
 
 '''
@@ -328,7 +354,6 @@ x 1) startup should drive uC ack pin high
 '''
 # TODO: determine how time will be passed in for update alarm and the error checking for this value
 def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
-  
   # TODO: add flag for nighttime and add this to rtc.set_alarm_sunrise() check
   logger.info('Initiating Shutdown')
 
@@ -343,6 +368,11 @@ def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
   hw_handle.set_pin_low(PIN_UC_PWR_ACK_TX) #uC will now wait ~45 seconds to pull power
   os.system('sudo shutdown now -h')
   '''
+# TODO: Add functions below
+# def calibrate_system():
+# def load_stored_parameters():
+# def load_user_parameters():
+
 
   
 ##########################
@@ -366,58 +396,42 @@ def main():
   #Get astral with current location
   loc_astral = get_location_astral(latitude, longitude, elevation)
   
-  #Calibrate system
-  logger.info('Calibrating System NOT DEFINED')
+  # Calibrate system
+  logger.warn('Calibrating System NOT DEFINED')
   
   sun_dict = loc_astral.sun()
-  now = pytz.timezone('US/Mountain').localize(datetime.now())
-  logger.info('pytz datetime: {}, dt datetime: {}'.format(now, datetime.now())) # DBG
+  now = datetime.now()
+  #now = pytz.timezone('US/Mountain').localize(datetime.now())
+  #logger.info('pytz datetime: {}, dt datetime: {}'.format(now, datetime.now())) # TODO: both basically same, I think we should remove pytz
 
-  #Get current position from shart encoders
+  # Get current position from shart encoders
   # lol ^^^
-  logger.warning('Get current position from shaft encoders NOT DEFINED')
-  init_encoder_az = az_encoder.get_degrees()
-  init_encoder_el = el_encoder.get_degrees()
-
-  logger.info('Shaft encoder azimuth: [{}] deg'.format(init_encoder_az))
-  logger.info('Shaft encoder elevation: [{}] deg'.format(init_encoder_el))
-
+  init_encoder_deg_az, init_encoder_deg_el = get_encoder_degrees_all()
   
-  #Get current position from motors
+  # Get current position from motors
+  # TODO: We should be trusting encoders only, so I'm not sure if this is needed
   logger.warn('Get current position from motors NOT DEFINED')
   
-  if now > sun_dict['sunrise'] and now < sun_dict['sunset']:
-    daytime = True
-    logger.info("Daytime")
-  else:
-    daytime = False
-    logger.info("Nighttime")
-    
-  if daytime: #this will be the if check from above, implemented this way for development
+  if is_daytime(): #this will be the if check from above, implemented this way for development
     #Get solar position
-    solar_az = loc_astral.solar_azimuth(datetime.now())
-    solar_el = loc_astral.solar_elevation(datetime.now())
-    logger.info('Next Solar Azimuth: [{}] deg'.format(solar_az))
-    logger.info('Next solar elevation: [{}] deg'.format(solar_el))
+    solar_deg_az, solar_deg_el = get_solar_position_deg(loc_astral)
     
     #Move to calculated sun posistion
-    deg_az = int(round(solar_az - prev_solar_az)) # TODO: why are we rounding?
+    deg_az = solar_deg_az - prev_solar_az
     if deg_az < 0:
       dir_az = MotorCtrl_t.EAST
     else:
       dir_az = MotorCtrl_t.WEST
+    logger.info('Moving azimuth {} degrees {}'.format(deg_az, dir_az))
     #motor.move_motor(PIN_MOT_AZIMUTH, dir_az, deg_az)
-    print(dir_az)
-    print(deg_az)
     
-    deg_el = int(round(solar_el - prev_solar_el)) # TODO: reference note above about rounding
+    deg_el = solar_deg_el - prev_solar_el 
     if deg_el < 0:
       dir_el = MotorCtrl_t.SOUTH
     else:
       dir_el = MotorCtrl_t.NORTH
+    logger.info('Moving elevation {} degrees {}'.format(deg_el, dir_el))
     #motor.move_motor(PIN_MOT_ELEVATION, dir_el, deg_el)
-    print(dir_el)
-    print(deg_el)
 
     final_encoder_az = az_encoder.get_degrees()
     logger.info('Azimuth shaft encoder final: [{}]'.format(final_encoder_az))
@@ -432,19 +446,19 @@ def main():
     logger.info('Elevation shaft encoder degrees moved: [{}]'.format(degrees_move_el))
     
     #Read light sensor
+    # TODO: is above referring to limit switch? If so, I am taking care of this in motor class
     logger.info('Reading light sensor')
     
   else:
     #Get solar position for tomorrow morning
     tomorrow = datetime.today() + timedelta(days=1)
     sun_dict = loc_astral.sun(tomorrow.date())
-    solar_az = loc_astral.solar_azimuth(sun_dict['sunrise'])
-    solar_el = loc_astral.solar_elevation(sun_dict['sunrise'])
-    logger.info('Tomorrow Solar Azimuth: [{}], Tomorrow Solar Elevation: [{}]'.format(solar_az, solar_el)) #.format() is literally the only useful thing I learned from Pete...
+    solar_deg_az = loc_astral.solar_azimuth(sun_dict['sunrise'])
+    solar_deg_el = loc_astral.solar_elevation(sun_dict['sunrise'])
+    logger.info('Tomorrow Solar Azimuth: [{}], Tomorrow Solar Elevation: [{}]'.format(solar_deg_az, solar_deg_el))
     
     #Move to sunrise position for tomorrow
     logger.info('Moving to sunrise position for tomorrow NOT DEFINED')
-  #End if else
   
   # test loop for tracking light
   while 1:
