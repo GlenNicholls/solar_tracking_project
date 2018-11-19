@@ -264,9 +264,11 @@ def init_pi_hat():
     # TODO: email user or something
 
 
-def init_shaft_encoders():
+def init_interrupts():
   az_encoder.configure_encoder_INT()
   el_encoder.configure_encoder_INT()
+  # TODO: add below
+  # motor.configure_limit_switch_INT()
 
 
 def init_rtc():
@@ -313,7 +315,6 @@ def get_location_astral(lat, lng, elev):
   loc.elevation = elev # TODO: do we need this?
   logger.info('Astral location: {}'.format(loc))
   return loc
-#End get_location_astral
 
 
 '''
@@ -344,6 +345,9 @@ def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
   '''
 
   
+##########################
+# Main Loop
+##########################
 def main():
   logger.info("Current UTC time: {}".format(datetime.utcnow())) # TODO: can remove once init_rtc() is uncommented
   
@@ -367,7 +371,8 @@ def main():
   
   sun_dict = loc_astral.sun()
   now = pytz.timezone('US/Mountain').localize(datetime.now())
-  
+  logger.info('pytz datetime: {}, dt datetime: {}'.format(now, datetime.now())) # DBG
+
   #Get current position from shart encoders
   # lol ^^^
   logger.warning('Get current position from shaft encoders NOT DEFINED')
@@ -467,6 +472,6 @@ if __name__ == '__main__':
   # TODO: how do we want to pull info from state file?
   init_pins()
   init_pi_hat()
-  init_shaft_encoders()
+  init_interrupts()
   # init_rtc()
   main()
