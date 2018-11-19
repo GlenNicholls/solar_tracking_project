@@ -305,7 +305,7 @@ def init_rtc():
 # Helpers
 ##########################
 # TODO: where should these go??
-def get_encoder_position_deg():
+def get_encoder_positions_deg():
   logger.info('Get current position from shaft encoders')
   az_deg = az_encoder.get_degrees()
   el_deg = el_encoder.get_degrees()
@@ -357,15 +357,14 @@ def move_motor_el(direction, degrees):
   motor.move_motor(PIN_MOT_ELEVATION, direction, degrees)
 
 
-# TODO: add max loops and error logging if we don't ever reach desired pos
 def move_motors_open_loop(deg_az, deg_el):
   locked = False
   enc_thresh = 0.25 # defining tight threshold for motors
 
-  prev_enc_deg_az, prev_enc_deg_el = get_encoder_position_deg()
+  prev_enc_deg_az, prev_enc_deg_el = get_encoder_positions_deg()
 
   # if encoders aren't reading correct position, loop
-  while not locked:
+  while not locked: # and check_cnt < some_number:
     # get directions for motors
     dir_az, dir_el = get_motors_dir_open_loop(deg_az, deg_el)
 
@@ -374,20 +373,50 @@ def move_motors_open_loop(deg_az, deg_el):
     move_motor_el(dir_el, deg_el)
 
     # update position for lock check
-    new_deg_az, new_deg_el = get_encoder_position_deg()
+    new_deg_az, new_deg_el = get_encoder_positions_deg()
 
     deg_az = new_deg_az - prev_enc_deg_az
     deg_el = new_deg_el - prev_enc_deg_el
     logger.info('Azimuth shaft encoder degrees moved: [{}]'.format(deg_az))
     logger.info('Elevation shaft encoder degrees moved: [{}]'.format(deg_el))
 
+    # check if locked
+    if deg_az <= enc_thresh:
+      logger.info('Azimuth Locked!!!')
+    if deg_el <= enc_thresh:
+      logger.info('Elevation Locked!!!')
+    if deg_az <= enc_thresh and deg_el <= enc_thresh:
+      logger.info('Azimuth and elevation are locked!!!')
+      locked = True
 
-  final_encoder_az = az_encoder.get_degrees()
-  logger.info('Azimuth shaft encoder final: [{}]'.format(final_encoder_az))
+  logger.info('Azimuth shaft encoder final: [{}]'.format(new_deg_az))
+  logger.info('Elevation shaft encoder final: [{}]'.format(new_deg_el))
+  return locked
   
-  final_encoder_el = el_encoder.get_degrees()
-  logger.info('Elevation shaft encoder final: [{}]'.format(final_encoder_el))
-  
+
+def move_motors_closed_loop():
+  locked = False
+  move_mot_deg = 0.5
+
+  while not locked:
+    # get motor movement directions based on sun sensor
+    az_dir, el_dir = sun_sensors.get_motor_direction_all()
+    logger.info('Desired azimuth direction: {}'.format(az_dir))
+    logger.info('Desired elevation direction: {}'.format(el_dir))
+
+    # move motors
+    move_motor_el(el_dir, move_mot_deg)
+    move_motor_az(az_dir, move_mot_deg)
+
+    # check if locked
+    if az_dir == MotorCtrl_t.IDLE:
+      logger.info('Azimuth Locked!!!')
+    if el_dir == MotorCtrl_t.IDLE:
+      logger.info('Elevation Locked!!!')
+    if az_dir == MotorCtrl_t.IDLE and el_dir == MotorCtrl_t.IDLE:
+      logger.info('Azimuth and elevation are locked!!!')
+      locked = True
+  return locked
 
 
 def move_motors(deg_az=None, deg_el=None, open_loop=False, closed_loop=False):
@@ -397,9 +426,11 @@ def move_motors(deg_az=None, deg_el=None, open_loop=False, closed_loop=False):
     raise ValueError('Must enter movement values for BOTH azimuth and elevation')
 
   if open_loop:
+    logger.info('Open loop tracking initiated')
     move_motors_open_loop(deg_az, deg_el)
   elif closed_loop:
-    move_motor_closed_loop()
+    logger.info('Closed loop tracking initiated')
+    move_motors_closed_loop()
 
 
 def is_daytime():
@@ -441,6 +472,7 @@ def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
 # def calibrate_system():
 # def load_stored_parameters():
 # def load_user_parameters():
+# def save_state():
 
 
   
@@ -470,26 +502,26 @@ def main():
   now = datetime.now()
   #now = pytz.timezone('US/Mountain').localize(datetime.now())
   #logger.info('pytz datetime: {}, dt datetime: {}'.format(now, datetime.now())) # TODO: both basically same, I think we should remove pytz
-
-  # Get current position from shart encoders
-  # lol ^^^
-  init_encoder_deg_az, init_encoder_deg_el = get_encoder_position_deg()
   
   # Get current position from motors
   # TODO: We should be trusting encoders only, so I'm not sure if this is needed
   logger.warn('Get current position from motors NOT DEFINED')
   
   if is_daytime(): #this will be the if check from above, implemented this way for development
-    #Get solar position
+    # Get solar position
     solar_deg_az, solar_deg_el = get_solar_position_deg(loc_astral)
     
-    #Move to calculated sun posistion
+    # Move to calculated sun posistion
     deg_az = solar_deg_az - prev_solar_az
     deg_el = solar_deg_el - prev_solar_el 
-    move_motors(deg_az, deg_el, open_loop=True)
+    open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
     
+    # Perform fine adjustments
+    closed_loop_locked = move_motors(closed_loop=True)
+    # TODO: ensure we're locked still
+
     #Read light sensor
-    # TODO: is above referring to limit switch? If so, I am taking care of this in motor class
+    # TODO: is this referring to limit switch? If so, I am taking care of this in motor class -GN
     logger.info('Reading light sensor')
     
   else:
@@ -501,15 +533,7 @@ def main():
     logger.info('Tomorrow Solar Azimuth: [{}], Tomorrow Solar Elevation: [{}]'.format(solar_deg_az, solar_deg_el))
     
     #Move to sunrise position for tomorrow
-    logger.info('Moving to sunrise position for tomorrow NOT DEFINED')
-  
-  # test loop for tracking light
-  while 1:
-    az_dir, el_dir = sun_sensors.get_motor_direction_all()
-    logger.info('Desired azimuth direction: {}'.format(az_dir))
-    logger.info('Desired elevation direction: {}'.format(el_dir))
-    motor.move_motor(PIN_MOT_ELEVATION, el_dir, 0.5)
-    motor.move_motor(PIN_MOT_AZIMUTH, az_dir, 0.5)
+    logger.warn('Moving to sunrise position for tomorrow NOT DEFINED')
 
   # TODO: use GPIO.cleanup() or GPIO.cleanup([channels]) somewhere before shutdown.
   #       cleanup() may cause issues with AVRDude, so specifying used channels as [] or () is probably needed
