@@ -334,6 +334,16 @@ def get_solar_position_deg(loc_astral):
   return az_deg, el_deg
 
 
+def get_sunrise_position_deg(loc_astral):
+  tomorrow = datetime.today() + timedelta(days=1)
+  sun_dict = loc_astral.sun(tomorrow.date())
+  az_deg = loc_astral.solar_azimuth(sun_dict['sunrise'])
+  el_deg = loc_astral.solar_elevation(sun_dict['sunrise'])
+  logger.info('Sunrise azimuth tomorrow: {} deg'.format(az_deg))
+  logger.info('Sunrise elevation tomorrow: {} deg'.format(el_deg))
+  return az_deg, el_deg
+
+
 def get_motors_dir_open_loop(deg_az, deg_el):
   if deg_az < 0:
     dir_az = MotorCtrl_t.EAST
@@ -433,8 +443,10 @@ def move_motors(deg_az=None, deg_el=None, open_loop=False, closed_loop=False):
     move_motors_closed_loop()
 
 
-def is_daytime():
-  now = datetime..now()
+def is_daytime(loc_astral):
+  #now = datetime.now()
+  now = pytz.timezone('US/Mountain').localize(datetime.now())
+  sun_dict = loc_astral.sun()
   if now > sun_dict['sunrise'] and now < sun_dict['sunset']:
     logger.info("Daytime")
     return True
@@ -497,17 +509,12 @@ def main():
   
   # Calibrate system
   logger.warn('Calibrating System NOT DEFINED')
-  
-  sun_dict = loc_astral.sun()
-  now = datetime.now()
-  #now = pytz.timezone('US/Mountain').localize(datetime.now())
-  #logger.info('pytz datetime: {}, dt datetime: {}'.format(now, datetime.now())) # TODO: both basically same, I think we should remove pytz
-  
+    
   # Get current position from motors
   # TODO: We should be trusting encoders only, so I'm not sure if this is needed
   logger.warn('Get current position from motors NOT DEFINED')
   
-  if is_daytime(): #this will be the if check from above, implemented this way for development
+  if is_daytime(loc_astral): #this will be the if check from above, implemented this way for development
     # Get solar position
     solar_deg_az, solar_deg_el = get_solar_position_deg(loc_astral)
     
@@ -526,11 +533,7 @@ def main():
     
   else:
     #Get solar position for tomorrow morning
-    tomorrow = datetime.today() + timedelta(days=1)
-    sun_dict = loc_astral.sun(tomorrow.date())
-    solar_deg_az = loc_astral.solar_azimuth(sun_dict['sunrise'])
-    solar_deg_el = loc_astral.solar_elevation(sun_dict['sunrise'])
-    logger.info('Tomorrow Solar Azimuth: [{}], Tomorrow Solar Elevation: [{}]'.format(solar_deg_az, solar_deg_el))
+    solar_deg_az, solar_deg_el = get_sunrise_position_deg(loc_astral)
     
     #Move to sunrise position for tomorrow
     logger.warn('Moving to sunrise position for tomorrow NOT DEFINED')
@@ -542,6 +545,11 @@ def main():
   #       if they forget to take the device out of dev mode after an hour or something.
   # TODO: measure power of shutdown/power up to see if it is worth it during day. If it is, make sure we aren't shutting down if next alarm will be
   #       before amount of time it takes to shutdown
+
+  logger.info('Cleaning up all GPIO')
+  GPIO.cleanup()
+
+  # shutdown
   shutdown()
   
   
