@@ -304,7 +304,7 @@ def init_rtc():
 # Helpers
 ##########################
 # TODO: where should these go
-def get_encoder_degrees_all():
+def get_encoder_pos_deg():
   logger.info('Get current position from shaft encoders')
   az_deg = az_encoder.get_degrees()
   el_deg = el_encoder.get_degrees()
@@ -331,6 +331,51 @@ def get_solar_position_deg(loc_astral):
   logger.info('Next Solar Azimuth: [{}] deg'.format(az_deg))
   logger.info('Next solar elevation: [{}] deg'.format(el_deg))
   return az_deg, el_deg
+
+
+def get_motors_dir_open_loop(deg_az, deg_el):
+  if deg_az < 0:
+    dir_az = MotorCtrl_t.EAST
+  else:
+    dir_az = MotorCtrl_t.WEST
+  
+  if deg_el < 0:
+    dir_el = MotorCtrl_t.SOUTH
+  else:
+    dir_el = MotorCtrl_t.NORTH
+  return dir_az, dir_el
+
+
+def move_motor_az(direction, degrees):
+  logger.info('Moving azimuth {} degrees {}'.format(direction, degrees))
+  motor.move_motor(PIN_MOT_AZIMUTH, direction, degrees)
+
+
+def move_motor_el(direction, degrees):
+  logger.info('Moving elevation {} degrees {}'.format(direction, degrees))
+  motor.move_motor(PIN_MOT_ELEVATION, direction, degrees)
+
+
+def move_motors_open_loop(deg_az, deg_el):
+  locked = False
+  encoder_thresh = None
+  while not locked:
+    dir_az, dir_el = get_motors_dir_open_loop(deg_az, deg_el)
+    move_motor_az(dir_az, deg_az)
+    move_motor_el(dir_el, deg_el)
+  
+
+
+def move_motors(deg_az=None, deg_el=None, open_loop=False, closed_loop=False):
+  if open_loop and closed_loop:
+    raise ValueError('Must select open loop OR closed loop, not both!')
+  if open_loop and (deg_az == None or deg_az == None):
+    raise ValueError('Must enter movement values for BOTH azimuth and elevation')
+
+  if open_loop:
+    move_motors_open_loop(deg_az, deg_el)
+  elif closed_loop:
+    move_motor_closed_loop()
 
 
 def is_daytime():
@@ -378,9 +423,7 @@ def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
 ##########################
 # Main Loop
 ##########################
-def main():
-  logger.info("Current UTC time: {}".format(datetime.utcnow())) # TODO: can remove once init_rtc() is uncommented
-  
+def main():  
   #Run setup if needed
   logger.info('Running setup') # TODO: setup should happen outside of main
   
@@ -406,7 +449,7 @@ def main():
 
   # Get current position from shart encoders
   # lol ^^^
-  init_encoder_deg_az, init_encoder_deg_el = get_encoder_degrees_all()
+  init_encoder_deg_az, init_encoder_deg_el = get_encoder_pos_deg()
   
   # Get current position from motors
   # TODO: We should be trusting encoders only, so I'm not sure if this is needed
@@ -418,20 +461,8 @@ def main():
     
     #Move to calculated sun posistion
     deg_az = solar_deg_az - prev_solar_az
-    if deg_az < 0:
-      dir_az = MotorCtrl_t.EAST
-    else:
-      dir_az = MotorCtrl_t.WEST
-    logger.info('Moving azimuth {} degrees {}'.format(deg_az, dir_az))
-    #motor.move_motor(PIN_MOT_AZIMUTH, dir_az, deg_az)
-    
     deg_el = solar_deg_el - prev_solar_el 
-    if deg_el < 0:
-      dir_el = MotorCtrl_t.SOUTH
-    else:
-      dir_el = MotorCtrl_t.NORTH
-    logger.info('Moving elevation {} degrees {}'.format(deg_el, dir_el))
-    #motor.move_motor(PIN_MOT_ELEVATION, dir_el, deg_el)
+    move_motors(deg_az, deg_el, open_loop=True)
 
     final_encoder_az = az_encoder.get_degrees()
     logger.info('Azimuth shaft encoder final: [{}]'.format(final_encoder_az))
@@ -467,7 +498,6 @@ def main():
     logger.info('Desired elevation direction: {}'.format(el_dir))
     motor.move_motor(PIN_MOT_ELEVATION, el_dir, 0.5)
     motor.move_motor(PIN_MOT_AZIMUTH, az_dir, 0.5)
-    #time.sleep(0.01)
 
   # TODO: use GPIO.cleanup() or GPIO.cleanup([channels]) somewhere before shutdown.
   #       cleanup() may cause issues with AVRDude, so specifying used channels as [] or () is probably needed
@@ -478,8 +508,6 @@ def main():
   #       before amount of time it takes to shutdown
   shutdown()
   
-#End main()
-
   
 if __name__ == '__main__':
   # TODO: need to add check at beginning for log levels

@@ -78,7 +78,7 @@ class sun_sensor(object):
         return diff
 
 
-    def eval_azimuth(self, avg_diff_azimuth):
+    def __eval_azimuth(self, avg_diff_azimuth):
         if abs(avg_diff_azimuth) > self._thresh:
             if avg_diff_azimuth > 0.0:
                 self.logger.debug('Moving azimuth WEST')
@@ -91,8 +91,7 @@ class sun_sensor(object):
             return DIRECTION.IDLE
 
 
-    # TODO: use single eval function for both vertical/horizontal
-    def eval_elevation(self, avg_diff_elevation):
+    def __eval_elevation(self, avg_diff_elevation):
         if abs(avg_diff_elevation) > self._thresh:
             if avg_diff_elevation > 0.0:
                 self.logger.debug('Moving elevation SOUTH')
@@ -157,13 +156,13 @@ class sun_sensor(object):
     
     def get_motor_direction_azimuth(self):
         az_avg = self.get_avg_azimuth()
-        mot_dir = self.eval_azimuth(az_avg)
+        mot_dir = self.__eval_azimuth(az_avg)
         return mot_dir
     
     
     def get_motor_direction_elevation(self):
         el_avg = self.get_avg_elevation()
-        mot_dir = self.eval_elevation(el_avg)
+        mot_dir = self.__eval_elevation(el_avg)
         return mot_dir
     
     

@@ -26,16 +26,16 @@ adc_num_bits = 10
 adc_panel_curr_ch        = 0
 adc_panel_volt_ch        = 3
 curr_sensor_panel_G      = 75
-curr_sensor_panel_Rshunt = 0.3
-vdiv_panel_R1            = 1000
-vdiv_panel_R2            = 160
+curr_sensor_panel_Rshunt = 0.010
+vdiv_panel_R1            = 100e3
+vdiv_panel_R2            = 16e3
 
 adc_battery_curr_ch        = 1
 adc_battery_volt_ch        = 2
 curr_sensor_battery_G      = 75
 curr_sensor_battery_Rshunt = 0.001
-vdiv_battery_R1            = 1000
-vdiv_battery_R2            = 360
+vdiv_battery_R1            = 100e3
+vdiv_battery_R2            = 36e3
 
 panel_power = power_measurement( logger_name          = logger_name,
                                  logger_module_name   = 'panel_power',
