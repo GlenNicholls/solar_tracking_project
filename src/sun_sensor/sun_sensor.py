@@ -64,18 +64,18 @@ class sun_sensor(object):
         return raw_read
 
 
-    def __get_diff(self, v_1, v_2):
-        num_diff = v_1 - v_2
-        den_diff = v_1 + v_2
-        
-        if den_diff == 0.0:
-            diff = 0.0
-            self.logger.warning('num 1 ({}) + num 2 ({}) returns zero!'.format(v_1, v_2))
-            self.logger.warning('Divide by zero occuring. Returning zero')
-        else:
-            diff = num_diff/(den_diff / 2)
-        self.logger.debug('Difference is: {}'.format(diff))
-        return diff
+    # def __get_diff(self, v_1, v_2):
+    #     num_diff = v_1 - v_2
+    #     den_diff = v_1 + v_2
+    #     
+    #     if den_diff == 0.0:
+    #         diff = 0.0
+    #         self.logger.warning('num 1 ({}) + num 2 ({}) returns zero!'.format(v_1, v_2))
+    #         self.logger.warning('Divide by zero occuring. Returning zero')
+    #     else:
+    #         diff = num_diff/(den_diff / 2)
+    #     self.logger.debug('Difference is: {}'.format(diff))
+    #     return diff
 
 
     def __eval_azimuth(self, avg_diff_azimuth):

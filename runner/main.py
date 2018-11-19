@@ -7,7 +7,7 @@ from astral import Astral, Location
 import pytz
 import os
 
-import RPi.GPIO         as GPIO
+import RPi.GPIO as GPIO
 from Adafruit_MCP3008.MCP3008 import MCP3008
 
 from sun_sensor        import sun_sensor
@@ -279,6 +279,7 @@ def init_rtc():
 
   # config rtc
   if delta.days > 0:
+    logger.info('RTC is off by {} days, re-configuring device'.format(delta.days))
     rtc.configure_rtc()
 
   # update RTC if power was lost or if we have internet connection
@@ -303,8 +304,8 @@ def init_rtc():
 ##########################
 # Helpers
 ##########################
-# TODO: where should these go
-def get_encoder_pos_deg():
+# TODO: where should these go??
+def get_encoder_position_deg():
   logger.info('Get current position from shaft encoders')
   az_deg = az_encoder.get_degrees()
   el_deg = el_encoder.get_degrees()
@@ -356,13 +357,36 @@ def move_motor_el(direction, degrees):
   motor.move_motor(PIN_MOT_ELEVATION, direction, degrees)
 
 
+# TODO: add max loops and error logging if we don't ever reach desired pos
 def move_motors_open_loop(deg_az, deg_el):
   locked = False
-  encoder_thresh = None
+  enc_thresh = 0.25 # defining tight threshold for motors
+
+  prev_enc_deg_az, prev_enc_deg_el = get_encoder_position_deg()
+
+  # if encoders aren't reading correct position, loop
   while not locked:
+    # get directions for motors
     dir_az, dir_el = get_motors_dir_open_loop(deg_az, deg_el)
+
+    # move motors
     move_motor_az(dir_az, deg_az)
     move_motor_el(dir_el, deg_el)
+
+    # update position for lock check
+    new_deg_az, new_deg_el = get_encoder_position_deg()
+
+    deg_az = new_deg_az - prev_enc_deg_az
+    deg_el = new_deg_el - prev_enc_deg_el
+    logger.info('Azimuth shaft encoder degrees moved: [{}]'.format(deg_az))
+    logger.info('Elevation shaft encoder degrees moved: [{}]'.format(deg_el))
+
+
+  final_encoder_az = az_encoder.get_degrees()
+  logger.info('Azimuth shaft encoder final: [{}]'.format(final_encoder_az))
+  
+  final_encoder_el = el_encoder.get_degrees()
+  logger.info('Elevation shaft encoder final: [{}]'.format(final_encoder_el))
   
 
 
@@ -449,7 +473,7 @@ def main():
 
   # Get current position from shart encoders
   # lol ^^^
-  init_encoder_deg_az, init_encoder_deg_el = get_encoder_pos_deg()
+  init_encoder_deg_az, init_encoder_deg_el = get_encoder_position_deg()
   
   # Get current position from motors
   # TODO: We should be trusting encoders only, so I'm not sure if this is needed
@@ -463,18 +487,6 @@ def main():
     deg_az = solar_deg_az - prev_solar_az
     deg_el = solar_deg_el - prev_solar_el 
     move_motors(deg_az, deg_el, open_loop=True)
-
-    final_encoder_az = az_encoder.get_degrees()
-    logger.info('Azimuth shaft encoder final: [{}]'.format(final_encoder_az))
-    
-    final_encoder_el = el_encoder.get_degrees()
-    logger.info('Elevation shaft encoder final: [{}]'.format(final_encoder_el))
-
-    degrees_move_az = final_encoder_az - init_encoder_az
-    logger.info('Azimuth shaft encoder degrees moved: [{}]'.format(degrees_move_az))
-    
-    degrees_move_el = final_encoder_el - init_encoder_el
-    logger.info('Elevation shaft encoder degrees moved: [{}]'.format(degrees_move_el))
     
     #Read light sensor
     # TODO: is above referring to limit switch? If so, I am taking care of this in motor class
