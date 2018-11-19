@@ -21,7 +21,7 @@ class power_measurement(object):
 
         # instantiate logger
         self.logger = logging.getLogger(logger_name + '.' + logger_module_name)
-        self.logger.info('creating an instance of the {}'.format(logger_module_name))
+        self.logger.info('creating an instance of the ' + __name__ + ' with the alias {}'.format(logger_module_name))
 
         # ADC attributes
         self._v_ref        = adc_volt_ref

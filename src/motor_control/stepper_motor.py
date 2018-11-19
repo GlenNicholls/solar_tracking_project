@@ -28,7 +28,7 @@ class stepper_motor(object):
                ):
     # instantiate logger
     self.logger = logging.getLogger(logger_name + '.' + logger_module_name)
-    self.logger.info('creating an instance of the {}'.format(logger_module_name))
+    self.logger.info('creating an instance of the ' + __name__ + ' with the alias {}'.format(logger_module_name))
 
     # global variables
     self._speed   = 0.001 # hardcoding here as don't want sys to unintentionally become unstable

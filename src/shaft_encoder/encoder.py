@@ -14,7 +14,7 @@ class encoder:
                 ):
     # instantiate logger
     self.logger = logging.getLogger(logger_name + '.' + logger_module_name)
-    self.logger.info('creating an instance of the {}'.format(logger_module_name))
+    self.logger.info('creating an instance of the ' + __name__ + ' with the alias {}'.format(logger_module_name))
 
     # Define pin numbers for A/B channels on azimuth/elevation motors
     self.A_pin=a_pin
