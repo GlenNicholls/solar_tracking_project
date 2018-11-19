@@ -434,6 +434,8 @@ def move_motors(deg_az=None, deg_el=None, open_loop=False, closed_loop=False):
     raise ValueError('Must select open loop OR closed loop, not both!')
   if open_loop and (deg_az == None or deg_az == None):
     raise ValueError('Must enter movement values for BOTH azimuth and elevation')
+  if closed_loop and (deg_az != None or deg_el != None):
+    self.logger.warn('Ignoring program calculated azimuth and elevation degree movements in closed loop mode!')
 
   if open_loop:
     logger.info('Open loop tracking initiated')
@@ -492,11 +494,8 @@ def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
 # Main Loop
 ##########################
 def main():  
-  #Run setup if needed
-  logger.info('Running setup') # TODO: setup should happen outside of main
-  
   #Load stored parameters
-  logger.info('Loading stored prarmeters NOT DEFINED')
+  logger.warn('Loading stored prarmeters NOT DEFINED')
   
   prev_solar_az = 242.0
   prev_solar_el = 7.0
@@ -556,8 +555,14 @@ def main():
 if __name__ == '__main__':
   # TODO: need to add check at beginning for log levels
   # TODO: how do we want to pull info from state file?
+  # Run setup if needed
+  logger.info('-'*30)
+  logger.info('Running application setup')
   init_pins()
   init_pi_hat()
   init_interrupts()
   # init_rtc()
+  logger.info('Application setup complete')
+  logger.info('-'*30)
+
   main()
