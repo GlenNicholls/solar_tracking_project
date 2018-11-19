@@ -403,18 +403,18 @@ def move_motors_open_loop(deg_az, deg_el):
     deg_el = new_deg_el - desired_deg_el
     err_deg_az = abs(deg_az)
     err_deg_el = abs(deg_el)
-    if err_deg_az <= enc_thresh:
+    if err_deg_az <= enc_thresh and not locked_az:
       logger.info('Azimuth Locked!!!')
       locked_az = True
-    else:
+    elif not locked_az:
       logger.warn('Desired Azimuth: [{}] deg'.format(desired_deg_az))
       logger.warn('Current Azimuth: [{}] deg'.format(new_deg_az))
       logger.warn('Azimuth error: [{}] deg'.format(err_deg_az))
 
-    if err_deg_el <= enc_thresh:
+    if err_deg_el <= enc_thresh and not locked_el:
       logger.info('Elevation Locked!!!')
       locked_az = True
-    else:
+    elif not locked_el:
       logger.warn('Desired Elevation: [{}] deg'.format(desired_deg_el))
       logger.warn('Current Elevation: [{}] deg'.format(new_deg_el))
       logger.warn('Elevation error: [{}] deg'.format(err_deg_el))
