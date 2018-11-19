@@ -266,8 +266,7 @@ def init_pi_hat():
 def init_interrupts():
   az_encoder.configure_encoder_INT()
   el_encoder.configure_encoder_INT()
-  # TODO: add below
-  # motor.configure_limit_switch_INT()
+  motor.configure_limit_switch_INT()
 
 
 def init_rtc():
@@ -279,7 +278,7 @@ def init_rtc():
 
   # config rtc
   if delta.days > 0:
-    logger.info('RTC is off by {} days, re-configuring device'.format(delta.days))
+    logger.info('RTC is off by [{}] days, re-configuring device'.format(delta.days))
     rtc.configure_rtc()
 
   # update RTC if power was lost or if we have internet connection
@@ -309,8 +308,8 @@ def get_encoder_positions_deg():
   logger.info('Get current position from shaft encoders')
   az_deg = az_encoder.get_degrees()
   el_deg = el_encoder.get_degrees()
-  logger.info('Shaft encoder azimuth: [{}] deg'.format(init_encoder_az))
-  logger.info('Shaft encoder elevation: [{}] deg'.format(init_encoder_el))
+  logger.info('Shaft encoder azimuth: [{}] deg'.format(az_deg))
+  logger.info('Shaft encoder elevation: [{}] deg'.format(el_deg))
   return az_deg, el_deg
 
 
@@ -322,7 +321,7 @@ def get_location_astral(lat, lng, elev):
   loc.longitude = lng
   loc.timezone = 'US/Mountain'
   loc.elevation = elev # TODO: do we need this?
-  logger.info('Astral location: {}'.format(loc))
+  logger.info('Astral location: [{}]'.format(loc))
   return loc
 
 
@@ -339,8 +338,8 @@ def get_sunrise_position_deg(loc_astral):
   sun_dict = loc_astral.sun(tomorrow.date())
   az_deg = loc_astral.solar_azimuth(sun_dict['sunrise'])
   el_deg = loc_astral.solar_elevation(sun_dict['sunrise'])
-  logger.info('Sunrise azimuth tomorrow: {} deg'.format(az_deg))
-  logger.info('Sunrise elevation tomorrow: {} deg'.format(el_deg))
+  logger.info('Sunrise azimuth tomorrow: [{}] deg'.format(az_deg))
+  logger.info('Sunrise elevation tomorrow: [{}] deg'.format(el_deg))
   return az_deg, el_deg
 
 
@@ -358,12 +357,12 @@ def get_motors_dir_open_loop(deg_az, deg_el):
 
 
 def move_motor_az(direction, degrees):
-  logger.info('Moving azimuth {} degrees {}'.format(direction, degrees))
+  logger.info('Moving azimuth [{}] degrees [{}]'.format(degrees, direction))
   motor.move_motor(PIN_MOT_AZIMUTH, direction, degrees)
 
 
 def move_motor_el(direction, degrees):
-  logger.info('Moving elevation {} degrees {}'.format(direction, degrees))
+  logger.info('Moving elevation [{}] degrees [{}]'.format(degrees, direction))
   motor.move_motor(PIN_MOT_ELEVATION, direction, degrees)
 
 
@@ -411,8 +410,8 @@ def move_motors_closed_loop():
   while not locked:
     # get motor movement directions based on sun sensor
     az_dir, el_dir = sun_sensors.get_motor_direction_all()
-    logger.info('Desired azimuth direction: {}'.format(az_dir))
-    logger.info('Desired elevation direction: {}'.format(el_dir))
+    logger.info('Desired azimuth direction: [{}]'.format(az_dir))
+    logger.info('Desired elevation direction: [{}]'.format(el_dir))
 
     # move motors
     move_motor_el(el_dir, move_mot_deg)
@@ -556,13 +555,12 @@ if __name__ == '__main__':
   # TODO: need to add check at beginning for log levels
   # TODO: how do we want to pull info from state file?
   # Run setup if needed
-  logger.info('-'*30)
-  logger.info('Running application setup')
+  print('\n' + '-'*50 + 'Running application setup' + '-'*50)
   init_pins()
   init_pi_hat()
   init_interrupts()
   # init_rtc()
   logger.info('Application setup complete')
-  logger.info('-'*30)
+  print('-'*125 + '\n')
 
   main()

@@ -70,8 +70,8 @@ class stepper_motor(object):
     self.logger.info('Initializing rising edge INT on pin [{}, {}]'.format(self._lim_az, self._el))
 
     # set up logic change detectors for each pin
-    GPIO.add_event_detect(self._lim_az, GPIO.BOTH, callback=self.__ISR_lim_az)
-    GPIO.add_event_detect(self._lim_el, GPIO.BOTH, callback=self.__ISR_lim_el)
+    MOT.add_event_detect(self._lim_az, MOT.BOTH, callback=self.__ISR_lim_az)
+    MOT.add_event_detect(self._lim_el, MOT.BOTH, callback=self.__ISR_lim_el)
 
 
   def __ISR_lim_az(self, pin):
@@ -96,7 +96,9 @@ class stepper_motor(object):
 
 
   def __move_motor_x_steps(self, steps):
+    step_cnt = 0
     for i in range(int(steps)):
+      step_cnt = i
       self.__motor_step()
 
       # break if we see we have hit lim switches
@@ -106,7 +108,7 @@ class stepper_motor(object):
       if self._INT_el:
         self.logger.warn('Elevation limit reached, stepping motor back to safe limit!!!')
         break
-    self.logger.debug('Moved motor {} steps'.format(i+1)) # i starts at zero and goes to x-1
+    self.logger.debug('Moved motor {} steps'.format(step_cnt+1)) # i starts at zero and goes to x-1
 
 
   def __activate_mot_move(self, pin, direction):
