@@ -46,7 +46,7 @@ setup(
                          'Adafruit-GPIO>=0.6.5',
                          'Adafruit-MCP3008>=1.0.2',	                     
                          'astral>=1.2',
-                         'geocoder>=1.38.1',
+                         #'geocoder>=1.38.1',
                          'psutil>=5.4.7',
                          'pytest>=3.8.2',
                          'pytest-timeout>=1.3.2',

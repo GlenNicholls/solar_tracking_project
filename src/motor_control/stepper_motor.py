@@ -14,15 +14,17 @@ class MotorCtrl_t(Enum):
 
 class stepper_motor(object):
 
-  def __init__(self, logger_name        = 'main_logger', 
-                     logger_module_name = 'stepper_motor',
-                     pin_elevation      = None,
-                     pin_azimuth        = None,
-                     pin_direction      = None,
-                     pin_clock          = None,
-                     pin_reset          = None,
-                     az_steps_per_deg   = None,
-                     el_steps_per_deg   = None
+  def __init__(self, logger_name          = 'main_logger', 
+                     logger_module_name   = 'stepper_motor',
+                     pin_elevation        = None,
+                     pin_azimuth          = None,
+                     pin_direction        = None,
+                     pin_clock            = None,
+                     pin_reset            = None,
+                     pin_lim_sw_azimuth   = None,
+                     pin_lim_sw_elevation = None,
+                     az_steps_per_deg     = None,
+                     el_steps_per_deg     = None
                ):
     # instantiate logger
     self.logger = logging.getLogger(logger_name + '.' + logger_module_name)
@@ -38,8 +40,10 @@ class stepper_motor(object):
     self._clk = pin_clock
     self._az  = pin_azimuth
     self._rst = pin_reset
+    self._lim_az = pin_lim_sw_azimuth
+    self._lim_el = pin_lim_sw_elevation
     
-    self._pin_t = (self._dir, self._el, self._clk, self._az, self._rst)
+    self._pin_t = (self._dir, self._el, self._clk, self._az, self._rst, self._lim_az, self._lim_el)
     
     if len(self._pin_t) > len(set(self._pin_t)):
       print(self._pint_t)

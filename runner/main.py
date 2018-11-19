@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 import time
 import logging
 from astral import Astral, Location
-import geocoder
 import pytz
 import os
 
@@ -65,8 +64,9 @@ PIN_LIM_SW_ELEVATION = 18
 # instantiate sub-modules
 ##########################
 # User location
-latitude  = 39.7392
-longitude = 104.9903
+latitude  = 38.893950
+longitude = -104.800898
+elevation = 6000
 
 # Logger
 logger_name = 'main_app'
@@ -191,15 +191,17 @@ el_encoder = encoder( logger_name        = logger_name,
 # TODO: motor control
 az_steps_per_deg = 50
 el_steps_per_deg = 62
-motor = stepper_motor( logger_name        = logger_name,
-                       logger_module_name = logger_motor_name,
-                       pin_elevation      = PIN_MOT_ELEVATION,
-                       pin_azimuth        = PIN_MOT_AZIMUTH,
-                       pin_direction      = PIN_MOT_DIRECTION,
-                       pin_clock          = PIN_MOT_CLOCK,
-                       pin_reset          = PIN_MOT_RESET,
-                       az_steps_per_deg   = az_steps_per_deg,
-                       el_steps_per_deg   = el_steps_per_deg
+motor = stepper_motor( logger_name          = logger_name,
+                       logger_module_name   = logger_motor_name,
+                       pin_elevation        = PIN_MOT_ELEVATION,
+                       pin_azimuth          = PIN_MOT_AZIMUTH,
+                       pin_direction        = PIN_MOT_DIRECTION,
+                       pin_clock            = PIN_MOT_CLOCK,
+                       pin_reset            = PIN_MOT_RESET,
+                       pin_lim_sw_azimuth   = PIN_LIM_SW_AZIMUTH,
+                       pin_lim_sw_elevation = PIN_LIM_SW_ELEVATION,
+                       az_steps_per_deg     = az_steps_per_deg,
+                       el_steps_per_deg     = el_steps_per_deg
                       )
 
 # Hardware abstraction
@@ -301,21 +303,6 @@ def init_rtc():
 # Helpers
 ##########################
 # TODO: where should these go
-def get_location(lat, lng):
-  try:
-    logger.info('Getting location from IP')
-    g = geocoder.ip('me')
-    lat = g.latlng[0]
-    lng = g.latlng[1]
-    logger.info('Get location from IP Successfull! =)')
-  except:
-    logger.warning('Get location from IP Failed, using defaults. =(')
-
-  logger.info('Lattitude: [{}], Longitude: [{}]'.format(lat, lng))
-  return lat, lng 
-#End get_location
-
-
 def get_location_astral(lat, lng, elev):
   loc = Location()
   loc.name = 'solar_tracker'
@@ -323,7 +310,8 @@ def get_location_astral(lat, lng, elev):
   loc.latitude = lat
   loc.longitude = lng
   loc.timezone = 'US/Mountain'
-  loc.elevation = elev
+  loc.elevation = elev # TODO: do we need this?
+  logger.info('Astral location: {}'.format(loc))
   return loc
 #End get_location_astral
 
@@ -363,11 +351,7 @@ def main():
   logger.info('Running setup') # TODO: setup should happen outside of main
   
   #Load stored parameters
-  logger.info('Loading stored prarmeters')
-  # TODO: need to load from parameter file or similar, hard coded for now
-  lat = 37.8
-  long = -97.8
-  elev = 6000
+  logger.info('Loading stored prarmeters NOT DEFINED')
   
   prev_solar_az = 242.0
   prev_solar_el = 7.0
@@ -375,11 +359,8 @@ def main():
   #Load user specifice parameters
   logger.warn('Loading user specified parameters NOT DEFINED')
   
-  #Get Location
-  lat, lng = get_location(lat, long)
-  
   #Get astral with current location
-  loc_astral = get_location_astral(lat, lng, elev)
+  loc_astral = get_location_astral(latitude, longitude, elevation)
   
   #Calibrate system
   logger.info('Calibrating System NOT DEFINED')
