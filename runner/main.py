@@ -224,6 +224,9 @@ hw_handle = hardware( logger_name        = logger_name,
 ##########################
 def init_pins():
   # debug
+  logger.info('Cleaning up all GPIO')
+  GPIO.cleanup()
+  
   logger.info('Setting GPIO pin warnings to true')
   GPIO.setwarnings(True)
 
@@ -249,6 +252,7 @@ def init_pins():
   GPIO.setup(PIN_UC_DEV_MODE_RX, GPIO.IN)
 
   # Motors
+  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
   logger.info('Setting GPIO pin directions for motor control driver L297')
   GPIO.setup(PIN_MOT_AZIMUTH,   GPIO.OUT)
   GPIO.setup(PIN_MOT_ELEVATION, GPIO.OUT)
@@ -805,9 +809,7 @@ if __name__ == '__main__':
   # TODO: how do we want to pull info from state file?
   # Run setup if needed
   print('\n' + '-'*50 + 'Running application setup' + '-'*50)
-  logger.info('Cleaning up all GPIO')
-  GPIO.cleanup()
-  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+  #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
 
   init_pins()
   usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
