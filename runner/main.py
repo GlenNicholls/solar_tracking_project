@@ -670,9 +670,10 @@ def menu_set_el_position():
 def menu_move_az_x_deg():
   logger.info('Move azimuth position menu selected')
   deg = raw_input('Enter amount to move azimuth in degrees:')
-  current, _ = get_encoder_positions_deg()
-  deg = float(deg) - current
   logger.info('Moving azimuth [{}] deg'.format(deg))
+  current, _ = get_encoder_positions_deg()
+  deg = float(deg) + current
+  logger.info('Moving azimuth to [{}] deg'.format(deg))
   move_motors(deg_az=deg, deg_el=0.0,open_loop=True, skip_el=True)
   usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
@@ -680,9 +681,10 @@ def menu_move_az_x_deg():
 def menu_move_el_x_deg():
   logger.info('Move elevation position  menu selected')
   deg = raw_input('Enter amount to move elevation in degrees:')
+  logger.info('Moving azimuth [{}] deg'.format(deg))
   _, current = get_encoder_positions_deg()
-  deg = float(deg) - current
-  logger.info('Moving elevation [{}] deg'.format(deg))
+  deg = float(deg) + current
+  logger.info('Moving azimuth to [{}] deg'.format(deg))
   move_motors(deg_az=0.0, deg_el=deg,open_loop=True, skip_az=True)
   usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
