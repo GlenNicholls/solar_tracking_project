@@ -254,10 +254,10 @@ def init_pins():
   # Motors
   logger.info('Setting GPIO pin directions for motor control driver L297')
   GPIO.setup(PIN_MOT_AZIMUTH,   GPIO.OUT)
-  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+  #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
 
   GPIO.setup(PIN_MOT_ELEVATION, GPIO.OUT) # BUG: this is causing motor to lock up!!!
-  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+  #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
   GPIO.setup(PIN_MOT_RESET,     GPIO.OUT)
   GPIO.setup(PIN_MOT_CLOCK,     GPIO.OUT)
   GPIO.setup(PIN_MOT_DIRECTION, GPIO.OUT)  
@@ -814,27 +814,27 @@ if __name__ == '__main__':
   init_pins()
   #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
 
-  #init_pi_hat()
-  ##usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
-  #
-  #init_interrupts()
-  ##usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
-  #
-  ## init_rtc()
-  #logger.info('Application setup complete')
-  #print('-'*125 + '\n')
-  #
-  #if args.menu:
-  #  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
-  #  main_menu()
-  #elif args.sim:
-  #  menu_sun_simulation()
-  #elif args.test:
-  #  menu_move_az_x_deg()
-  #  menu_move_el_x_deg()
-  #else:
-  #  menu_normal_op()
-  #
+  init_pi_hat()
+  #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+  
+  init_interrupts()
+  #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+  
+  # init_rtc()
+  logger.info('Application setup complete')
+  print('-'*125 + '\n')
+  
+  if args.menu:
+    usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+    main_menu()
+  elif args.sim:
+    menu_sun_simulation()
+  elif args.test:
+    menu_move_az_x_deg()
+    menu_move_el_x_deg()
+  else:
+    menu_normal_op()
+  
   logger.info('Cleaning up all GPIO')
   GPIO.cleanup()
 
