@@ -41,7 +41,7 @@ from power_measurement import power_measurement
 PIN_SE_AZIMUTH_A   = 26  
 PIN_SE_AZIMUTH_B   = 13 
 PIN_SE_ELEVATION_A = 5 
-PIN_SE_ELEVATION_B = 23 
+PIN_SE_ELEVATION_B = 11 
 
 # ADC
 PIN_ADC_CLK  = 21 
@@ -58,8 +58,8 @@ PIN_UC_FAULT_RX    = 7
 PIN_UC_DEV_MODE_RX = 8  
 
 # Motor Control
-PIN_MOT_ELEVATION = 27
 PIN_MOT_AZIMUTH   = 22
+PIN_MOT_ELEVATION = 27
 PIN_MOT_RESET     = 6
 PIN_MOT_CLOCK     = 9
 PIN_MOT_DIRECTION = 1
