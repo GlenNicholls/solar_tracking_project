@@ -252,10 +252,12 @@ def init_pins():
   GPIO.setup(PIN_UC_DEV_MODE_RX, GPIO.IN)
 
   # Motors
-  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
   logger.info('Setting GPIO pin directions for motor control driver L297')
   GPIO.setup(PIN_MOT_AZIMUTH,   GPIO.OUT)
+  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+
   GPIO.setup(PIN_MOT_ELEVATION, GPIO.OUT)
+  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
   GPIO.setup(PIN_MOT_RESET,     GPIO.OUT)
   GPIO.setup(PIN_MOT_CLOCK,     GPIO.OUT)
   GPIO.setup(PIN_MOT_DIRECTION, GPIO.OUT)  
@@ -809,16 +811,14 @@ if __name__ == '__main__':
   # TODO: how do we want to pull info from state file?
   # Run setup if needed
   print('\n' + '-'*50 + 'Running application setup' + '-'*50)
+  init_pins()
   #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
 
-  init_pins()
-  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
-
   init_pi_hat()
-  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+  #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
 
   init_interrupts()
-  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+  #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
 
   # init_rtc()
   logger.info('Application setup complete')
