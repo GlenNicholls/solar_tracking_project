@@ -7,6 +7,9 @@ from astral import Astral, Location
 import pytz
 import os
 
+from consolemenu import *
+from consolemenu.items import *
+
 import RPi.GPIO as GPIO
 from Adafruit_MCP3008.MCP3008 import MCP3008
 
@@ -513,11 +516,10 @@ def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
 # def save_state():
 
 
-  
 ##########################
-# Main Loop
-##########################
-def main():  
+# Menus
+##########################  
+def normal_op_menu():
   #Load stored parameters
   logger.warn('Loading stored prarmeters NOT DEFINED')
   
@@ -569,11 +571,102 @@ def main():
   # TODO: measure power of shutdown/power up to see if it is worth it during day. If it is, make sure we aren't shutting down if next alarm will be
   #       before amount of time it takes to shutdown
 
-  logger.info('Cleaning up all GPIO')
-  GPIO.cleanup()
 
-  # shutdown
-  shutdown()
+# TODO:
+def open_loop_menu():
+  logger.info('Open loop tracking menu selected')
+
+  prev_solar_az = 242.0
+  prev_solar_el = 7.0
+  
+  #Get astral with current location
+  loc_astral = get_location_astral(latitude, longitude, elevation)
+  
+  if is_daytime(loc_astral): #this will be the if check from above, implemented this way for development
+    # Get solar position
+    solar_deg_az, solar_deg_el = get_solar_position_deg(loc_astral)
+    
+    # Move to calculated sun posistion
+    deg_az = solar_deg_az - prev_solar_az
+    deg_el = solar_deg_el - prev_solar_el 
+    open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
+  else:
+    #Get solar position for tomorrow morning
+    solar_deg_az, solar_deg_el = get_sunrise_position_deg(loc_astral)
+    
+    #Move to sunrise position for tomorrow
+    logger.warn('Moving to sunrise position for tomorrow NOT DEFINED')
+
+
+def closed_loop_menu():
+  logger.info('Closed loop tracking menu selected')
+  closed_loop_locked = move_motors(closed_loop=True)
+    
+
+
+def set_azimuth_menu(deg):
+  logger.info('Setting azimuth position to: [{}] deg'.format(deg))
+  move_motors(deg_az=float(deg), deg_el=0.0,open_loop=True)
+
+
+def set_elevation_menu(deg):
+  logger.info('Setting elevation position to: [{}] deg'.format(deg))
+  move_motors(deg_az=0.0, deg_el=float(deg),open_loop=True)
+
+# TODO:
+# def reset_azimuth():
+# def reset_elevation():
+
+
+##########################
+# Main Loop
+##########################
+def main():  
+  # change menu formatting
+  menu_frmt = MenuFormatBuilder().set_border_style_type(MenuBorderStyleType.HEAVY_BORDER) \
+    .set_title_align('center') \
+    .set_subtitle_align('center') \
+    .set_left_margin(4) \
+    .set_right_margin(4) \
+    .show_header_bottom_border(True)
+
+  # create main menu
+  menu_title = 'PV Array Solar Tracking Menu'
+  menu_subtitle = 'Select the desired mode of operation from the list below'
+  menu = ConsoleMenu(menu_title, menu_subtitle, formatter=menu_frmt)
+
+  # create normal tracking menu
+  normal_track_item = FunctionItem('Start Normal Tracking Mode', normal_op_menu)
+
+  # create open loop tracking menu
+  ol_track_item = FunctionItem('Start Light Tracking Mode', open_loop_menu)
+
+  # create closed loop tracking menu
+  cl_track_item = FunctionItem('Start Light Tracking Mode', closed_loop_menu)
+
+  # manual tracking submenu
+  man_track_submenu_item = MultiSelectMenu('Manual Tracking', \
+    epilogue_text=("Please select one or more entries separated by commas, and/or a range "
+                   "of numbers. For example:  1,2,3   or   1-4   or   1,3-4"))
+  man_track_az = FunctionItem('Set Azimuth Position', set_azimuth_menu, kwargs={"prompt": "Enter an value in degrees: "})
+  man_track_el = FunctionItem('Set Elevation Position', set_elevation_menu, kwargs={"prompt": "Enter a value in degrees: "})
+
+  man_track_submenu_item.append_item(man_track_az)
+  man_track_submenu_item.append_item(man_track_el)
+
+  # TODO: create calibration menu
+  # TODO: create reset menu
+
+  # Add all items to main menu
+  menu.append_item(normal_track_item)
+  menu.append_item(ol_track_item)
+  menu.append_item(cl_track_item)
+  menu.append_item(man_track_submenu_item)
+
+  # Show the menu
+  menu.start()
+  menu.join()
+  
   
   
 if __name__ == '__main__':
@@ -589,3 +682,9 @@ if __name__ == '__main__':
   print('-'*125 + '\n')
 
   main()
+
+  logger.info('Cleaning up all GPIO')
+  GPIO.cleanup()
+
+  # shutdown
+  shutdown()
