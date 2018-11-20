@@ -371,10 +371,10 @@ def move_motor_el(direction, degrees):
   motor.move_motor(PIN_MOT_ELEVATION, direction, degrees)
 
 
-def move_motors_open_loop(deg_az, deg_el):
+def move_motors_open_loop(deg_az, deg_el, skip_az=False, skip_el=False):
   locked = False
-  locked_az = False
-  locked_el = False
+  locked_az = skip_az
+  locked_el = skip_el
   enc_thresh = 0.25 # defining tight threshold for motors
 
   # create constant to generate error term later without multiplier
@@ -458,7 +458,7 @@ def move_motors_closed_loop():
   return locked
 
 
-def move_motors(deg_az=None, deg_el=None, open_loop=False, closed_loop=False):
+def move_motors(deg_az=None, deg_el=None, open_loop=False, closed_loop=False, skip_az=False, skip_el=False):
   if open_loop and closed_loop:
     raise ValueError('Must select open loop OR closed loop, not both!')
   if open_loop and (deg_az == None or deg_az == None):
@@ -468,7 +468,7 @@ def move_motors(deg_az=None, deg_el=None, open_loop=False, closed_loop=False):
 
   if open_loop:
     logger.info('Open loop tracking initiated')
-    move_motors_open_loop(deg_az, deg_el)
+    move_motors_open_loop(deg_az, deg_el, skip_az, skip_el)
   elif closed_loop:
     logger.info('Closed loop tracking initiated')
     move_motors_closed_loop()
@@ -613,14 +613,14 @@ def closed_loop_menu():
 def set_azimuth_menu():
   deg = raw_input('Enter an value in degrees:')
   logger.info('Setting azimuth position to: [{}] deg'.format(deg))
-  move_motors(deg_az=float(deg), deg_el=0.0,open_loop=True)
+  move_motors(deg_az=float(deg), deg_el=0.0, open_loop=True, skip_el=True)
   usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
 def set_elevation_menu():
   deg = raw_input('Enter an value in degrees:')
   logger.info('Setting elevation position to: [{}] deg'.format(deg))
-  move_motors(deg_az=0.0, deg_el=float(deg),open_loop=True)
+  move_motors(deg_az=0.0, deg_el=float(deg),open_loop=True, skip_az=True)
   usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 # TODO:
