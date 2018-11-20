@@ -256,7 +256,7 @@ def init_pins():
   GPIO.setup(PIN_MOT_AZIMUTH,   GPIO.OUT)
   usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
 
-  GPIO.setup(PIN_MOT_ELEVATION, GPIO.OUT)
+  GPIO.setup(PIN_MOT_ELEVATION,   GPIO.OUT) # BUG: this is causing motor to lock up!!!
   usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
   GPIO.setup(PIN_MOT_RESET,     GPIO.OUT)
   GPIO.setup(PIN_MOT_CLOCK,     GPIO.OUT)
