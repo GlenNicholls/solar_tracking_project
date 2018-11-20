@@ -388,7 +388,7 @@ def move_motors_open_loop(deg_az, deg_el, skip_az=False, skip_el=False):
 
   # if encoders aren't reading correct position, loop
   not_lock_cnt = 0
-  while not locked and not_lock_cnt < 20: # and check_cnt < some_number:
+  while not locked and not_lock_cnt < 10: # and check_cnt < some_number:
     # get previous position from encoders
     prev_deg_az, prev_deg_el = get_encoder_positions_deg()
 
