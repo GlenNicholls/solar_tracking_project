@@ -58,8 +58,8 @@ PIN_UC_FAULT_RX    = 7
 PIN_UC_DEV_MODE_RX = 8  
 
 # Motor Control
-PIN_MOT_AZIMUTH   = 22
-PIN_MOT_ELEVATION = 27
+PIN_MOT_AZIMUTH   = 27
+PIN_MOT_ELEVATION = 22
 PIN_MOT_RESET     = 6
 PIN_MOT_CLOCK     = 9
 PIN_MOT_DIRECTION = 1
@@ -256,7 +256,7 @@ def init_pins():
   GPIO.setup(PIN_MOT_AZIMUTH,   GPIO.OUT)
   usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
 
-  GPIO.setup(PIN_MOT_ELEVATION,   GPIO.OUT) # BUG: this is causing motor to lock up!!!
+  GPIO.setup(PIN_MOT_ELEVATION, GPIO.OUT) # BUG: this is causing motor to lock up!!!
   usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
   GPIO.setup(PIN_MOT_RESET,     GPIO.OUT)
   GPIO.setup(PIN_MOT_CLOCK,     GPIO.OUT)
