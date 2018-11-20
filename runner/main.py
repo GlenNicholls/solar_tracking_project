@@ -38,10 +38,10 @@ from power_measurement import power_measurement
 ##########################
 # NOTE: Using BCM pin numbering for all
 # Shaft Encoders
-PIN_SE_AZIMUTH_A   = 5  
-PIN_SE_AZIMUTH_B   = 11 
-PIN_SE_ELEVATION_A = 26 
-PIN_SE_ELEVATION_B = 13 
+PIN_SE_AZIMUTH_A   = 26  
+PIN_SE_AZIMUTH_B   = 13 
+PIN_SE_ELEVATION_A = 5 
+PIN_SE_ELEVATION_B = 23 
 
 # ADC
 PIN_ADC_CLK  = 21 
