@@ -411,6 +411,8 @@ def main():
     #Get solar position
     solar_az = loc_astral.solar_azimuth(datetime.now())
     solar_el = loc_astral.solar_elevation(datetime.now())
+    logger.info('Prev Solar Azimuth: [{}] deg'.format(prev_solar_az))
+    logger.info('Prev solar elevation: [{}] deg'.format(prev_solar_el))
     logger.info('Next Solar Azimuth: [{}] deg'.format(solar_az))
     logger.info('Next solar elevation: [{}] deg'.format(solar_el))
     
@@ -465,8 +467,8 @@ def main():
     az_dir, el_dir = sun_sensors.get_motor_direction_all()
     logger.info('Desired azimuth direction: {}'.format(az_dir))
     logger.info('Desired elevation direction: {}'.format(el_dir))
-    motor.move_motor(PIN_MOT_ELEVATION, el_dir, 0.5)
-    motor.move_motor(PIN_MOT_AZIMUTH, az_dir, 0.5)
+    motor.move_motor(PIN_MOT_ELEVATION, el_dir, 0.2)
+    motor.move_motor(PIN_MOT_AZIMUTH, az_dir, 0.2)
     #time.sleep(0.01)
 
   # TODO: use GPIO.cleanup() or GPIO.cleanup([channels]) somewhere before shutdown.
