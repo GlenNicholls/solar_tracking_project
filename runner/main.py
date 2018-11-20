@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-import sys
 import time
 import logging
+import argparse
+
 from datetime import datetime, timedelta
 from astral import Astral, Location
 import pytz
@@ -521,7 +522,7 @@ def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
 ##########################
 # Menus
 ##########################  
-def normal_op_menu():
+def menu_normal_op():
   #Load stored parameters
   logger.warn('Loading stored prarmeters NOT DEFINED')
   
@@ -576,8 +577,7 @@ def normal_op_menu():
   usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
-# TODO:
-def open_loop_menu():
+def menu_open_loop():
   logger.info('Open loop tracking menu selected')
 
   prev_solar_az = 242.0
@@ -603,29 +603,47 @@ def open_loop_menu():
 
   usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
-def closed_loop_menu():
+def menu_closed_loop():
   logger.info('Closed loop tracking menu selected')
   closed_loop_locked = move_motors(closed_loop=True)
   usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
     
 
-
-def set_azimuth_menu():
+def menu_set_az_position():
   deg = raw_input('Enter an value in degrees:')
   logger.info('Setting azimuth position to: [{}] deg'.format(deg))
   move_motors(deg_az=float(deg), deg_el=0.0, open_loop=True, skip_el=True)
   usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
-def set_elevation_menu():
+def menu_set_el_position():
   deg = raw_input('Enter an value in degrees:')
   logger.info('Setting elevation position to: [{}] deg'.format(deg))
   move_motors(deg_az=0.0, deg_el=float(deg),open_loop=True, skip_az=True)
   usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
+
+def menu_move_az_x_deg():
+  deg = raw_input('Enter an value in degrees:')
+  current, _ = get_encoder_positions_deg()
+  deg = float(deg) - current
+  logger.info('Moving azimuth [{}] deg'.format(deg))
+  move_motors(deg_az=deg, deg_el=0.0,open_loop=True, skip_el=True)
+  usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
+
+
+def menu_move_el_x_deg():
+  deg = raw_input('Enter an value in degrees:')
+  _, current = get_encoder_positions_deg()
+  deg = float(deg) - current
+  logger.info('Moving elevation [{}] deg'.format(deg))
+  move_motors(deg_az=0.0, deg_el=deg,open_loop=True, skip_az=True)
+  usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
+
+
 # TODO:
-# def move_azimuth_x_degrees():
 # def move_elevation_x_degrees(): these will need to calculate diff based on where it is at currently.
+# def simulate_open_loop_tracking():
 # def set_log_levels():
 # def set_lat_long()
 # def reset_azimuth():
@@ -635,7 +653,7 @@ def set_elevation_menu():
 ##########################
 # Main Loop
 ##########################
-def main():  
+def main_menu():  
   # change menu formatting
   menu_frmt = MenuFormatBuilder().set_border_style_type(MenuBorderStyleType.HEAVY_BORDER) \
     .set_title_align('center') \
@@ -649,25 +667,29 @@ def main():
   menu_subtitle = 'Select the desired mode of operation from the list below'
   menu = ConsoleMenu(menu_title, menu_subtitle, formatter=menu_frmt)
 
-  # create normal tracking menu
-  normal_track_item = FunctionItem('Start Normal Tracking Mode', normal_op_menu)
+  # # create normal tracking menu
+  # normal_track_item = FunctionItem('Start Normal Tracking Mode', menu_normal_op)
 
   # create open loop tracking menu
-  ol_track_item = FunctionItem('Start Open Loop Tracking Mode', open_loop_menu)
+  ol_track_item = FunctionItem('Start Open Loop Tracking Mode', menu_open_loop)
 
   # create closed loop tracking menu
-  cl_track_item = FunctionItem('Start Closed Loop Tracking Mode', closed_loop_menu)
+  cl_track_item = FunctionItem('Start Closed Loop Tracking Mode', menu_closed_loop)
 
   # manual tracking submenu
   man_title = 'Manual Tracking'
   man_subtitle = 'Select an update for azimuth or elevation'
   man_track_submenu = ConsoleMenu(man_title, man_subtitle, formatter=menu_frmt)
 
-  man_track_az = FunctionItem('Set Azimuth Position', set_azimuth_menu)
-  man_track_el = FunctionItem('Set Elevation Position', set_elevation_menu)
+  set_az_item  = FunctionItem('Set Azimuth Position', menu_set_az_position)
+  set_el_item  = FunctionItem('Set Elevation Position', menu_set_el_position)
+  move_az_item = FunctionItem('Move Azimuth Position', menu_move_az_x_deg)
+  move_el_item = FunctionItem('Move Elevation Position', menu_move_el_x_deg)
 
-  man_track_submenu.append_item(man_track_az)
-  man_track_submenu.append_item(man_track_el)
+  man_track_submenu.append_item(set_az_item)
+  man_track_submenu.append_item(set_el_item)
+  man_track_submenu.append_item(move_az_item)
+  man_track_submenu.append_item(move_el_item)
 
   man_track_submenu_item = SubmenuItem(man_title, submenu=man_track_submenu)
   man_track_submenu_item.set_menu(menu)
@@ -680,7 +702,6 @@ def main():
   #       be impossible to find info in console
 
   # Add all items to main menu
-  menu.append_item(normal_track_item)
   menu.append_item(ol_track_item)
   menu.append_item(cl_track_item)
   menu.append_item(man_track_submenu_item)
@@ -692,6 +713,18 @@ def main():
   
   
 if __name__ == '__main__':
+  # grab user flags
+  parser = argparse.ArgumentParser(description='PV Array Solar Tracking Application')
+  parser.add_argument('-m', '--menu', help='Start the development console menu', action='store_true')
+  parser.add_argument('-t', '--test', help='Add verbose output', action='store_true')
+  parser.add_argument('-v', '--verbose', help='Add verbose output', action='store_true')
+  args = parser.parse_args()
+
+  # TODO:
+  if args.verbose:
+    print('Verbosity NOT DEFINED')
+    pass
+
   # TODO: how do we want to pull info from state file?
   # Run setup if needed
   print('\n' + '-'*50 + 'Running application setup' + '-'*50)
@@ -702,9 +735,14 @@ if __name__ == '__main__':
   logger.info('Application setup complete')
   print('-'*125 + '\n')
 
-  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
-
-  main()
+  if args.menu:
+    usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+    main_menu()
+  elif args.test:
+    menu_move_az_x_deg()
+    menu_move_el_x_deg()
+  else:
+    menu_normal_op()
 
   logger.info('Cleaning up all GPIO')
   GPIO.cleanup()
