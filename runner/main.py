@@ -707,16 +707,8 @@ def menu_set_loc():
 # Main Loop
 ##########################
 def main_menu():  
-  # change main menu formatting
-  menu_frmt = MenuFormatBuilder().set_border_style_type(MenuBorderStyleType.HEAVY_BORDER) \
-    .set_title_align('center') \
-    .set_subtitle_align('center') \
-    .set_left_margin(4) \
-    .set_right_margin(4) \
-    .show_header_bottom_border(True)
-
-  # change submenu formatting
-  submenu_frmt = MenuFormatBuilder().set_border_style_type(MenuBorderStyleType.DOUBLE_LINE_BORDER) \
+  # change menu formatting
+  menu_frmt = MenuFormatBuilder().set_border_style_type(MenuBorderStyleType.DOUBLE_LINE_BORDER) \
     .set_title_align('center') \
     .set_subtitle_align('center') \
     .set_left_margin(4) \
@@ -733,7 +725,7 @@ def main_menu():
   # Automatic tracking submenu
   auto_title = 'Automatic Tracking'
   auto_subtitle = 'Select from the desired modes below'
-  auto_track_submenu = ConsoleMenu(auto_title, auto_subtitle, formatter=submenu_frmt)
+  auto_track_submenu = ConsoleMenu(auto_title, auto_subtitle, formatter=menu_frmt)
 
   ol_track_item = FunctionItem('Start Open Loop Tracking Mode', menu_open_loop)
   cl_track_item = FunctionItem('Start Closed Loop Tracking Mode', menu_closed_loop)
@@ -747,7 +739,7 @@ def main_menu():
   # manual tracking submenu
   man_title = 'Manual Tracking'
   man_subtitle = 'Select from the desired modes below'
-  man_track_submenu = ConsoleMenu(man_title, man_subtitle, formatter=submenu_frmt)
+  man_track_submenu = ConsoleMenu(man_title, man_subtitle, formatter=menu_frmt)
 
   set_az_item  = FunctionItem('Set Azimuth Position', menu_set_az_position)
   set_el_item  = FunctionItem('Set Elevation Position', menu_set_el_position)
@@ -767,7 +759,7 @@ def main_menu():
   # system configuration submenu
   conf_title = 'System Configuration'
   conf_subtitle = 'Select the desired menu option below'
-  conf_track_submenu = ConsoleMenu(conf_title, conf_subtitle, formatter=submenu_frmt)
+  conf_track_submenu = ConsoleMenu(conf_title, conf_subtitle, formatter=menu_frmt)
 
   set_loc_item = FunctionItem('Set System Latitude and Longitude', menu_set_loc)
 
