@@ -624,6 +624,9 @@ def set_elevation_menu():
   usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 # TODO:
+# def move_azimuth_x_degrees():
+# def move_elevation_x_degrees(): these will need to calculate diff based on where it is at currently.
+# def set_log_levels():
 # def set_lat_long()
 # def reset_azimuth():
 # def reset_elevation():
@@ -672,6 +675,9 @@ def main():
   # TODO: create calibration menu
   # TODO: create reset menu
   # TODO: create lat/long menu
+  # TODO: add log level menu with options to change log level of each package
+  #       make sure to also have the function start logging to file since it will
+  #       be impossible to find info in console
 
   # Add all items to main menu
   menu.append_item(normal_track_item)
@@ -686,7 +692,6 @@ def main():
   
   
 if __name__ == '__main__':
-  # TODO: need to add check at beginning for log levels
   # TODO: how do we want to pull info from state file?
   # Run setup if needed
   print('\n' + '-'*50 + 'Running application setup' + '-'*50)
