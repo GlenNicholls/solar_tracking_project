@@ -166,7 +166,7 @@ static inline void serviceGpioRegFlags(void)
   cli();
 
   // control power pin
-  powerFlagIsSet() ? TURN_POWER_PIN_ON : TURN_POWER_PIN_OFF;
+  //powerFlagIsSet() ? TURN_POWER_PIN_ON : TURN_POWER_PIN_OFF; // DBG since power keeps getting cut
 
   // control fault pin
   faultFlagIsSet() ? TURN_FAULT_PIN_ON : TURN_FAULT_PIN_OFF;
