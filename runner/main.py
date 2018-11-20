@@ -814,7 +814,7 @@ if __name__ == '__main__':
   init_pins()
   #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
 
-  init_pi_hat()
+  # init_pi_hat()
   #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
   
   init_interrupts()
