@@ -835,8 +835,8 @@ if __name__ == '__main__':
   #else:
   #  menu_normal_op()
   #
-  #logger.info('Cleaning up all GPIO')
-  #GPIO.cleanup()
+  logger.info('Cleaning up all GPIO')
+  GPIO.cleanup()
 
   # shutdown
   shutdown()
