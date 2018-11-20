@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 
-from datetime import datetime, timedelta
+import sys
 import time
 import logging
+from datetime import datetime, timedelta
 from astral import Astral, Location
 import pytz
 import os
 
 from consolemenu import *
+from consolemenu.format import *
 from consolemenu.items import *
 
 import RPi.GPIO as GPIO
@@ -571,6 +573,8 @@ def normal_op_menu():
   # TODO: measure power of shutdown/power up to see if it is worth it during day. If it is, make sure we aren't shutting down if next alarm will be
   #       before amount of time it takes to shutdown
 
+  usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
+
 
 # TODO:
 def open_loop_menu():
@@ -597,23 +601,30 @@ def open_loop_menu():
     #Move to sunrise position for tomorrow
     logger.warn('Moving to sunrise position for tomorrow NOT DEFINED')
 
+  usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 def closed_loop_menu():
   logger.info('Closed loop tracking menu selected')
   closed_loop_locked = move_motors(closed_loop=True)
+  usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
     
 
 
-def set_azimuth_menu(deg):
+def set_azimuth_menu():
+  deg = raw_input('Enter an value in degrees:')
   logger.info('Setting azimuth position to: [{}] deg'.format(deg))
   move_motors(deg_az=float(deg), deg_el=0.0,open_loop=True)
+  usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
-def set_elevation_menu(deg):
+def set_elevation_menu():
+  deg = raw_input('Enter an value in degrees:')
   logger.info('Setting elevation position to: [{}] deg'.format(deg))
   move_motors(deg_az=0.0, deg_el=float(deg),open_loop=True)
+  usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 # TODO:
+# def set_lat_long()
 # def reset_azimuth():
 # def reset_elevation():
 
@@ -639,23 +650,28 @@ def main():
   normal_track_item = FunctionItem('Start Normal Tracking Mode', normal_op_menu)
 
   # create open loop tracking menu
-  ol_track_item = FunctionItem('Start Light Tracking Mode', open_loop_menu)
+  ol_track_item = FunctionItem('Start Open Loop Tracking Mode', open_loop_menu)
 
   # create closed loop tracking menu
-  cl_track_item = FunctionItem('Start Light Tracking Mode', closed_loop_menu)
+  cl_track_item = FunctionItem('Start Closed Loop Tracking Mode', closed_loop_menu)
 
   # manual tracking submenu
-  man_track_submenu_item = MultiSelectMenu('Manual Tracking', \
-    epilogue_text=("Please select one or more entries separated by commas, and/or a range "
-                   "of numbers. For example:  1,2,3   or   1-4   or   1,3-4"))
-  man_track_az = FunctionItem('Set Azimuth Position', set_azimuth_menu, kwargs={"prompt": "Enter an value in degrees: "})
-  man_track_el = FunctionItem('Set Elevation Position', set_elevation_menu, kwargs={"prompt": "Enter a value in degrees: "})
+  man_title = 'Manual Tracking'
+  man_subtitle = 'Select an update for azimuth or elevation'
+  man_track_submenu = ConsoleMenu(man_title, man_subtitle, formatter=menu_frmt)
 
-  man_track_submenu_item.append_item(man_track_az)
-  man_track_submenu_item.append_item(man_track_el)
+  man_track_az = FunctionItem('Set Azimuth Position', set_azimuth_menu)
+  man_track_el = FunctionItem('Set Elevation Position', set_elevation_menu)
+
+  man_track_submenu.append_item(man_track_az)
+  man_track_submenu.append_item(man_track_el)
+
+  man_track_submenu_item = SubmenuItem(man_title, submenu=man_track_submenu)
+  man_track_submenu_item.set_menu(menu)
 
   # TODO: create calibration menu
   # TODO: create reset menu
+  # TODO: create lat/long menu
 
   # Add all items to main menu
   menu.append_item(normal_track_item)
@@ -680,6 +696,8 @@ if __name__ == '__main__':
   # init_rtc()
   logger.info('Application setup complete')
   print('-'*125 + '\n')
+
+  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
 
   main()
 
