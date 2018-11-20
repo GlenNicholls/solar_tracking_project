@@ -1,10 +1,10 @@
 Component,Component Pin,Net Name,Board Pin,BCM Pin,Pin Direction,Notes
 
 # Shaft Encoders
-SE, az_a, AZIMUTH_A,   29, 5,  IN, lvl-shifted # sw should be correct, change here soon
-SE, az_b, AZIMUTH_B,   23, 11, IN, lvl-shifted # sw should be correct, change here soon
-SE, el_a, ELEVATION_A, 37, 26, IN, lvl-shifted # sw should be correct, change here soon
-SE, el_a, ELEVATION_B, 33, 13, IN, lvl-shifted # sw should be correct, change here soon
+SE, az_a, AZIMUTH_A,   37, 26, IN, lvl-shifted 
+SE, az_a, AZIMUTH_B,   33, 13, IN, lvl-shifted 
+SE, el_a, ELEVATION_A, 29, 5,  IN, lvl-shifted 
+SE, el_b, ELEVATION_B, 23, 11, IN, lvl-shifted 
 
 # ADC
 ADC, 10, CS,   19, 10, NULL, comms initiated by Adafruit software

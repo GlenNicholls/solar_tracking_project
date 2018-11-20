@@ -144,10 +144,10 @@ class stepper_motor(object):
     
     # calculate num of steps for each axis
     if axis == self._az:
-      steps = deg * self._deg_az
+      steps = abs(deg) * self._deg_az
       self.logger.debug('Moving azimuth {} degrees which is ~{} steps'.format(deg, steps))
     elif axis == self._el:
-      steps = deg * self._deg_el
+      steps = abs(deg) * self._deg_el
       self.logger.debug('Moving elevation {} degrees which is ~{} steps'.format(deg, steps))
     else:
       self.logger.error('Incorrect axis! Expected {} or {}, you passed {}'.format(self._az, self._el, axis))
