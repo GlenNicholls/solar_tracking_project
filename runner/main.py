@@ -383,7 +383,8 @@ def move_motors_open_loop(deg_az, deg_el, skip_az=False, skip_el=False):
   desired_deg_el = deg_el
 
   # if encoders aren't reading correct position, loop
-  while not locked: # and check_cnt < some_number:
+  not_lock_cnt = 0
+  while not locked and not_lock_cnt < 10: # and check_cnt < some_number:
     # get previous position from encoders
     prev_deg_az, prev_deg_el = get_encoder_positions_deg()
 
@@ -428,6 +429,12 @@ def move_motors_open_loop(deg_az, deg_el, skip_az=False, skip_el=False):
     if locked_az and locked_el:
       logger.info('Azimuth and elevation are locked!!!')
       locked = True
+    
+    # increment not locked counter
+    not_lock_cnt += 1
+
+  if not locked:
+    logger.error('Unable to reach correct azimuth and elevation positions!!!')
 
   logger.info('Azimuth shaft encoder final: [{}]'.format(new_deg_az))
   logger.info('Elevation shaft encoder final: [{}]'.format(new_deg_el))
@@ -438,7 +445,8 @@ def move_motors_closed_loop():
   locked = False
   move_mot_deg = 0.5
 
-  while not locked:
+  not_lock_cnt = 0
+  while not locked and not_lock_cnt < 10:
     # get motor movement directions based on sun sensor
     az_dir, el_dir = sun_sensors.get_motor_direction_all()
     logger.info('Desired azimuth direction: [{}]'.format(az_dir))
@@ -456,6 +464,13 @@ def move_motors_closed_loop():
     if az_dir == MotorCtrl_t.IDLE and el_dir == MotorCtrl_t.IDLE:
       logger.info('Azimuth and elevation are locked!!!')
       locked = True
+
+    # increment not locked counter
+    not_lock_cnt + 1
+
+  if not locked:
+    logger.error('Unable to reach correct azimuth and elevation positions!!!')
+
   return locked
 
 
@@ -574,8 +589,6 @@ def menu_normal_op():
   # TODO: measure power of shutdown/power up to see if it is worth it during day. If it is, make sure we aren't shutting down if next alarm will be
   #       before amount of time it takes to shutdown
 
-  usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
-
 
 def menu_open_loop():
   logger.info('Open loop tracking menu selected')
@@ -602,6 +615,29 @@ def menu_open_loop():
     logger.warn('Moving to sunrise position for tomorrow NOT DEFINED')
 
   usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
+
+
+def menu_sun_simulation():
+  logger.info('Open loop sun simulation menu selected')
+  
+  while True:
+    # Get solar position
+    logger.info('Current azimuth: [{}] deg, Current elevation: [{}]'.format(get_encoder_positions_deg()))
+    print('Simulation continued, enter the next sun location or type \'q\' to quit')
+    user_az = raw_input('Enter sun position azimuth in degrees:')
+    user_el = raw_input('Enter sun position azimuth in degrees:')
+
+    if user_az.lower() == 'q' or user_el.lower() == 'q':
+      break
+    else:
+      deg_az = float(user_az)
+      deg_el = float(user_el)
+    
+    # Move to calculated sun posistion
+    open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
+
+  usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
+
 
 def menu_closed_loop():
   logger.info('Closed loop tracking menu selected')
@@ -642,7 +678,6 @@ def menu_move_el_x_deg():
 
 
 # TODO:
-# def move_elevation_x_degrees(): these will need to calculate diff based on where it is at currently.
 # def simulate_open_loop_tracking():
 # def set_log_levels():
 # def set_lat_long()
