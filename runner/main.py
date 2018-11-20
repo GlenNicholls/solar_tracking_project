@@ -807,9 +807,17 @@ if __name__ == '__main__':
   print('\n' + '-'*50 + 'Running application setup' + '-'*50)
   logger.info('Cleaning up all GPIO')
   GPIO.cleanup()
+  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+
   init_pins()
+  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+
   init_pi_hat()
+  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+
   init_interrupts()
+  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+
   # init_rtc()
   logger.info('Application setup complete')
   print('-'*125 + '\n')
