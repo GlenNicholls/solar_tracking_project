@@ -805,6 +805,8 @@ if __name__ == '__main__':
   # TODO: how do we want to pull info from state file?
   # Run setup if needed
   print('\n' + '-'*50 + 'Running application setup' + '-'*50)
+  logger.info('Cleaning up all GPIO')
+  GPIO.cleanup()
   init_pins()
   init_pi_hat()
   init_interrupts()
