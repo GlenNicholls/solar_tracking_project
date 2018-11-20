@@ -58,8 +58,8 @@ PIN_UC_FAULT_RX    = 7
 PIN_UC_DEV_MODE_RX = 8  
 
 # Motor Control
-PIN_MOT_AZIMUTH   = 27
-PIN_MOT_ELEVATION = 22
+PIN_MOT_AZIMUTH   = 22
+PIN_MOT_ELEVATION = 27
 PIN_MOT_RESET     = 6
 PIN_MOT_CLOCK     = 9
 PIN_MOT_DIRECTION = 1
@@ -814,29 +814,29 @@ if __name__ == '__main__':
   init_pins()
   #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
 
-  init_pi_hat()
-  #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
-
-  init_interrupts()
-  #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
-
-  # init_rtc()
-  logger.info('Application setup complete')
-  print('-'*125 + '\n')
-
-  if args.menu:
-    usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
-    main_menu()
-  elif args.sim:
-    menu_sun_simulation()
-  elif args.test:
-    menu_move_az_x_deg()
-    menu_move_el_x_deg()
-  else:
-    menu_normal_op()
-
-  logger.info('Cleaning up all GPIO')
-  GPIO.cleanup()
+  #init_pi_hat()
+  ##usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+  #
+  #init_interrupts()
+  ##usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+  #
+  ## init_rtc()
+  #logger.info('Application setup complete')
+  #print('-'*125 + '\n')
+  #
+  #if args.menu:
+  #  usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+  #  main_menu()
+  #elif args.sim:
+  #  menu_sun_simulation()
+  #elif args.test:
+  #  menu_move_az_x_deg()
+  #  menu_move_el_x_deg()
+  #else:
+  #  menu_normal_op()
+  #
+  #logger.info('Cleaning up all GPIO')
+  #GPIO.cleanup()
 
   # shutdown
   shutdown()
