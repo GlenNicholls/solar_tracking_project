@@ -419,7 +419,7 @@ def move_motors_open_loop(deg_az, deg_el, skip_az=False, skip_el=False):
     #deg_az = abs(new_deg_az - desired_deg_az)
     #deg_el = abs(new_deg_el - desired_deg_el)
     deg_az = desired_deg_az - new_deg_az
-    deg_el = desired_deg_el - new_deg_el 
+    deg_el = new_deg_el - desired_deg_el 
     err_deg_az = abs(deg_az)
     err_deg_el = abs(deg_el)
     if err_deg_az <= enc_thresh and not locked_az:
