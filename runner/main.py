@@ -432,7 +432,7 @@ def move_motors_open_loop(deg_az, deg_el, skip_az=False, skip_el=False):
 
     if err_deg_el <= enc_thresh and not locked_el:
       logger.info('Elevation Locked!!!')
-      locked_az = True
+      locked_el = True
     elif not locked_el:
       logger.warn('Desired Elevation: [{}] deg'.format(desired_deg_el))
       logger.warn('Current Elevation: [{}] deg'.format(new_deg_el))
@@ -689,10 +689,10 @@ def menu_move_az_x_deg():
 def menu_move_el_x_deg():
   logger.info('Move elevation position  menu selected')
   deg = raw_input('Enter amount to move elevation in degrees:')
-  logger.info('Moving azimuth [{}] deg'.format(deg))
+  logger.info('Moving elevation [{}] deg'.format(deg))
   _, current = get_encoder_positions_deg()
   deg = float(deg) + current
-  logger.info('Moving azimuth to [{}] deg'.format(deg))
+  logger.info('Moving elevation to [{}] deg'.format(deg))
   move_motors(deg_az=0.0, deg_el=deg,open_loop=True, skip_az=True)
   usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
