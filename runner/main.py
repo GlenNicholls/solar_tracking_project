@@ -374,12 +374,14 @@ def get_motors_dir_open_loop(deg_az, deg_el):
 
 def move_motor_az(direction, degrees):
   logger.info('Moving azimuth [{}] degrees [{}]'.format(degrees, direction))
-  motor.move_motor(PIN_MOT_AZIMUTH, direction, degrees)
+  lim_reached = motor.move_motor(PIN_MOT_AZIMUTH, direction, degrees)
+  return lim_reached
 
 
 def move_motor_el(direction, degrees):
   logger.info('Moving elevation [{}] degrees [{}]'.format(degrees, direction))
-  motor.move_motor(PIN_MOT_ELEVATION, direction, degrees)
+  lim_reached = motor.move_motor(PIN_MOT_ELEVATION, direction, degrees)
+  return lim_reached
 
 
 def move_motors_open_loop(deg_az, deg_el, skip_az=False, skip_el=False):
@@ -512,6 +514,31 @@ def is_daytime(loc_astral):
   else:
     logger.info("Nighttime")
     return False
+
+
+def calibrate_az():
+  lim = False
+
+  logger.info('Calibrating Azimuth')
+  while not lim:
+    lim = move_motor_az(MotorCtrl_t.EAST, 0.5)
+
+  az_encoder.set_degrees(0)
+
+
+def calibrate_el():
+  lim = True
+
+  logger.info('Calibrating Azimuth')
+  while not lim:
+    lim = move_motor_el(MotorCtrl_t.SOUTH, 0.5)
+
+  el_encoder.set_degrees(0)
+
+def calibrate_motors():
+  logger.info('Starting system calibration')
+  calibrate_az()
+  calibrate_el()
 
 
 '''
@@ -770,8 +797,10 @@ def main_menu():
   conf_track_submenu = ConsoleMenu(conf_title, conf_subtitle, formatter=menu_frmt)
 
   set_loc_item = FunctionItem('Set System Latitude and Longitude', menu_set_loc)
+  cal_sys_item = FunctionItem('Calibrate Shaft Encoders', calibrate_motors)
 
   conf_track_submenu.append_item(set_loc_item)
+  conf_track_submenu.append_item(cal_sys_item)
 
   conf_submenu_item = SubmenuItem(conf_title, submenu=conf_track_submenu)
   conf_submenu_item.set_menu(menu)

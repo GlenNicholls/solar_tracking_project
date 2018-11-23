@@ -124,6 +124,7 @@ class stepper_motor(object):
   def move_motor(self, axis, dir, deg):
     if not isinstance(dir, MotorCtrl_t):
       raise ValueError('Direction is not of direction type enumerate')
+    lim_reached = False
 
     # decode direction enum due to weird states when the enum members aren't unique.
     # during testing when multiple members were the same integer value caused
@@ -163,9 +164,11 @@ class stepper_motor(object):
 
     # if we hit limit switches, step backwards until safe
     if self._INT_az or self._INT_el:
+      lim_reached = True
       self.__activate_mot_move(axis, not mot_dir)
       while self._INT_az or self._INT_el:
         self.__motor_step()
 
     self.logger.debug('Motor move finished. Disabling specified axis motor')
     MOT.output(axis, self._DISABLE)
+    return lim_reached

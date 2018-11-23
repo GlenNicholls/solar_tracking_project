@@ -80,3 +80,9 @@ class encoder:
   def set_count(self, SE_count):
     self.logger.info('Setting encoder current count value to: {}'.format(SE_count))
     self.a_count = SE_count
+
+
+  def set_degrees(self, deg):
+    self.logger.info('Setting encoder current position value to: {} deg'.format(deg))
+    cnt = int(self.ppr * deg / 360.0) # typecast to nearest integer
+    self.set_count(cnt)
