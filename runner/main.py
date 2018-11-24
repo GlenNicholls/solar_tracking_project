@@ -523,7 +523,7 @@ def calibrate_az():
   while not lim:
     lim = move_motor_az(MotorCtrl_t.EAST, 0.5)
 
-  az_encoder.set_degrees(0)
+  az_encoder.set_degrees(55.0)
 
 
 def calibrate_el():
