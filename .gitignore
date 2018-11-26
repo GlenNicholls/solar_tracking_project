@@ -17,5 +17,8 @@
 *.o
 *.vs
 
+# pickle
+*.pkl
+
 # test suite
 *.xml
