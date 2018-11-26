@@ -47,6 +47,7 @@ setup(
                          'Adafruit-MCP3008>=1.0.2',	                     
                          'astral>=1.2',
                          'console-menu>=0.5.1',
+                         'pandas>=0.23.4',
                          'psutil>=5.4.7',
                          'pytest>=3.8.2',
                          'pytest-timeout>=1.3.2',
