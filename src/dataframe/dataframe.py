@@ -1,3 +1,4 @@
+import os
 import logging
 import pandas as pd
 import pickle
@@ -20,26 +21,32 @@ class dataframe:
 
     self.pd = pd
 
-    # file location
-    self.fileLoc = file_location
-    if self.fileLoc == '':
-      raise ValueError('Invalid file location, must be valid string')
-    self.pickle = self.pd.read_pickle(self.fileLoc)
-    print('pickle: {}'.format(self.pickle))
-
     # dataframe
     self.column_names = columns
     if self.column_names == None:
       raise ValueError('Invalud column names, must be list of strings: [\'str1\', \'str2\',...]')
-    self.frame = self.pd.DataFrame(columns=columns)
-    print('frame: {}'.format(self.frame))
+    self.df = self.pd.DataFrame(columns=columns)
+    print('frame: {}'.format(self.df))
+
+    # file location
+    self.fileLoc = file_location
+    if self.fileLoc == '':
+      raise ValueError('Invalid file location, must be valid string')
+    if os.path.isfile(self.fileLoc):
+      self.pickle = self.pd.read_pickle(self.fileLoc)
+    else:
+      self.logger.warning('Pickle file location does not exist! Creating file now: {}'.format(self.fileLoc))
+      self.df.to_pickle(self.fileLoc)
+      self.pickle = self.pd.read_pickle(self.fileLoc)
+    print('pickle: {}'.format(self.pickle))
+
 
 
   '''
     return array of columns names
   '''
   def get_keys(self):
-    column_names = self.frame.columns.values
+    column_names = self.df.columns.values
     self.logger.debug('Column Names: {}'.format(column_names))
     return column_names
 
@@ -58,9 +65,9 @@ class dataframe:
     pop row data into df
     row: dict with keys that match frame column names
   '''
-  def get_row(self, row=-1):
+  def get_row(self, row=1):
     tail = self.pickle.tail(row)
-    self.logger.info('Popped row {} index from the end: {}'.format(row, tail))
+    self.logger.info('Popped {} rows from the end: {}'.format(row, tail))
     return tail
     
   
@@ -124,8 +131,8 @@ print(frame.pickle)
 frame.dump()
 
 # get newest entry
-tail = frame.get_row(10)
-print('frame:\n{}'.format(tail))
+tail = frame.get_row()
+print('frame end:\n{}'.format(tail))
 
 # clear frame
 frame = None
