@@ -577,11 +577,6 @@ def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
 # Menus
 ##########################  
 def menu_normal_op():
-  # calibrate system and configure current position
-  # NOTE: Mikes alg says to zero count, but we don't do that because the degree pos
-  #       is calculated based on count.
-  calibrate_motors()
-
   # Load stored parameters
   logger.warn('Loading stored prarmeters NOT DEFINED')
   
@@ -877,15 +872,12 @@ if __name__ == '__main__':
   # Run setup if needed
   print('\n' + '-'*50 + 'Running application setup' + '-'*50)
   init_pins()
-  #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
-
-  # init_pi_hat()
-  #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
-  
-  init_interrupts()
-  #usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
-  
+  init_pi_hat()  
+  init_interrupts()  
   # init_rtc()
+  # NOTE: Mikes alg says to zero count, but we don't do that because the degree pos
+  #       is calculated based on count.
+  calibrate_motors()
   logger.info('Application setup complete')
   print('-'*125 + '\n')
   
