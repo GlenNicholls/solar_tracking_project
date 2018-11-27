@@ -166,13 +166,18 @@ static inline void serviceGpioRegFlags(void)
   cli();
 
   // control power pin
+  // TODO: Pi is not yet completely configured at start up for power on/off
   //powerFlagIsSet() ? TURN_POWER_PIN_ON : TURN_POWER_PIN_OFF; // DBG since power keeps getting cut
 
   // control fault pin
+  // NOTE: changed led status to diff pin due to level shifter
   faultFlagIsSet() ? TURN_FAULT_PIN_ON : TURN_FAULT_PIN_OFF;
+  faultFlagIsSet() ? TURN_FAULT_LED_PIN_ON : TURN_FAULT_LED_PIN_OFF;
 
   // control dev mode pin
+  // NOTE: changed led status to diff pin due to level shifter
   devModeFlagIsSet() ? TURN_DEV_MODE_PIN_ON : TURN_DEV_MODE_PIN_OFF;
+  devModeFlagIsSet() ? TURN_DEV_MODE_LED_PIN_ON : TURN_DEV_MODE_LED_PIN_OFF;
 
   // re-enable interrupts
   sei();
