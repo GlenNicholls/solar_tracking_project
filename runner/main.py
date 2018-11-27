@@ -577,11 +577,13 @@ def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
 # Menus
 ##########################  
 def menu_normal_op():
-  #Load stored parameters
+  # calibrate system and configure current position
+  # NOTE: Mikes alg says to zero count, but we don't do that because the degree pos
+  #       is calculated based on count.
+  calibrate_motors()
+
+  # Load stored parameters
   logger.warn('Loading stored prarmeters NOT DEFINED')
-  
-  prev_solar_az = 242.0
-  prev_solar_el = 7.0
   
   #Load user specifice parameters
   logger.warn('Loading user specified parameters NOT DEFINED')
@@ -591,34 +593,52 @@ def menu_normal_op():
   
   # Calibrate system
   logger.warn('Calibrating System NOT DEFINED')
-    
-  # Get current position from motors
-  # TODO: We should be trusting encoders only, so I'm not sure if this is needed
-  logger.warn('Get current position from motors NOT DEFINED')
-  
-  if is_daytime(loc_astral): #this will be the if check from above, implemented this way for development
-    # Get solar position
-    solar_deg_az, solar_deg_el = get_solar_position_deg(loc_astral)
-    
-    # Move to calculated sun posistion
-    deg_az = solar_deg_az - prev_solar_az
-    deg_el = solar_deg_el - prev_solar_el 
-    open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
-    
-    # Perform fine adjustments
-    closed_loop_locked = move_motors(closed_loop=True)
-    # TODO: ensure we're locked still
+     
+  # infinite loop
+  while True:
+      if is_daytime(loc_astral): #this will be the if check from above, implemented this way for development
+        # get encoder current positions
+        prev_enc_az = az_encoder.get_degrees()
+        prev_enc_el = el_encoder.get_degrees()
 
-    #Read light sensor
-    # TODO: is this referring to limit switch? If so, I am taking care of this in motor class -GN
-    logger.info('Reading light sensor')
-    
-  else:
-    #Get solar position for tomorrow morning
-    solar_deg_az, solar_deg_el = get_sunrise_position_deg(loc_astral)
-    
-    #Move to sunrise position for tomorrow
-    logger.warn('Moving to sunrise position for tomorrow NOT DEFINED')
+        # Get solar position
+        solar_deg_az, solar_deg_el = get_solar_position_deg(loc_astral)
+        
+        # Move to calculated sun posistion
+        deg_az = solar_deg_az - prev_enc_az
+        deg_el = solar_deg_el - prev_enc_el 
+        if deg_az > 1.0 or deg_el > 1.0:
+        open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
+        
+        # Perform fine adjustments
+        closed_loop_locked = move_motors(closed_loop=True)
+
+        # check for lock state
+        if not closed_loop_locked or not open_loop_locked:
+          logger.warn('Unable to acquire sun lock in open or closed loop algorithms')
+
+        #Read light sensor
+        # TODO: is this referring to limit switch? If so, I am taking care of this in motor class -GN
+        logger.info('Reading light sensor')
+        
+      else:
+        # get current encoder positions
+        prev_enc_az = az_encoder.get_degrees()
+        prev_enc_el = el_encoder.get_degrees()
+
+        # get solar position for tomorrow morning
+        solar_deg_az, solar_deg_el = get_sunrise_position_deg(loc_astral)
+        
+        # Move to calculated sun posistion
+        deg_az = solar_deg_az - prev_enc_az
+        deg_el = solar_deg_el - prev_enc_el 
+        open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
+
+      logger.warn('Sleep calculation NOT DEFINED, defaulting sleep to 30s in loop')
+      time.sleep(30)
+  # end infinite loop
+  # TODO: log to dataframe and dump to file before shutting down
+  logger.warn('Log system information NOT DEFINED')
 
   # TODO: use GPIO.cleanup() or GPIO.cleanup([channels]) somewhere before shutdown.
   #       cleanup() may cause issues with AVRDude, so specifying used channels as [] or () is probably needed
@@ -731,6 +751,12 @@ def menu_set_loc():
 
   thismodule.latitude = float(lat); thismodule.longitude = float(lon)
 
+
+def menu_calibrate():
+  logger.info('Calibration menu selected')
+  calibrate_motors()
+
+
 # TODO:
 # def set_log_levels():
 # def set_lat_long()
@@ -797,7 +823,7 @@ def main_menu():
   conf_track_submenu = ConsoleMenu(conf_title, conf_subtitle, formatter=menu_frmt)
 
   set_loc_item = FunctionItem('Set System Latitude and Longitude', menu_set_loc)
-  cal_sys_item = FunctionItem('Calibrate Shaft Encoders', calibrate_motors)
+  cal_sys_item = FunctionItem('Calibrate Shaft Encoders', menu_calibrate)
 
   conf_track_submenu.append_item(set_loc_item)
   conf_track_submenu.append_item(cal_sys_item)
@@ -805,9 +831,7 @@ def main_menu():
   conf_submenu_item = SubmenuItem(conf_title, submenu=conf_track_submenu)
   conf_submenu_item.set_menu(menu)
 
-  # TODO: create calibration menu
   # TODO: create reset menu
-  # TODO: create lat/long menu
   # TODO: add log level menu with options to change log level of each package
   #       make sure to also have the function start logging to file since it will
   #       be impossible to find info in console
