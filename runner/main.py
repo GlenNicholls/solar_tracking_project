@@ -731,6 +731,12 @@ def menu_set_loc():
 
   thismodule.latitude = float(lat); thismodule.longitude = float(lon)
 
+
+def menu_calibrate():
+  logger.info('Calibration menu selected')
+  calibrate_motors()
+
+
 # TODO:
 # def set_log_levels():
 # def set_lat_long()
@@ -797,7 +803,7 @@ def main_menu():
   conf_track_submenu = ConsoleMenu(conf_title, conf_subtitle, formatter=menu_frmt)
 
   set_loc_item = FunctionItem('Set System Latitude and Longitude', menu_set_loc)
-  cal_sys_item = FunctionItem('Calibrate Shaft Encoders', calibrate_motors)
+  cal_sys_item = FunctionItem('Calibrate Shaft Encoders', menu_calibrate)
 
   conf_track_submenu.append_item(set_loc_item)
   conf_track_submenu.append_item(cal_sys_item)
@@ -805,9 +811,7 @@ def main_menu():
   conf_submenu_item = SubmenuItem(conf_title, submenu=conf_track_submenu)
   conf_submenu_item.set_menu(menu)
 
-  # TODO: create calibration menu
   # TODO: create reset menu
-  # TODO: create lat/long menu
   # TODO: add log level menu with options to change log level of each package
   #       make sure to also have the function start logging to file since it will
   #       be impossible to find info in console
