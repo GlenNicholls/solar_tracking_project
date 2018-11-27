@@ -6,6 +6,12 @@ To set up the Raspberry pi, perform the following steps after updating:
 
     sudo apt-get update
 
+# Install Pandas
+The pandas package in setuptools with `pip install` is not the recommend method, so install manually using the following
+on a linux based system:
+
+    sudo apt-get install python-pandas
+
 # Install dependencies
 To install dependencies for the python code base and creating egg info for the python interpreter, run the 
 following commands, (recommend install in step 1b):
@@ -21,7 +27,7 @@ If you would like to perform a fresh system install, perform this command. This 
 src files are copied
 
     sudo python setup.py install
- 
+    
 # Enable I2C and SPI
 Begin by opening a termineal and performing the following steps:
 
