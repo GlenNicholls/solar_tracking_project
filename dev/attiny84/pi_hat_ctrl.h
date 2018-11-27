@@ -4,44 +4,54 @@
 /*****************************
  * Define HW Pins
  *****************************/
-#define POWER_PIN_REG      PA0
-#define FAULT_PIN_REG      PA1
-#define DEV_MODE_PIN_REG   PA3
-#define ISCP_SCK           PA4
-#define ISCP_MISO          PA5
-#define ISCP_MOSI          PA6
-#define DEVICE_ACK_PIN_REG PA7
-#define BUTTON_PIN_REG     PB1
-#define RTC_ALARM_PIN_REG  PB2
-#define ICSP_RESET_N       PB3
+#define POWER_PIN_REG        PA0
+#define FAULT_PIN_REG        PA1
+#define FAULT_LED_PIN_REG    PA2
+#define DEV_MODE_PIN_REG     PA3
+#define ISCP_SCK             PA4
+#define ISCP_MISO            PA5
+#define ISCP_MOSI            PA6
+#define DEVICE_ACK_PIN_REG   PA7
+#define DEV_MODE_LED_PIN_REG PB0
+#define BUTTON_PIN_REG       PB1
+#define RTC_ALARM_PIN_REG    PB2
+#define ICSP_RESET_N         PB3
 
-#define POWER_PORT      PORTA
-#define FAULT_PORT      PORTA
-#define DEV_MODE_PORT   PORTA
-#define DEVICE_ACK_PORT PORTA
-#define BUTTON_PORT     PORTB
-#define RTC_ALARM_PORT  PORTB
+#define POWER_PORT        PORTA
+#define FAULT_PORT        PORTA
+#define FAULT_LED_PORT    PORTA
+#define DEV_MODE_PORT     PORTA
+#define DEVICE_ACK_PORT   PORTA
+#define DEV_MODE_LED_PORT PORTB
+#define BUTTON_PORT       PORTB
+#define RTC_ALARM_PORT    PORTB
 
-#define POWER_PIN      PINA
-#define FAULT_PIN      PINA
-#define DEV_MODE_PIN   PINA
-#define DEVICE_ACK_PIN PINA
-#define BUTTON_PIN     PINB
-#define RTC_ALARM_PIN  PINB
+#define POWER_PIN        PINA
+#define FAULT_PIN        PINA
+#define FAULT_LED_PIN    PINA
+#define DEV_MODE_PIN     PINA
+#define DEVICE_ACK_PIN   PINA
+#define DEV_MODE_LED_PIN PINB
+#define BUTTON_PIN       PINB
+#define RTC_ALARM_PIN    PINB
 
 
 
 /*****************************
  * Pin Assertions
  *****************************/
-#define TURN_POWER_PIN_ON      SET_BIT(POWER_PORT,    POWER_PIN_REG)
-#define TURN_POWER_PIN_OFF     CLR_BIT(POWER_PORT,    POWER_PIN_REG)
+#define TURN_POWER_PIN_ON   SET_BIT(POWER_PORT,    POWER_PIN_REG)
+#define TURN_POWER_PIN_OFF  CLR_BIT(POWER_PORT,    POWER_PIN_REG)
 
-#define TURN_FAULT_PIN_ON      SET_BIT(FAULT_PORT,    FAULT_PIN_REG)
-#define TURN_FAULT_PIN_OFF     CLR_BIT(FAULT_PORT,    FAULT_PIN_REG)
+#define TURN_FAULT_PIN_ON       SET_BIT(FAULT_PORT,    FAULT_PIN_REG)
+#define TURN_FAULT_PIN_OFF      CLR_BIT(FAULT_PORT,    FAULT_PIN_REG)
+#define TURN_FAULT_LED_PIN_ON   SET_BIT(FAULT_LED_PORT,    FAULT_LED_PIN_REG)
+#define TURN_FAULT_LED_PIN_OFF  CLR_BIT(FAULT_LED_PORT,    FAULT_LED_PIN_REG)
 
-#define TURN_DEV_MODE_PIN_ON   SET_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
-#define TURN_DEV_MODE_PIN_OFF  CLR_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
+#define TURN_DEV_MODE_PIN_ON       SET_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
+#define TURN_DEV_MODE_PIN_OFF      CLR_BIT(DEV_MODE_PORT, DEV_MODE_PIN_REG)
+#define TURN_DEV_MODE_LED_PIN_ON   SET_BIT(DEV_MODE_LED_PORT, DEV_MODE_LED_PIN_REG)
+#define TURN_DEV_MODE_LED_PIN_OFF  CLR_BIT(DEV_MODE_LED_PORT, DEV_MODE_LED_PIN_REG)
 
 
 
@@ -88,8 +98,8 @@ static inline void initPortA(void)
   SET_INPUT(DDRA, ISCP_MOSI);
   SET_INPUT(DDRA, ISCP_MISO);
   SET_INPUT(DDRA, ISCP_SCK);
-  SET_INPUT(DDRA, PA2); // not connected
 
+  SET_OUTPUT(DDRA, FAULT_LED_PIN_REG);
   SET_OUTPUT(DDRA, DEV_MODE_PIN_REG);
   SET_OUTPUT(DDRA, FAULT_PIN_REG);
   SET_OUTPUT(DDRA, POWER_PIN_REG);
@@ -99,9 +109,9 @@ static inline void initPortA(void)
   SET_PULLUP_ON(PORTA, ISCP_MOSI);
   SET_PULLUP_ON(PORTA, ISCP_MISO);
   SET_PULLUP_ON(PORTA, ISCP_SCK);
-  SET_PULLUP_ON(PORTA, DEV_MODE_PIN_REG); // Make sure to turn off during initMCU
-  SET_PULLUP_ON(PORTA, PA2);              // not connected
-  SET_PULLUP_ON(PORTA, FAULT_PIN_REG);    // Make sure to turn off during initMCU
+  SET_PULLUP_ON(PORTA, DEV_MODE_PIN_REG);  // Make sure to turn off during initMCU
+  SET_PULLUP_ON(PORTA, FAULT_LED_PIN_REG); // Make sure to turn off during initMCU
+  SET_PULLUP_ON(PORTA, FAULT_PIN_REG);     // Make sure to turn off during initMCU
   SET_PULLUP_ON(PORTA, POWER_PIN_REG);
 
 }
@@ -113,13 +123,13 @@ static inline void initPortB(void)
   SET_INPUT(DDRB, RTC_ALARM_PIN_REG);
   SET_INPUT(DDRB, BUTTON_PIN_REG);
 
-  SET_OUTPUT(DDRB, PB0); // not connected
+  SET_OUTPUT(DDRB, DEV_MODE_LED_PIN_REG);
 
   // Enable pullups
   //SET_PULLUP_ON(PORTB, ICSP_RESET_N);
   SET_PULLUP_ON(PORTB, RTC_ALARM_PIN_REG);
   SET_PULLUP_ON(PORTB, BUTTON_PIN_REG);
-  SET_PULLUP_ON(PORTB, PB0); // not connected
+  SET_PULLUP_ON(PORTB, DEV_MODE_LED_PIN_REG); // Make sure to turn off during initMCU
 }
 
 
