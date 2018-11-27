@@ -596,6 +596,8 @@ def menu_normal_op():
      
   # infinite loop
   while True:
+      open_loop_locked   = False
+      closed_loop_locked = False
       if is_daytime(loc_astral): #this will be the if check from above, implemented this way for development
         # get encoder current positions
         prev_enc_az = az_encoder.get_degrees()
@@ -608,10 +610,10 @@ def menu_normal_op():
         deg_az = solar_deg_az - prev_enc_az
         deg_el = solar_deg_el - prev_enc_el 
         if deg_az > 1.0 or deg_el > 1.0:
-        open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
+          open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
         
-        # Perform fine adjustments
-        closed_loop_locked = move_motors(closed_loop=True)
+          # Perform fine adjustments
+          closed_loop_locked = move_motors(closed_loop=True)
 
         # check for lock state
         if not closed_loop_locked or not open_loop_locked:
@@ -629,7 +631,9 @@ def menu_normal_op():
         # get solar position for tomorrow morning
         solar_deg_az, solar_deg_el = get_sunrise_position_deg(loc_astral)
         
-        # Move to calculated sun posistion
+        # Move to sunrise position for tomorrow
+        logger.info('Moving to sunrise position for tomorrow')
+        
         deg_az = solar_deg_az - prev_enc_az
         deg_el = solar_deg_el - prev_enc_el 
         open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
@@ -652,8 +656,8 @@ def menu_normal_op():
 def menu_open_loop():
   logger.info('Open loop tracking menu selected')
 
-  prev_solar_az = 242.0
-  prev_solar_el = 7.0
+  prev_enc_az = az_encoder.get_degrees()
+  prev_enc_el = el_encoder.get_degrees()
   
   #Get astral with current location
   loc_astral = get_location_astral(thismodule.latitude, thismodule.longitude, thismodule.elevation)
@@ -663,17 +667,21 @@ def menu_open_loop():
     solar_deg_az, solar_deg_el = get_solar_position_deg(loc_astral)
     
     # Move to calculated sun posistion
-    deg_az = solar_deg_az - prev_solar_az
-    deg_el = solar_deg_el - prev_solar_el 
+    deg_az = solar_deg_az - prev_enc_az
+    deg_el = solar_deg_el - prev_enc_el 
     open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
   else:
     #Get solar position for tomorrow morning
     solar_deg_az, solar_deg_el = get_sunrise_position_deg(loc_astral)
     
-    #Move to sunrise position for tomorrow
-    logger.warn('Moving to sunrise position for tomorrow NOT DEFINED')
+    # Move to sunrise position for tomorrow
+    logger.info('Moving to sunrise position for tomorrow')
+    
+    deg_az = solar_deg_az - prev_enc_az
+    deg_el = solar_deg_el - prev_enc_el 
+    open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
 
-  usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
+  raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
 def menu_sun_simulation():
@@ -697,13 +705,13 @@ def menu_sun_simulation():
     # Move to calculated sun posistion
     open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
 
-  usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
+  raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
 def menu_closed_loop():
   logger.info('Closed loop tracking menu selected')
   closed_loop_locked = move_motors(closed_loop=True)
-  usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
+  raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
     
 
 def menu_set_az_position():
@@ -711,7 +719,7 @@ def menu_set_az_position():
   deg = raw_input('Enter desired azimuth position in degrees:')
   logger.info('Setting azimuth position to: [{}] deg'.format(deg))
   move_motors(deg_az=float(deg), deg_el=0.0, open_loop=True, skip_el=True)
-  usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
+  raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
 def menu_set_el_position():
@@ -719,7 +727,7 @@ def menu_set_el_position():
   deg = raw_input('Enter desired elevation position in degrees:')
   logger.info('Setting elevation position to: [{}] deg'.format(deg))
   move_motors(deg_az=0.0, deg_el=float(deg),open_loop=True, skip_az=True)
-  usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
+  raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
 def menu_move_az_x_deg():
@@ -730,7 +738,7 @@ def menu_move_az_x_deg():
   deg = float(deg) + current
   logger.info('Moving azimuth to [{}] deg'.format(deg))
   move_motors(deg_az=deg, deg_el=0.0,open_loop=True, skip_el=True)
-  usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
+  raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
 def menu_move_el_x_deg():
@@ -741,7 +749,7 @@ def menu_move_el_x_deg():
   deg = float(deg) + current
   logger.info('Moving elevation to [{}] deg'.format(deg))
   move_motors(deg_az=0.0, deg_el=deg,open_loop=True, skip_az=True)
-  usr_ready = raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
+  raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
 def menu_set_loc():
@@ -750,11 +758,15 @@ def menu_set_loc():
   lon = raw_input('Enter Latitude:')
 
   thismodule.latitude = float(lat); thismodule.longitude = float(lon)
+  
+  raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
 def menu_calibrate():
   logger.info('Calibration menu selected')
   calibrate_motors()
+  
+  raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
 # TODO:
