@@ -242,27 +242,3 @@ class dataframe:
 # print('raw frame2:')
 # print(frame2.get_keys())
 
-
-# class parser(object):
-#     def __init__(self, logger_name        = 'main_logger',
-#                        logger_module_name = 'file_parser'
-#                 ):
-#         self.logger = logging.getLogger(logger_name + '.' + logger_module_name)
-#         self.logger.info('creating an instance of the {}'.format(logger_module_name))
-# 
-# 
-#     def read_file(self, filename, delimeter=','):
-#         if not os.path.exists(filename):
-#             raise ValueError('file {} does not exist in {}'.format(filename, os.getcwd()))
-#         with open(filename, 'r') as fp:
-#             file = csv.reader(fp, delimeter=delimeter)
-#         return file 
-# 
-# 
-#     def read_file_dict(self, filename, delimeter=','):
-#         if not os.path.exists(filename):
-#             raise ValueError('file {} does not exist in {}'.format(filename, os.getcwd()))
-#         with open(filename, 'r') as fp:
-#             file = csv.DictReader(fp, delimeter=delimeter)
-#         return file
-
