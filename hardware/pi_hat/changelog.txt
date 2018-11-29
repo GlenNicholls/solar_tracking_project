@@ -21,6 +21,10 @@
 			Updated silkscreen to reflect schematic
 			Added better usb connector (thru hole)
 			
-2017-11-5 Graeme Danforth
+2018-11-5 Graeme Danforth
 	*solartrack1.pcb: Added headers for power bus
 			Changed LED package size back back to 0603 
+
+2018-11-28 Graeme Danforth
+	*solartrack1.pcb: fixed reversed silkscreen on load-switch LED
+			Moved attiny LEDs from level shifters to free GPIO pins to avoid voltage issue
