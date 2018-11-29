@@ -719,7 +719,8 @@ def menu_set_az_position():
     else:
       if float(deg) > 55.5:
         logger.info('Setting azimuth position to: [{}] deg'.format(deg))
-        move_motors(deg_az=float(deg), deg_el=0.0, open_loop=True, skip_el=True)
+        move_x_deg = float(deg) - curr_az
+        move_motors(deg_az=float(move_x_deg), deg_el=0.0, open_loop=True, skip_el=True)
         break
       else:
         logger.error('Must enter position that is greater than azimuth limit position!')
@@ -728,7 +729,7 @@ def menu_set_az_position():
 
 def menu_set_el_position():
   logger.info('Set elevation position menu selected')
-  get_encoder_positions_deg()
+  curr_az, curr_el = get_encoder_positions_deg()
   while True:
     deg = raw_input('Enter desired elevation position in degrees or \'q\' to quit::')
     if deg.lower() == 'q':
@@ -736,7 +737,8 @@ def menu_set_el_position():
     else:
       if float(deg) > 0.0:
         logger.info('Setting elevation position to: [{}] deg'.format(deg))
-        move_motors(deg_az=0.0, deg_el=float(deg),open_loop=True, skip_az=True)
+        move_x_deg = float(deg) - curr_el
+        move_motors(deg_az=0.0, deg_el=float(move_x_deg),open_loop=True, skip_az=True)
         break
       else:
         logger.error('Must enter position that is greater than elevation limit position!')
