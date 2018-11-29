@@ -65,8 +65,8 @@ PIN_MOT_CLOCK     = 9
 PIN_MOT_DIRECTION = 1
 
 # Limit switches
-PIN_LIM_SW_AZIMUTH   = 17
-PIN_LIM_SW_ELEVATION = 18
+PIN_LIM_SW_AZIMUTH   = 18
+PIN_LIM_SW_ELEVATION = 17
 
 
 ##########################
@@ -396,7 +396,7 @@ def move_motors_open_loop(deg_az, deg_el, skip_az=False, skip_el=False):
 
   # if encoders aren't reading correct position, loop
   not_lock_cnt = 0
-  while not locked and not_lock_cnt < 10: # and check_cnt < some_number:
+  while not locked and not_lock_cnt < 10:
     # get previous position from encoders
     prev_deg_az, prev_deg_el = get_encoder_positions_deg()
 
@@ -527,7 +527,7 @@ def calibrate_az():
 
 
 def calibrate_el():
-  lim = True
+  lim = False
 
   logger.info('Calibrating Azimuth')
   while not lim:
@@ -711,39 +711,37 @@ def menu_closed_loop():
 
 def menu_set_az_position():
   logger.info('Set azimuth position menu selected')
-  deg = raw_input('Enter desired azimuth position in degrees:')
-  logger.info('Setting azimuth position to: [{}] deg'.format(deg))
-  move_motors(deg_az=float(deg), deg_el=0.0, open_loop=True, skip_el=True)
+  get_encoder_positions_deg()
+  while True:
+    deg = raw_input('Enter desired azimuth position in degrees or \'q\' to quit:')
+    if deg == 'q' or deg == 'Q':
+      break
+    else:
+      if float(deg) > 55.5:
+        logger.info('Setting azimuth position to: [{}] deg'.format(deg))
+        move_x_deg = float(deg) - curr_az
+        move_motors(deg_az=float(move_x_deg), deg_el=0.0, open_loop=True, skip_el=True)
+        break
+      else:
+        logger.error('Must enter position that is greater than azimuth limit position!')
   raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
 def menu_set_el_position():
   logger.info('Set elevation position menu selected')
-  deg = raw_input('Enter desired elevation position in degrees:')
-  logger.info('Setting elevation position to: [{}] deg'.format(deg))
-  move_motors(deg_az=0.0, deg_el=float(deg),open_loop=True, skip_az=True)
-  raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
-
-
-def menu_move_az_x_deg():
-  logger.info('Move azimuth position menu selected')
-  deg = raw_input('Enter amount to move azimuth in degrees:')
-  logger.info('Moving azimuth [{}] deg'.format(deg))
-  current, _ = get_encoder_positions_deg()
-  deg = float(deg) + current
-  logger.info('Moving azimuth to [{}] deg'.format(deg))
-  move_motors(deg_az=deg, deg_el=0.0,open_loop=True, skip_el=True)
-  raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
-
-
-def menu_move_el_x_deg():
-  logger.info('Move elevation position  menu selected')
-  deg = raw_input('Enter amount to move elevation in degrees:')
-  logger.info('Moving elevation [{}] deg'.format(deg))
-  _, current = get_encoder_positions_deg()
-  deg = float(deg) + current
-  logger.info('Moving elevation to [{}] deg'.format(deg))
-  move_motors(deg_az=0.0, deg_el=deg,open_loop=True, skip_az=True)
+  curr_az, curr_el = get_encoder_positions_deg()
+  while True:
+    deg = raw_input('Enter desired elevation position in degrees or \'q\' to quit::')
+    if deg == 'q' or deg == 'Q':
+      break
+    else:
+      if float(deg) > 0.0:
+        logger.info('Setting elevation position to: [{}] deg'.format(deg))
+        move_x_deg = float(deg) - curr_el
+        move_motors(deg_az=0.0, deg_el=float(move_x_deg),open_loop=True, skip_az=True)
+        break
+      else:
+        logger.error('Must enter position that is greater than elevation limit position!')
   raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
@@ -811,14 +809,10 @@ def main_menu():
 
   set_az_item  = FunctionItem('Set Azimuth Position', menu_set_az_position)
   set_el_item  = FunctionItem('Set Elevation Position', menu_set_el_position)
-  move_az_item = FunctionItem('Move Azimuth Position', menu_move_az_x_deg)
-  move_el_item = FunctionItem('Move Elevation Position', menu_move_el_x_deg)
   sun_sim_item = FunctionItem('Open Loop User Defined Sun Simulation', menu_sun_simulation)
 
   man_track_submenu.append_item(set_az_item)
   man_track_submenu.append_item(set_el_item)
-  man_track_submenu.append_item(move_az_item)
-  man_track_submenu.append_item(move_el_item)
   man_track_submenu.append_item(sun_sim_item)
 
   man_track_submenu_item = SubmenuItem(man_title, submenu=man_track_submenu)

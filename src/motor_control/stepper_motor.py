@@ -97,18 +97,22 @@ class stepper_motor(object):
 
   def __move_motor_x_steps(self, steps):
     step_cnt = 0
+    lim_reached = False
     for i in range(int(steps)):
       step_cnt = i
       self.__motor_step()
 
       # break if we see we have hit lim switches
       if self._INT_az:
+        lim_reached = True
         self.logger.warn('Azimuth limit reached, stepping motor back to safe limit!!!')
         break
       if self._INT_el:
+        lim_reached = True
         self.logger.warn('Elevation limit reached, stepping motor back to safe limit!!!')
         break
     self.logger.debug('Moved motor {} steps'.format(step_cnt+1)) # i starts at zero and goes to x-1
+    return lim_reached
 
 
   def __activate_mot_move(self, pin, direction):
@@ -124,7 +128,6 @@ class stepper_motor(object):
   def move_motor(self, axis, dir, deg):
     if not isinstance(dir, MotorCtrl_t):
       raise ValueError('Direction is not of direction type enumerate')
-    lim_reached = False
 
     # decode direction enum due to weird states when the enum members aren't unique.
     # during testing when multiple members were the same integer value caused
@@ -143,6 +146,11 @@ class stepper_motor(object):
     elif dir == MotorCtrl_t.SOUTH:
       mot_dir = 1
     
+    if mot_dir:
+      mot_dir_N = 0
+    else:
+      mot_dir_N = 1
+      
     # calculate num of steps for each axis
     if axis == self._az:
       steps = abs(deg) * self._deg_az
@@ -160,14 +168,14 @@ class stepper_motor(object):
 
     # step moter desired num of steps
     self.logger.debug('Moving motor {} steps'.format(steps))
-    self.__move_motor_x_steps(steps)
+    lim_reached = self.__move_motor_x_steps(steps)
 
     # if we hit limit switches, step backwards until safe
-    if self._INT_az or self._INT_el:
-      lim_reached = True
-      self.__activate_mot_move(axis, not mot_dir)
+    if lim_reached:
+      self.__activate_mot_move(axis, mot_dir_N)
       while self._INT_az or self._INT_el:
         self.__motor_step()
+      self.logger.info('Motor has been repositioned to safe limit!!')
 
     self.logger.debug('Motor move finished. Disabling specified axis motor')
     MOT.output(axis, self._DISABLE)
