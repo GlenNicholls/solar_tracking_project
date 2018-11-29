@@ -527,7 +527,7 @@ def calibrate_az():
 
 
 def calibrate_el():
-  lim = True
+  lim = False
 
   logger.info('Calibrating Azimuth')
   while not lim:
