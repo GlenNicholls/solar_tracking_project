@@ -711,6 +711,7 @@ def menu_closed_loop():
 
 def menu_set_az_position():
   logger.info('Set azimuth position menu selected')
+  get_encoder_positions_deg()
   deg = raw_input('Enter desired azimuth position in degrees:')
   logger.info('Setting azimuth position to: [{}] deg'.format(deg))
   move_motors(deg_az=float(deg), deg_el=0.0, open_loop=True, skip_el=True)
@@ -719,6 +720,7 @@ def menu_set_az_position():
 
 def menu_set_el_position():
   logger.info('Set elevation position menu selected')
+  get_encoder_positions_deg()
   deg = raw_input('Enter desired elevation position in degrees:')
   logger.info('Setting elevation position to: [{}] deg'.format(deg))
   move_motors(deg_az=0.0, deg_el=float(deg),open_loop=True, skip_az=True)
