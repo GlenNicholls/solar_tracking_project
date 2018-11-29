@@ -65,8 +65,8 @@ PIN_MOT_CLOCK     = 9
 PIN_MOT_DIRECTION = 1
 
 # Limit switches
-PIN_LIM_SW_AZIMUTH   = 17
-PIN_LIM_SW_ELEVATION = 18
+PIN_LIM_SW_AZIMUTH   = 18
+PIN_LIM_SW_ELEVATION = 17
 
 
 ##########################
