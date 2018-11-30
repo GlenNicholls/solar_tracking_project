@@ -547,7 +547,7 @@ def move_motors_closed_loop():
   move_mot_deg = 0.5
 
   not_lock_cnt = 0
-  while not locked and not_lock_cnt < 10:
+  while not locked and not_lock_cnt < 20:
     # get motor movement directions based on sun sensor
     az_dir, el_dir = sun_sensors.get_motor_direction_all()
     logger.info('Desired azimuth direction: [{}]'.format(az_dir))
@@ -567,7 +567,7 @@ def move_motors_closed_loop():
       locked = True
 
     # increment not locked counter
-    not_lock_cnt + 1
+    not_lock_cnt += 1
 
   if not locked:
     logger.error('Unable to reach correct azimuth and elevation positions!!!')
