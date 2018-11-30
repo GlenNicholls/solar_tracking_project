@@ -105,7 +105,8 @@ class dataframe:
     '''
     def __init__(self, logger_name        = 'main_logger', 
                        logger_module_name = 'dataframe',
-                       columns            = None, 
+                       columns            = None,
+                       file_name          = None, # NOTE: dont add .x
                        file_location      = None
                  ):
         self.logger = logging.getLogger(logger_name + '.' + logger_module_name)
@@ -117,17 +118,20 @@ class dataframe:
         self._columns = columns
         
         # file location
+        self._file_name = file_name
         self._file_loc = file_location
+        self._pickle_file = self._file_loc + self._file_name + '.pkl'
+        self._csv_file = self._file_loc + self._file_name + '.csv'
         
-        if os.path.isfile(self._file_loc):
-            self._frame = self._pd.read_pickle(self._file_loc) 
+        if os.path.isfile(self._pickle_file):
+            self._frame = self._pd.read_pickle(self._pickle_file) 
         else:
             if self._columns == None:
                 raise ValueError('Invalid column names, must be list of strings: [str1, str2,...]')
         
             self._frame = self._pd.DataFrame(columns=columns)
-            self.logger.warning('Pickle file location does not exist! Creating file now: {}'.format(self._file_loc))
-            self._frame.to_pickle(self._file_loc)
+            self.logger.warning('Pickle file location does not exist! Creating file now: {}'.format(self._pickle_file))
+            self._frame.to_pickle(self._pickle_file)
 
 
     '''
@@ -171,14 +175,14 @@ class dataframe:
       dump frame to .pkl file at fileLoc location
     ''' 
     def dump_pickle(self):
-        self.logger.info('Dumping dataframe to: {}'.format(self._file_loc))
-        self._frame.to_pickle(self._file_loc)
+        self.logger.info('Dumping dataframe to: {}'.format(self._pickle_file))
+        self._frame.to_pickle(self._pickle_file)
         
         
     '''
       dump frame to .csv file at fileLoc location
     ''' 
     def dump_csv(self):
-        self.logger.info('Dumping dataframe to: {}'.format(self._file_loc))
-        self._frame.to_csv(self._file_loc, encoding='utf-8', index=False) #false index so we aren't writing index
+        self.logger.info('Dumping dataframe to: {}'.format(self._csv_file))
+        self._frame.to_csv(self.self._csv_file, encoding='utf-8', index=False) #false index so we aren't writing index
 

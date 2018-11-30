@@ -95,7 +95,9 @@ util_handle = utils(logger_name)
 logger = util_handle.init_logger()
 
 # DataFrame logger
-df_file_loc = './log.pkl' # TODO: make filename todays date?
+df_file_loc = './' # TODO: make filename todays date?
+df_file_name = '{}'.format(datetime.now()) # TODO: make filename todays date?
+
 df_cols = [ 
   'time',
   'latitude',
@@ -115,6 +117,7 @@ GLOB.df_dict = dict.fromkeys(df_cols)
 df_logger = dataframe( logger_name = logger_name,
   logger_module_name = logger_dataframe_name,
   columns            = df_cols,
+  file_name          = 
   file_location      = df_file_loc)
 
 
