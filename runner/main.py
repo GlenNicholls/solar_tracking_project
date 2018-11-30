@@ -1003,6 +1003,7 @@ if __name__ == '__main__':
   # init_rtc()
   # NOTE: Mikes alg says to zero count, but we don't do that because the degree pos
   #       is calculated based on count.
+  raw_input('Are you ready to calibrate the motors? Press [ENTER] to continue')
   calibrate_motors()
   logger.info('Application setup complete')
   print('-'*125 + '\n')
