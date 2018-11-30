@@ -866,7 +866,7 @@ def menu_get_all_pwr():
 
 
 ##########################
-# Main Loop
+# Main Menu
 ##########################
 def main_menu():  
   # change menu formatting

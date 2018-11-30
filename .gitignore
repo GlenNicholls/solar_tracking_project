@@ -22,3 +22,6 @@
 
 # test suite
 *.xml
+
+# development on windows
+src/tmp/RPi/*

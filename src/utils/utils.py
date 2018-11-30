@@ -177,6 +177,6 @@ class dataframe:
     dump frame to .pkl file at fileLoc location
   ''' 
   def dump(self):
-    self.logger.debug('Dumping dataframe to: {}'.format(self.fileLoc))
+    self.logger.info('Dumping dataframe to: {}'.format(self.fileLoc))
     self.pickle.to_pickle(self.fileLoc)
 
