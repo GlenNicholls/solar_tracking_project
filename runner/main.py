@@ -102,10 +102,14 @@ df_cols = [
   'time',
   'latitude',
   'longitude',
-  'azimuth [cnt]',
-  'azimuth [deg]',
-  'elevation [cnt]',
-  'elevation [deg]',
+  'previous encoder azimuth [cnt]',
+  'previous encoder azimuth [deg]',
+  'previous encoder elevation [cnt]',
+  'previous encoder elevation [deg]',
+  'current encoder azimuth [cnt]',
+  'current encoder azimuth [deg]',
+  'current encoder elevation [cnt]',
+  'current encoder elevation [deg]',
   'panel current [A]',
   'panel voltage [V]',
   'panel power [W]',
@@ -431,14 +435,18 @@ def get_sunrise_position_deg(loc_astral):
   return az_deg, el_deg
 
 
-def get_sys_params_all():
+def get_sys_params_all(prev_enc_az, prev_enc_el, prev_enc_az_cnt, prev_enc_el_cnt):
   dict = GLOB.df_dict
   dict['time'] = datetime.now()
   dict['latitude'] = GLOB.latitude
   dict['longitude'] = GLOB.longitude
-  dict['azimuth [deg]'], dict['elevation [deg]'] = get_encoder_positions_deg()
-  dict['azimuth [cnt]'] = az_encoder.get_count()
-  dict['elevation [cnt]'] = el_encoder.get_count()
+  dict['previous encoder azimuth [deg]'] = prev_enc_az
+  dict['previous encoder elevation [deg]'] = prev_enc_el
+  dict['previous encoder azimuth [cnt]'] = prev_enc_az_cnt
+  dict['previous encoder elevation [cnt]'] = prev_enc_el_cnt
+  dict['current encoder azimuth [deg]'], dict['current encoder elevation [deg]'] = get_encoder_positions_deg()
+  dict['current encoder azimuth [cnt]'] = az_encoder.get_count()
+  dict['current encoder elevation [cnt]'] = el_encoder.get_count()
   dict['panel current [A]'], dict['panel voltage [V]'], dict['panel power [W]'] = panel_power.get_all_measurements()
   dict['battery current [A]'], dict['battery voltage [V]'], dict['battery power [W]'] = battery_power.get_all_measurements()
   return dict
@@ -640,21 +648,16 @@ def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
 ##########################  
 def menu_normal_op():
   # Load stored parameters
-  logger.warn('Loading stored prarmeters NOT DEFINED')
+  #logger.warn('Loading stored prarmeters NOT DEFINED')
   
   #Load user specifice parameters
-  logger.warn('Loading user specified parameters NOT DEFINED')
+  #logger.warn('Loading user specified parameters NOT DEFINED')
   
   #Get astral with current location
   loc_astral = get_location_astral(GLOB.latitude, GLOB.longitude, GLOB.elevation)
        
   # infinite loop
   while True:
-    # log system parameters
-    GLOB.df_dict = get_sys_params_all()
-    df_logger.append_row(GLOB.df_dict)
-    df_logger.dump_pickle() # dump to pickle file
-    df_logger.dump_csv()    # dump to csv file for plotting
     
     open_loop_locked   = False
     closed_loop_locked = False
@@ -662,6 +665,8 @@ def menu_normal_op():
       # get encoder current positions
       prev_enc_az = az_encoder.get_degrees()
       prev_enc_el = el_encoder.get_degrees()
+      prev_enc_az_cnt = az_encoder.get_count()
+      prev_enc_el_cnt = el_encoder.get_count()
     
       # Get solar position
       solar_deg_az, solar_deg_el = get_solar_position_deg(loc_astral)
@@ -687,6 +692,8 @@ def menu_normal_op():
       # get current encoder positions
       prev_enc_az = az_encoder.get_degrees()
       prev_enc_el = el_encoder.get_degrees()
+      prev_enc_az_cnt = az_encoder.get_count()
+      prev_enc_el_cnt = el_encoder.get_count()
     
       # get solar position for tomorrow morning
       solar_deg_az, solar_deg_el = get_sunrise_position_deg(loc_astral)
@@ -698,6 +705,12 @@ def menu_normal_op():
       deg_el = solar_deg_el - prev_enc_el 
       open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
     
+	# log system parameters
+    GLOB.df_dict = get_sys_params_all(prev_enc_az, prev_enc_el, prev_enc_az_cnt, prev_enc_el_cnt)
+    df_logger.append_row(GLOB.df_dict)
+    df_logger.dump_pickle() # dump to pickle file
+    df_logger.dump_csv()    # dump to csv file for plotting
+	
     logger.warn('Sleep calculation NOT DEFINED, defaulting sleep to 30s in loop')
     time.sleep(30)
   # end infinite loop
