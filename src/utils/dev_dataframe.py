@@ -15,7 +15,7 @@ for i, col in enumerate(columns):
   row1[col] = i
 
 # append row1 to frame
-frame.set_row(row1)
+frame.append_row(row1)
 print(row1)
 
 #build dict with negative integers
@@ -24,16 +24,16 @@ for i, col in enumerate(columns):
   row2[col] = -i
 
 #append row2 to frame and print
-frame.set_row(row2)
+frame.append_row(row2)
 print('frame:')
-print(frame.pickle)
+print(frame._frame)
 
 #dump frame to file
 frame.dump()
 
 # get newest entry
-tail = frame.get_row()
-print('frame end:\n{}'.format(tail))
+print('newest entry:\n{}'.format(frame.get_row()))
+print('newest entry specific value:\n{}'.format(frame.get_row()["time"]))
 
 # clear frame
 frame = None
@@ -43,9 +43,6 @@ print(frame)
 # load new frame from file
 frame2 = dataframe( columns = None,
               file_location = fileLoc)
-
-print('frame2:')
-print(frame2.frame[-1])
 
 print('raw frame2:')
 print(frame2.get_keys())

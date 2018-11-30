@@ -98,85 +98,80 @@ class hardware(object):
 
 class dataframe:
   
-  '''
-    create dataframe with given columnn names
-    fromPickle: bool, if true make frame from pickle at fileLoc
-    columns: array of column names
-    fileLoc: string file location for dumps and restores
-  '''
-  def __init__(self, logger_name        = 'main_logger', 
-                     logger_module_name = 'dataframe',
-                     columns            = None, 
-                     file_location      = ''
-               ):
-    self.logger = logging.getLogger(logger_name + '.' + logger_module_name)
-    self.logger.info('creating an instance of the ' + __name__ + ' with the alias {}'.format(logger_module_name))
-
-    self.pd = pd
-
-    # dataframe
-    self.column_names = columns
-    if self.column_names == None:
-      raise ValueError('Invalud column names, must be list of strings: [\'str1\', \'str2\',...]')
-    self.df = self.pd.DataFrame(columns=columns)
-    print('frame: {}'.format(self.df))
-
-    # file location
-    self.fileLoc = file_location
-    if self.fileLoc == '':
-      raise ValueError('Invalid file location, must be valid string')
-    if os.path.isfile(self.fileLoc):
-      self.pickle = self.pd.read_pickle(self.fileLoc)
-    else:
-      self.logger.warning('Pickle file location does not exist! Creating file now: {}'.format(self.fileLoc))
-      self.df.to_pickle(self.fileLoc)
-      self.pickle = self.pd.read_pickle(self.fileLoc)
-    print('pickle: {}'.format(self.pickle))
+    '''
+      create dataframe with given columnn names
+      fromPickle: bool, if true make frame from pickle at fileLoc
+      columns: array of column names
+      fileLoc: string file location for dumps and restores
+    '''
+    def __init__(self, logger_name        = 'main_logger', 
+                       logger_module_name = 'dataframe',
+                       columns            = None, 
+                       file_location      = None
+                 ):
+        self.logger = logging.getLogger(logger_name + '.' + logger_module_name)
+        self.logger.info('creating an instance of the ' + __name__ + ' with the alias {}'.format(logger_module_name))
+        
+        self._pd = pd
+        
+        # column names for dict
+        self._columns = columns
+        
+        # file location
+        self._file_loc = file_location
+        
+        if os.path.isfile(self._file_loc):
+            self._frame = self._pd.read_pickle(self._file_loc) 
+        else:
+            if self.columns == None:
+                raise ValueError('Invalid column names, must be list of strings: [str1, str2,...]')
+        
+            self._frame = self._pd.DataFrame(columns=columns)
+            self.logger.warning('Pickle file location does not exist! Creating file now: {}'.format(self._file_loc))
+            self._frame.to_pickle(self._file_loc)
 
 
-
-  '''
-    return array of columns names
-  '''
-  def get_keys(self):
-    column_names = self.df.columns.values
-    self.logger.debug('Column Names: {}'.format(column_names))
-    return column_names
-
+    '''
+      return array of columns names
+    '''
+    def get_keys(self):
+        column_names = self._frame.columns.values
+        self.logger.debug('Column Names: {}'.format(column_names))
+        return column_names
   
-  '''
-    push row data into df
-    row: dict with keys that match frame column names
-  '''
-  def set_row(self, row):
-    self.pickle = self.pickle.append(row, ignore_index=True)
-    new_row = self.pickle.head()
-    self.logger.debug('Added row: {}'.format(row))
-
-
-  '''
-    pop row data into df
-    row: dict with keys that match frame column names
-  '''
-  def get_row(self, row=1):
-    tail = self.pickle.tail(row)
-    self.logger.info('Popped {} rows from the end: {}'.format(row, tail))
-    return tail
     
+    '''
+      push row data into df
+      row: dict with keys that match frame column names
+    '''
+    def append_row(self, row):
+        self._frame = self._frame.append(row, ignore_index=True)
+        self.logger.debug('Appended row: {}'.format(row))
   
-  '''
-    change fileLoc
-  '''
-  def set_file_location(self, newFileLoc):
-    self.logger.debug('Changing pickle file location to: {}'.format(newFileLoc))
-    self.fileLoc = newFileLoc
-    self.pickle  = pd.read_pickle(self.fileLoc)
-
   
-  '''
-    dump frame to .pkl file at fileLoc location
-  ''' 
-  def dump(self):
-    self.logger.info('Dumping dataframe to: {}'.format(self.fileLoc))
-    self.pickle.to_pickle(self.fileLoc)
+    '''
+      pop row data into df
+      row: dict with keys that match frame column names
+    '''
+    def get_row(self, row=1):
+        tail = self._frame.tail(row)
+        self.logger.info('Popped {} rows from the end: {}'.format(row, tail))
+        return tail
+      
+    
+    '''
+      change fileLoc
+    '''
+    def set_file_location(self, new_loc):
+        self.logger.debug('Changing pickle file location to: {}'.format(new_loc))
+        self._file_loc = new_loc
+        self._frame  = pd.read_pickle(self.fileLoc)
+  
+  
+    '''
+      dump frame to .pkl file at fileLoc location
+    ''' 
+    def dump(self):
+        self.logger.info('Dumping dataframe to: {}'.format(self._file_loc))
+        self._frame.to_pickle(self._file_loc)
 
