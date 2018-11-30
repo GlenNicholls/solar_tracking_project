@@ -517,21 +517,51 @@ def is_daytime(loc_astral):
 
 
 def calibrate_az():
-  lim = False
-
   logger.info('Calibrating Azimuth')
+  lim = False
+  fail_cnt = 0
+
   while not lim:
+    # get previous position
+    prev, _ = get_encoder_positions_deg()
+
+    # move motor
     lim = move_motor_az(MotorCtrl_t.EAST, 0.5)
+
+    # get new position
+    new, _ = get_encoder_positions_deg()
+
+    # error check movement
+    if abs(prev - new) < 0.2:
+      fail_cnt += 1
+    if fail_cnt > 5:
+      logger.critical('Motors not moving, calibration FAILED!!!')
+      break
 
   az_encoder.set_degrees(55.0)
 
 
 def calibrate_el():
+  logger.info('Calibrating Elevation')
   lim = False
+  fail_cnt = 0
 
-  logger.info('Calibrating Azimuth')
   while not lim:
+    # get previous position
+    _, prev = get_encoder_positions_deg()
+
+    # move motor
     lim = move_motor_el(MotorCtrl_t.SOUTH, 0.5)
+
+    # get new position
+    _, new = get_encoder_positions_deg()
+
+    # error check movement
+    if abs(prev - new) < 0.2:
+      fail_cnt += 1
+    if fail_cnt > 5:
+      logger.critical('Motors not moving, calibration FAILED!!!')
+      break
 
   el_encoder.set_degrees(0)
 
