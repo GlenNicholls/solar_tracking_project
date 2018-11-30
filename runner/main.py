@@ -20,7 +20,7 @@ import RPi.GPIO as GPIO
 from Adafruit_MCP3008.MCP3008 import MCP3008
 
 from sun_sensor        import sun_sensor
-from utils             import utils, hardware
+from utils             import utils, hardware, dataframe
 from DS3231            import DS3231
 from motor_control     import stepper_motor, MotorCtrl_t
 from shaft_encoder     import encoder
@@ -73,12 +73,12 @@ PIN_LIM_SW_ELEVATION = 17
 # instantiate sub-modules
 ##########################
 # User location
-thismodule = sys.modules[__name__]
-thismodule.latitude  = 38.893950
-thismodule.longitude = -104.800898
-thismodule.elevation = 6000
+GLOB = sys.modules[__name__]
+GLOB.latitude  = 38.893950
+GLOB.longitude = -104.800898
+GLOB.elevation = 6000
 
-# Logger
+# Console Logger
 logger_name = 'main_app'
 logger_rtc_name         = 'rtc'
 logger_sys_mon_name     = 'sys_mon'
@@ -89,26 +89,49 @@ logger_battery_pwr_name = 'battery_power'
 logger_sun_sensor_name  = 'sun_sensor'
 logger_motor_name       = 'motor'
 logger_hw_name          = 'hardware_info'
+logger_dataframe_name   = 'dataframe'
 
 util_handle = utils(logger_name)
 logger = util_handle.init_logger()
+
+# DataFrame logger
+df_file_loc = './log.pkl' # TODO: make filename todays date?
+df_cols = [ 
+  'time',
+  'latitude',
+  'longitude',
+  'azimuth [cnt]',
+  'azimuth [deg]',
+  'elevation [cnt]',
+  'elevation [deg]',
+  'panel current [A]',
+  'panel voltage [V]',
+  'panel power [W]',
+  'battery current [A]',
+  'battery voltage [V]',
+  'battery power [W]']
+
+df_dict = dict.fromkeys(df_cols)
+df_logger = dataframe( logger_name = logger_name,
+  logger_module_name = logger_dataframe_name,
+  columns            = df_cols,
+  file_location      = df_file_loc)
+
 
 # RTC
 i2c_port  = 1 # set to 0 if using gen 1 pi
 i2c_addr  = 0x68
 
-rtc = DS3231( logger_name        = logger_name,
-              logger_module_name = logger_rtc_name,
-              i2c_port           = i2c_port,
-              i2c_addr           = i2c_addr,
-              latitude           = thismodule.latitude,
-              longitude          = thismodule.longitude
-             )
+rtc = DS3231( logger_name = logger_name,
+  logger_module_name = logger_rtc_name,
+  i2c_port           = i2c_port,
+  i2c_addr           = i2c_addr,
+  latitude           = GLOB.latitude,
+  longitude          = GLOB.longitude)
 
 # System Monitor
-sys_mon = system_monitor( logger_name        = logger_name,
-                          logger_module_name = logger_sys_mon_name
-                         )
+sys_mon = system_monitor( logger_name = logger_name,
+  logger_module_name = logger_sys_mon_name)
 
 # ADC
 adc_vref     = 3.3
@@ -124,10 +147,9 @@ adc_ch_north_sun_sens  = 6
 adc_ch_east_sun_sens   = 7 
 
 adc = MCP3008( clk  = PIN_ADC_CLK,
-               cs   = PIN_ADC_CS,
-               miso = PIN_ADC_MISO,
-               mosi = PIN_ADC_MOSI
-              )
+  cs   = PIN_ADC_CS,
+  miso = PIN_ADC_MISO,
+  mosi = PIN_ADC_MOSI)
 
 # Power Measurements
 curr_sens_gain = 75
@@ -140,83 +162,76 @@ curr_sens_battery_Rshunt = 0.001
 vdiv_battery_R1          = 100e3
 vdiv_battery_R2          = 36e3
 
-panel_power = power_measurement( logger_name          = logger_name,
-                                 logger_module_name   = logger_panel_pwr_name,
-                                 adc_volt_ref         = adc_vref,
-                                 adc_num_bits         = adc_num_bits,
-                                 adc_current_channel  = adc_ch_panel_current,
-                                 adc_voltage_channel  = adc_ch_panel_voltage,
-                                 adc_object           = adc,
-                                 current_amp_gain     = curr_sens_gain,
-                                 current_amp_Rshunt   = curr_sens_panel_Rshunt,
-                                 vdiv_R1              = vdiv_panel_R1,
-                                 vdiv_R2              = vdiv_panel_R2
-                                )
+panel_power = power_measurement( logger_name = logger_name,
+  logger_module_name   = logger_panel_pwr_name,
+  adc_volt_ref         = adc_vref,
+  adc_num_bits         = adc_num_bits,
+  adc_current_channel  = adc_ch_panel_current,
+  adc_voltage_channel  = adc_ch_panel_voltage,
+  adc_object           = adc,
+  current_amp_gain     = curr_sens_gain,
+  current_amp_Rshunt   = curr_sens_panel_Rshunt,
+  vdiv_R1              = vdiv_panel_R1,
+  vdiv_R2              = vdiv_panel_R2)
 
-battery_power = power_measurement( logger_name          = logger_name,
-                                   logger_module_name   = logger_battery_pwr_name,
-                                   adc_volt_ref         = adc_vref,
-                                   adc_num_bits         = adc_num_bits,
-                                   adc_current_channel  = adc_ch_battery_current,
-                                   adc_voltage_channel  = adc_ch_battery_voltage,
-                                   adc_object           = adc,
-                                   current_amp_gain     = curr_sens_gain,
-                                   current_amp_Rshunt   = curr_sens_battery_Rshunt,
-                                   vdiv_R1              = vdiv_battery_R1,
-                                   vdiv_R2              = vdiv_battery_R2
-                                  )
+battery_power = power_measurement( logger_name = logger_name,
+  logger_module_name   = logger_battery_pwr_name,
+  adc_volt_ref         = adc_vref,
+  adc_num_bits         = adc_num_bits,
+  adc_current_channel  = adc_ch_battery_current,
+  adc_voltage_channel  = adc_ch_battery_voltage,
+  adc_object           = adc,
+  current_amp_gain     = curr_sens_gain,
+  current_amp_Rshunt   = curr_sens_battery_Rshunt,
+  vdiv_R1              = vdiv_battery_R1,
+  vdiv_R2              = vdiv_battery_R2)
 
 # Sun Sensor
 mot_move_raw_thresh = 20
-sun_sensors = sun_sensor( logger_name         = logger_name,
-                          logger_module_name  = logger_sun_sensor_name,
-                          mot_move_raw_thresh = mot_move_raw_thresh,
-                          adc_volt_ref        = adc_vref,
-                          adc_north_sens_ch   = adc_ch_north_sun_sens,
-                          adc_east_sens_ch    = adc_ch_east_sun_sens,
-                          adc_south_sens_ch   = adc_ch_south_sun_sens,
-                          adc_west_sens_ch    = adc_ch_west_sun_sens,
-                          adc_object          = adc
-                         )
+sun_sensors = sun_sensor( logger_name = logger_name,
+  logger_module_name  = logger_sun_sensor_name,
+  mot_move_raw_thresh = mot_move_raw_thresh,
+  adc_volt_ref        = adc_vref,
+  adc_north_sens_ch   = adc_ch_north_sun_sens,
+  adc_east_sens_ch    = adc_ch_east_sun_sens,
+  adc_south_sens_ch   = adc_ch_south_sun_sens,
+  adc_west_sens_ch    = adc_ch_west_sun_sens,
+  adc_object          = adc)
 
 # Shaft Encoders
 SE_ppr = 2000
-az_encoder = encoder( logger_name        = logger_name,
-                      logger_module_name = logger_az_encoder_name,
-                      a_pin              = PIN_SE_AZIMUTH_A,
-                      b_pin              = PIN_SE_AZIMUTH_B,
-                      init_count         = 0, # TODO: load from file
-                      ppr                = SE_ppr
-                     )
+az_encoder = encoder( logger_name = logger_name,
+  logger_module_name = logger_az_encoder_name,
+  a_pin              = PIN_SE_AZIMUTH_A,
+  b_pin              = PIN_SE_AZIMUTH_B,
+  init_count         = 0, # TODO: load from file
+  ppr                = SE_ppr)
 
-el_encoder = encoder( logger_name        = logger_name,
-                      logger_module_name = logger_el_encoder_name,
-                      a_pin              = PIN_SE_ELEVATION_A,
-                      b_pin              = PIN_SE_ELEVATION_B,
-                      init_count         = 0, # TODO: load from file
-                      ppr                = SE_ppr
-                     )
+el_encoder = encoder( logger_name = logger_name,
+  logger_module_name = logger_el_encoder_name,
+  a_pin              = PIN_SE_ELEVATION_A,
+  b_pin              = PIN_SE_ELEVATION_B,
+  init_count         = 0, # TODO: load from file
+  ppr                = SE_ppr)
 
 # Motors
 az_steps_per_deg = 50
 el_steps_per_deg = 62
-motor = stepper_motor( logger_name          = logger_name,
-                       logger_module_name   = logger_motor_name,
-                       pin_elevation        = PIN_MOT_ELEVATION,
-                       pin_azimuth          = PIN_MOT_AZIMUTH,
-                       pin_direction        = PIN_MOT_DIRECTION,
-                       pin_clock            = PIN_MOT_CLOCK,
-                       pin_reset            = PIN_MOT_RESET,
-                       pin_lim_sw_azimuth   = PIN_LIM_SW_AZIMUTH,
-                       pin_lim_sw_elevation = PIN_LIM_SW_ELEVATION,
-                       az_steps_per_deg     = az_steps_per_deg,
-                       el_steps_per_deg     = el_steps_per_deg
-                      )
+motor = stepper_motor( logger_name = logger_name,
+  logger_module_name   = logger_motor_name,
+  pin_elevation        = PIN_MOT_ELEVATION,
+  pin_azimuth          = PIN_MOT_AZIMUTH,
+  pin_direction        = PIN_MOT_DIRECTION,
+  pin_clock            = PIN_MOT_CLOCK,
+  pin_reset            = PIN_MOT_RESET,
+  pin_lim_sw_azimuth   = PIN_LIM_SW_AZIMUTH,
+  pin_lim_sw_elevation = PIN_LIM_SW_ELEVATION,
+  az_steps_per_deg     = az_steps_per_deg,
+  el_steps_per_deg     = el_steps_per_deg)
 
 # HAL
-hw_handle = hardware( logger_name        = logger_name,
-                      logger_module_name = logger_hw_name
-                     )
+hw_handle = hardware( logger_name = logger_name,
+  logger_module_name = logger_hw_name)
 
 
 ##########################
@@ -616,7 +631,7 @@ def menu_normal_op():
   logger.warn('Loading user specified parameters NOT DEFINED')
   
   #Get astral with current location
-  loc_astral = get_location_astral(thismodule.latitude, thismodule.longitude, thismodule.elevation)
+  loc_astral = get_location_astral(GLOB.latitude, GLOB.longitude, GLOB.elevation)
   
   # Calibrate system
   logger.warn('Calibrating System NOT DEFINED')
@@ -687,7 +702,7 @@ def menu_open_loop():
   prev_enc_el = el_encoder.get_degrees()
   
   #Get astral with current location
-  loc_astral = get_location_astral(thismodule.latitude, thismodule.longitude, thismodule.elevation)
+  loc_astral = get_location_astral(GLOB.latitude, GLOB.longitude, GLOB.elevation)
   
   if is_daytime(loc_astral): #this will be the if check from above, implemented this way for development
     # Get solar position
@@ -789,7 +804,7 @@ def menu_set_loc():
   lat = raw_input('Enter Latitude:')
   lon = raw_input('Enter Latitude:')
 
-  thismodule.latitude = float(lat); thismodule.longitude = float(lon)
+  GLOB.latitude = float(lat); GLOB.longitude = float(lon)
   
   raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
