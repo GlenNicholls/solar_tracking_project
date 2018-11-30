@@ -184,5 +184,5 @@ class dataframe:
     ''' 
     def dump_csv(self):
         self.logger.info('Dumping dataframe to: {}'.format(self._csv_file))
-        self._frame.to_csv(self.self._csv_file, encoding='utf-8', index=False) #false index so we aren't writing index
+        self._frame.to_csv(self._csv_file, encoding='utf-8', index=False) #false index so we aren't writing index
 
