@@ -730,18 +730,18 @@ def menu_sun_simulation():
   
   while True:
     # Show user current positions
-    get_encoder_positions_deg()
+    curr_az, curr_el = get_encoder_positions_deg()
 
     # Get solar position from user
     print('Enter the next sun location or type \'q\' to quit')
-    user_az = raw_input('Enter azimuth sun position in degrees:')
-    user_el = raw_input('Enter elevation sun position in degrees:')
+    user_az = raw_input('Enter next azimuth sun position in degrees:')
+    user_el = raw_input('Enter next elevation sun position in degrees:')
 
     if user_az.lower() == 'q' or user_el.lower() == 'q':
       break
     else:
-      deg_az = float(user_az)
-      deg_el = float(user_el)
+      deg_az = float(user_az) - curr_az
+      deg_el = float(user_el) - curr_el
     
     # Move to calculated sun posistion
     open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
