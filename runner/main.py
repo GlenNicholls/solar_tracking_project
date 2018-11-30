@@ -237,12 +237,7 @@ hw_handle = hardware( logger_name = logger_name,
 ##########################
 # init packages
 ##########################
-def init_pins():
-  # debug
-  # NOTE: I think this causes the gpio for spi to break
-  #logger.info('Cleaning up all GPIO before initializing pins')
-  #GPIO.cleanup()
-  
+def init_pins(): 
   logger.info('Setting GPIO pin warnings to true')
   GPIO.setwarnings(True)
 
@@ -545,7 +540,7 @@ def calibrate_az():
 
     # move motor
     #lim = move_motor_az(MotorCtrl_t.EAST, 0.5)
-    lim = move_motor_az(MotorCtrl_t.EAST, 1.0)
+    lim = move_motor_az(MotorCtrl_t.EAST, 5.0)
 
     # get new position
     new, _ = get_encoder_positions_deg()
@@ -571,7 +566,7 @@ def calibrate_el():
 
     # move motor
     #lim = move_motor_el(MotorCtrl_t.SOUTH, 0.5)
-    lim = move_motor_el(MotorCtrl_t.SOUTH, 1.0)
+    lim = move_motor_el(MotorCtrl_t.SOUTH, 5.0)
 
     # get new position
     _, new = get_encoder_positions_deg()
@@ -940,7 +935,7 @@ def main_menu():
 
   get_panel_pwr_item  = FunctionItem('Get Panel Power Measurements', menu_get_panel_pwr)
   get_batt_pwr_item   = FunctionItem('Get Battery Power Measurements', menu_get_battery_pwr)
-  get_all_pwr_item    = FunctionItem('Get All System Power Measurements', menu_get_battery_pwr)
+  get_all_pwr_item    = FunctionItem('Get All System Power Measurements', menu_get_all_pwr)
 
   pwr_track_submenu.append_item(get_panel_pwr_item)
   pwr_track_submenu.append_item(get_batt_pwr_item)
@@ -1005,7 +1000,6 @@ if __name__ == '__main__':
   # init_rtc()
   # NOTE: Mikes alg says to zero count, but we don't do that because the degree pos
   #       is calculated based on count.
-  #raw_input('Are you ready to calibrate the motors? Press [ENTER] to continue')
   calibrate_motors()
   logger.info('Application setup complete')
   print('-'*125 + '\n')

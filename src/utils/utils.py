@@ -97,7 +97,6 @@ class hardware(object):
 
 
 class dataframe:
-  
     '''
       create dataframe with given columnn names
       fromPickle: bool, if true make frame from pickle at fileLoc
