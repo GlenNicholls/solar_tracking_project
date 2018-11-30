@@ -972,7 +972,7 @@ if __name__ == '__main__':
   parser.add_argument('-v', '--verbose', help='Add verbose output', action='store_true')
   args = parser.parse_args()
 
-  # TODO:
+  # TODO: use this flag to set all modules to debug mode
   if args.verbose:
     print('Verbosity NOT DEFINED')
     pass
@@ -991,7 +991,7 @@ if __name__ == '__main__':
   print('-'*125 + '\n')
   
   if args.menu:
-    usr_ready = raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
+    raw_input('Are you ready to open the menu interface? Press [ENTER] to continue')
     main_menu()
   elif args.sim:
     menu_sun_simulation()
