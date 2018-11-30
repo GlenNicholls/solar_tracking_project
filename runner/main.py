@@ -433,7 +433,7 @@ def get_sys_params_all():
   dict['time'] = datetime.now()
   dict['latitude'] = GLOB.latitude
   dict['longitude'] = GLOB.longitude
-  dict['azimuth [deg]'], dict['elevation [deg]'] = get_encoder_positions_deg
+  dict['azimuth [deg]'], dict['elevation [deg]'] = get_encoder_positions_deg()
   dict['azimuth [cnt]'] = az_encoder.get_count()
   dict['elevation [cnt]'] = el_encoder.get_count()
   dict['panel current [A]'], dict['panel voltage [V]'], dict['panel power [W]'] = panel_power.get_all_measurements()
