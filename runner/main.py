@@ -760,7 +760,7 @@ def menu_set_az_position():
   curr_az, curr_el = get_encoder_positions_deg()
   while True:
     deg = raw_input('Enter desired azimuth position in degrees or \'q\' to quit:')
-    if deg.lower() == 'q':# or deg == 'Q':
+    if deg.lower() == 'q':
       break
     else:
       if float(deg) > 55.5:
@@ -778,7 +778,7 @@ def menu_set_el_position():
   curr_az, curr_el = get_encoder_positions_deg()
   while True:
     deg = raw_input('Enter desired elevation position in degrees or \'q\' to quit::')
-    if deg.lower() == 'q':# or deg == 'Q':
+    if deg.lower() == 'q':
       break
     else:
       if float(deg) > 0.0:
