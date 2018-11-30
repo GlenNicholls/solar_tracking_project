@@ -111,7 +111,7 @@ df_cols = [
   'battery voltage [V]',
   'battery power [W]']
 
-df_dict = dict.fromkeys(df_cols)
+GLOB.df_dict = dict.fromkeys(df_cols)
 df_logger = dataframe( logger_name = logger_name,
   logger_module_name = logger_dataframe_name,
   columns            = df_cols,
@@ -647,8 +647,8 @@ def menu_normal_op():
   # infinite loop
   while True:
     # log system parameters
-    df_dict = get_sys_params_all(df_dict)
-    df_logger.append_row(df_dict)
+    GLOB.df_dict = get_sys_params_all(GLOB.df_dict)
+    df_logger.append_row(GLOB.df_dict)
     df_logger.dump_pickle() # dump to pickle file
     df_logger.dump_csv()    # dump to csv file for plotting
     
