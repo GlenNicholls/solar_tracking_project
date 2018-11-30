@@ -428,7 +428,7 @@ def get_sunrise_position_deg(loc_astral):
   return az_deg, el_deg
 
 
-def get_sys_params_all(dict)
+def get_sys_params_all(dict):
   dict['time'] = datetime.now()
   dict['latitude'] = GLOB.latitude
   dict['longitude'] = GLOB.longitude
