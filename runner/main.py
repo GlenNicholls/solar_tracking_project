@@ -760,7 +760,7 @@ def menu_closed_loop():
 
 def menu_set_az_position():
   logger.info('Set azimuth position menu selected')
-  get_encoder_positions_deg()
+  curr_az, curr_el = get_encoder_positions_deg()
   while True:
     deg = raw_input('Enter desired azimuth position in degrees or \'q\' to quit:')
     if deg == 'q' or deg == 'Q':
