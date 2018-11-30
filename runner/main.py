@@ -428,7 +428,8 @@ def get_sunrise_position_deg(loc_astral):
   return az_deg, el_deg
 
 
-def get_sys_params_all(dict):
+def get_sys_params_all():
+  dict = GLOB.df_dict
   dict['time'] = datetime.now()
   dict['latitude'] = GLOB.latitude
   dict['longitude'] = GLOB.longitude
@@ -647,7 +648,7 @@ def menu_normal_op():
   # infinite loop
   while True:
     # log system parameters
-    GLOB.df_dict = get_sys_params_all(GLOB.df_dict)
+    GLOB.df_dict = get_sys_params_all()
     df_logger.append_row(GLOB.df_dict)
     df_logger.dump_pickle() # dump to pickle file
     df_logger.dump_csv()    # dump to csv file for plotting
