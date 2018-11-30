@@ -53,7 +53,8 @@ setup(
                          'pytest-timeout>=1.3.2',
                          'pytest-runner>=4.2',
                          'python-dateutil>=2.7.3',
-                         #'RPI.GPIO>=0.6.3',],
+                         'RPI.GPIO>=0.6.3',
+                         ],
     setup_requires    = [
                          'pytest-runner>=4.2',],
     tests_require     = [
