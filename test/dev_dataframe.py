@@ -35,7 +35,7 @@ print('frame:')
 print(frame._frame)
 
 #dump frame to file
-frame.dump()
+frame.dump_pickle()
 
 # get newest entry
 print('newest entry:\n{}'.format(frame.get_row()))

@@ -170,7 +170,15 @@ class dataframe:
     '''
       dump frame to .pkl file at fileLoc location
     ''' 
-    def dump(self):
+    def dump_pickle(self):
         self.logger.info('Dumping dataframe to: {}'.format(self._file_loc))
         self._frame.to_pickle(self._file_loc)
+        
+        
+    '''
+      dump frame to .csv file at fileLoc location
+    ''' 
+    def dump_pickle(self):
+        self.logger.info('Dumping dataframe to: {}'.format(self._file_loc))
+        self._frame.to_csv(self._file_loc, encoding='utf-8', index=False) #false index so we aren't writing index
 

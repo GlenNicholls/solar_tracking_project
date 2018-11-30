@@ -331,6 +331,64 @@ def init_rtc():
 # Helpers
 ##########################
 # TODO: where should these go??
+def calibrate_az():
+  logger.info('Calibrating Azimuth')
+  lim = False
+  fail_cnt = 0
+
+  while not lim:
+    # get previous position
+    prev, _ = get_encoder_positions_deg()
+
+    # move motor
+    #lim = move_motor_az(MotorCtrl_t.EAST, 0.5)
+    lim = move_motor_az(MotorCtrl_t.EAST, 5.0)
+
+    # get new position
+    new, _ = get_encoder_positions_deg()
+
+    # error check movement
+    if abs(prev - new) < 0.2:
+      fail_cnt += 1
+    if fail_cnt > 5:
+      logger.critical('Motors not moving, calibration FAILED!!!')
+      break
+
+  az_encoder.set_degrees(55.0)
+
+
+def calibrate_el():
+  logger.info('Calibrating Elevation')
+  lim = False
+  fail_cnt = 0
+
+  while not lim:
+    # get previous position
+    _, prev = get_encoder_positions_deg()
+
+    # move motor
+    #lim = move_motor_el(MotorCtrl_t.SOUTH, 0.5)
+    lim = move_motor_el(MotorCtrl_t.SOUTH, 5.0)
+
+    # get new position
+    _, new = get_encoder_positions_deg()
+
+    # error check movement
+    if abs(prev - new) < 0.2:
+      fail_cnt += 1
+    if fail_cnt > 5:
+      logger.critical('Motors not moving, calibration FAILED!!!')
+      break
+
+  el_encoder.set_degrees(0)
+
+
+def calibrate_motors():
+  logger.info('Starting system calibration')
+  calibrate_az()
+  calibrate_el()
+  
+  
 def get_encoder_positions_deg():
   logger.info('Get current position from shaft encoders')
   az_deg = az_encoder.get_degrees()
@@ -368,6 +426,18 @@ def get_sunrise_position_deg(loc_astral):
   logger.info('Sunrise azimuth tomorrow: [{}] deg'.format(az_deg))
   logger.info('Sunrise elevation tomorrow: [{}] deg'.format(el_deg))
   return az_deg, el_deg
+
+
+def get_sys_params_all(dict)
+  dict['time'] = datetime.now()
+  dict['latitude'] = GLOB.latitude
+  dict['longitude'] = GLOB.longitude
+  dict['azimuth [deg]'], dict['elevation [deg]'] = get_encoder_positions_deg
+  dict['azimuth [cnt]'] = az_encoder.get_count()
+  dict['elevation [cnt]'] = el_encoder.get_count()
+  dict['panel current [A]'], dict['panel voltage [V]'], dict['panel power [W]'] = panel_power.get_all_measurements()
+  dict['battery current [A]'], dict['battery voltage [V]'], dict['battery power [W]'] = battery_power.get_all_measurements()
+  return dict
 
 
 def get_motors_dir_open_loop(deg_az, deg_el):
@@ -529,64 +599,6 @@ def is_daytime(loc_astral):
     return False
 
 
-def calibrate_az():
-  logger.info('Calibrating Azimuth')
-  lim = False
-  fail_cnt = 0
-
-  while not lim:
-    # get previous position
-    prev, _ = get_encoder_positions_deg()
-
-    # move motor
-    #lim = move_motor_az(MotorCtrl_t.EAST, 0.5)
-    lim = move_motor_az(MotorCtrl_t.EAST, 5.0)
-
-    # get new position
-    new, _ = get_encoder_positions_deg()
-
-    # error check movement
-    if abs(prev - new) < 0.2:
-      fail_cnt += 1
-    if fail_cnt > 5:
-      logger.critical('Motors not moving, calibration FAILED!!!')
-      break
-
-  az_encoder.set_degrees(55.0)
-
-
-def calibrate_el():
-  logger.info('Calibrating Elevation')
-  lim = False
-  fail_cnt = 0
-
-  while not lim:
-    # get previous position
-    _, prev = get_encoder_positions_deg()
-
-    # move motor
-    #lim = move_motor_el(MotorCtrl_t.SOUTH, 0.5)
-    lim = move_motor_el(MotorCtrl_t.SOUTH, 5.0)
-
-    # get new position
-    _, new = get_encoder_positions_deg()
-
-    # error check movement
-    if abs(prev - new) < 0.2:
-      fail_cnt += 1
-    if fail_cnt > 5:
-      logger.critical('Motors not moving, calibration FAILED!!!')
-      break
-
-  el_encoder.set_degrees(0)
-
-
-def calibrate_motors():
-  logger.info('Starting system calibration')
-  calibrate_az()
-  calibrate_el()
-
-
 '''
 todo: list for uC stuff -GN
 x 1) startup should drive uC ack pin high
@@ -631,56 +643,59 @@ def menu_normal_op():
   
   #Get astral with current location
   loc_astral = get_location_astral(GLOB.latitude, GLOB.longitude, GLOB.elevation)
-  
-  # Calibrate system
-  logger.warn('Calibrating System NOT DEFINED')
-     
+       
   # infinite loop
   while True:
-      open_loop_locked   = False
-      closed_loop_locked = False
-      if is_daytime(loc_astral): #this will be the if check from above, implemented this way for development
-        # get encoder current positions
-        prev_enc_az = az_encoder.get_degrees()
-        prev_enc_el = el_encoder.get_degrees()
-
-        # Get solar position
-        solar_deg_az, solar_deg_el = get_solar_position_deg(loc_astral)
-        
-        # Move to calculated sun posistion
-        deg_az = solar_deg_az - prev_enc_az
-        deg_el = solar_deg_el - prev_enc_el 
-        if deg_az > 1.0 or deg_el > 1.0:
-          open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
-        
-          # Perform fine adjustments
-          closed_loop_locked = move_motors(closed_loop=True)
-
-        # check for lock state
-        if not closed_loop_locked or not open_loop_locked:
-          logger.warn('Unable to acquire sun lock in open or closed loop algorithms')
-
-        #Read light sensor
-        # TODO: is this referring to limit switch? If so, I am taking care of this in motor class -GN
-        logger.info('Reading light sensor')
-        
-      else:
-        # get current encoder positions
-        prev_enc_az = az_encoder.get_degrees()
-        prev_enc_el = el_encoder.get_degrees()
-
-        # get solar position for tomorrow morning
-        solar_deg_az, solar_deg_el = get_sunrise_position_deg(loc_astral)
-        
-        # Move to sunrise position for tomorrow
-        logger.info('Moving to sunrise position for tomorrow')
-        
-        deg_az = solar_deg_az - prev_enc_az
-        deg_el = solar_deg_el - prev_enc_el 
+    # log system parameters
+    df_dict = get_sys_params_all(df_dict)
+    df_logger.append_row(df_dict)
+    df_logger.dump_pickle() # dump to pickle
+    df_logger.dump_csv()    # dump to csv for plotting
+    
+    open_loop_locked   = False
+    closed_loop_locked = False
+    if is_daytime(loc_astral): #this will be the if check from above, implemented this way for development
+      # get encoder current positions
+      prev_enc_az = az_encoder.get_degrees()
+      prev_enc_el = el_encoder.get_degrees()
+    
+      # Get solar position
+      solar_deg_az, solar_deg_el = get_solar_position_deg(loc_astral)
+      
+      # Move to calculated sun posistion
+      deg_az = solar_deg_az - prev_enc_az
+      deg_el = solar_deg_el - prev_enc_el 
+      if deg_az > 1.0 or deg_el > 1.0:
         open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
-
-      logger.warn('Sleep calculation NOT DEFINED, defaulting sleep to 30s in loop')
-      time.sleep(30)
+      
+        # Perform fine adjustments
+        closed_loop_locked = move_motors(closed_loop=True)
+    
+      # check for lock state
+      if not closed_loop_locked or not open_loop_locked:
+        logger.warn('Unable to acquire sun lock in open or closed loop algorithms')
+    
+      #Read light sensor
+      # TODO: is this referring to limit switch? If so, I am taking care of this in motor class -GN
+      logger.info('Reading light sensor')
+      
+    else:
+      # get current encoder positions
+      prev_enc_az = az_encoder.get_degrees()
+      prev_enc_el = el_encoder.get_degrees()
+    
+      # get solar position for tomorrow morning
+      solar_deg_az, solar_deg_el = get_sunrise_position_deg(loc_astral)
+      
+      # Move to sunrise position for tomorrow
+      logger.info('Moving to sunrise position for tomorrow')
+      
+      deg_az = solar_deg_az - prev_enc_az
+      deg_el = solar_deg_el - prev_enc_el 
+      open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
+    
+    logger.warn('Sleep calculation NOT DEFINED, defaulting sleep to 30s in loop')
+    time.sleep(30)
   # end infinite loop
   # TODO: log to dataframe and dump to file before shutting down
   logger.warn('Log system information NOT DEFINED')
