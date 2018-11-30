@@ -117,7 +117,7 @@ GLOB.df_dict = dict.fromkeys(df_cols)
 df_logger = dataframe( logger_name = logger_name,
   logger_module_name = logger_dataframe_name,
   columns            = df_cols,
-  file_name          = 
+  file_name          = df_file_name
   file_location      = df_file_loc)
 
 
