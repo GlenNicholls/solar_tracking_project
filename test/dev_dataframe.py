@@ -1,30 +1,36 @@
 from utils import dataframe
 
-columns = [ "time",
-            "value",
-            "note"]
+columns = [ "value",
+            "note",
+            "time",]
+
+dict_dat = dict.fromkeys(columns)
+print('init dictionary data: {}'.format(dict_dat))
 
 fileLoc = './test.pkl'
 
+# create frame
 frame = dataframe( columns = columns,
             file_location = fileLoc)
 
 # build dict with positive intgers
-row1 = {}
-for i, col in enumerate(columns):
-  row1[col] = i
+i = 0
+for key, val in dict_dat.items():
+  dict_dat[key] = i
+  i += 1
 
 # append row1 to frame
-frame.append_row(row1)
-print(row1)
+frame.append_row(dict_dat)
+print('frame:')
+print(frame._frame)
 
 #build dict with negative integers
-row2 = {}
-for i, col in enumerate(columns):
-  row2[col] = -i
+for key, val in dict_dat.items():
+  dict_dat[key] = -i
+  i += 1
 
 #append row2 to frame and print
-frame.append_row(row2)
+frame.append_row(dict_dat)
 print('frame:')
 print(frame._frame)
 
@@ -33,7 +39,9 @@ frame.dump()
 
 # get newest entry
 print('newest entry:\n{}'.format(frame.get_row()))
-print('newest entry specific value:\n{}'.format(frame.get_row()["time"]))
+print('newest entry info:\n{}'.format(frame.get_row()['time']))
+print('newest entry value:\n{}'.format(frame.get_row().iloc[0]['time']))
+print('newest entry value type:\n{}'.format(type(frame.get_row().iloc[0]['time'])))
 
 # clear frame
 frame = None

@@ -123,7 +123,7 @@ class dataframe:
         if os.path.isfile(self._file_loc):
             self._frame = self._pd.read_pickle(self._file_loc) 
         else:
-            if self.columns == None:
+            if self._columns == None:
                 raise ValueError('Invalid column names, must be list of strings: [str1, str2,...]')
         
             self._frame = self._pd.DataFrame(columns=columns)
