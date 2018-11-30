@@ -224,7 +224,7 @@ hw_handle = hardware( logger_name        = logger_name,
 ##########################
 def init_pins():
   # debug
-  logger.info('Cleaning up all GPIO')
+  logger.info('Cleaning up all GPIO before initializing pins')
   GPIO.cleanup()
   
   logger.info('Setting GPIO pin warnings to true')
@@ -996,8 +996,9 @@ if __name__ == '__main__':
   elif args.sim:
     menu_sun_simulation()
   elif args.test:
-    menu_move_az_x_deg()
-    menu_move_el_x_deg()
+    menu_set_az_position()
+    menu_set_el_position()
+    menu_get_all_pwr()
   else:
     menu_normal_op()
   
