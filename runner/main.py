@@ -239,8 +239,9 @@ hw_handle = hardware( logger_name = logger_name,
 ##########################
 def init_pins():
   # debug
-  logger.info('Cleaning up all GPIO before initializing pins')
-  GPIO.cleanup()
+  # NOTE: I think this causes the gpio for spi to break
+  #logger.info('Cleaning up all GPIO before initializing pins')
+  #GPIO.cleanup()
   
   logger.info('Setting GPIO pin warnings to true')
   GPIO.setwarnings(True)
