@@ -384,6 +384,7 @@ def move_motor_el(direction, degrees):
   return lim_reached
 
 
+# TODO: adding actual feedback loop with PI or PID might be cleaner
 def move_motors_open_loop(deg_az, deg_el, skip_az=False, skip_el=False):
   locked = False
   locked_az = skip_az
@@ -564,6 +565,7 @@ def calibrate_el():
       break
 
   el_encoder.set_degrees(0)
+
 
 def calibrate_motors():
   logger.info('Starting system calibration')
@@ -805,6 +807,63 @@ def menu_set_sys_time():
 # def set_log_levels():
 
 
+def menu_get_panel_pwr():
+  logger.info('Get panel power menu selected')
+
+  A, V, W = panel_power.get_all_measurements()
+  logger.info('Current: [{}] A'.format(A))
+  logger.info('Voltage: [{}] V'.format(V))
+  logger.info('Power: [{}] W'.format(W))
+
+  raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
+
+
+def menu_get_battery_pwr():
+  logger.info('Get battery power menu selected')
+
+  A, V, W = battery_power.get_all_measurements()
+  logger.info('Current: [{}] A'.format(A))
+  logger.info('Voltage: [{}] V'.format(V))
+  logger.info('Power: [{}] W'.format(W))
+
+  raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
+
+
+def menu_get_all_pwr():
+  logger.info('Get battery and panel power menu selected')
+
+  samples = raw_input('Enter number of power measurements:')
+
+  string = []
+  string.append('Panel Current [A]')
+  string.append('Panel Voltage [V]')
+  string.append('Panel Power [W]')
+  string.append('battery Current [A]')
+  string.append('battery Voltage [V]')
+  string.append('battery Power [W]')
+
+  max_str_len = len( str(max(string, key=len)) )
+  num_cols    = len(string)
+
+  util_handle.write_table(string=string, max_str_len=max_str_len, header=True)
+
+  for sample in range(int(samples)):
+    data = []
+    pan_A, pan_V, pan_W = panel_power.get_all_measurements()
+    bat_A, bat_V, bat_W = battery_power.get_all_measurements()
+
+    data.append(pan_A)
+    data.append(pan_V)
+    data.append(pan_W)
+    data.append(bat_A)
+    data.append(bat_V)
+    data.append(bat_W)
+    util_handle.write_table(string=data, max_str_len=max_str_len, header=False)
+
+    time.sleep(0.25)
+
+  raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
+
 
 ##########################
 # Main Loop
@@ -855,6 +914,22 @@ def main_menu():
   man_track_submenu_item = SubmenuItem(man_title, submenu=man_track_submenu)
   man_track_submenu_item.set_menu(menu)
 
+  # power measurement submenu
+  pwr_title = 'Power Measurements'
+  pwr_subtitle = 'Select from the desired modes below'
+  pwr_track_submenu = ConsoleMenu(pwr_title, pwr_subtitle, formatter=menu_frmt)
+
+  get_panel_pwr_item  = FunctionItem('Get Panel Power Measurements', menu_get_panel_pwr)
+  get_batt_pwr_item   = FunctionItem('Get Battery Power Measurements', menu_get_battery_pwr)
+  get_all_pwr_item    = FunctionItem('Get All System Power Measurements', menu_get_battery_pwr)
+
+  pwr_track_submenu.append_item(get_panel_pwr_item)
+  pwr_track_submenu.append_item(get_batt_pwr_item)
+  pwr_track_submenu.append_item(get_all_pwr_item)
+
+  pwr_track_submenu_item = SubmenuItem(pwr_title, submenu=pwr_track_submenu)
+  pwr_track_submenu_item.set_menu(menu)
+
   # system configuration submenu
   conf_title = 'System Configuration'
   conf_subtitle = 'Select the desired menu option below'
@@ -879,6 +954,7 @@ def main_menu():
   # Add all items to main menu
   menu.append_item(auto_track_submenu_item)
   menu.append_item(man_track_submenu_item)
+  menu.append_item(pwr_track_submenu_item)
   menu.append_item(conf_submenu_item)
 
   # Show the menu
