@@ -745,6 +745,13 @@ def menu_set_el_position():
   raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
+def menu_calibrate():
+  logger.info('Calibration menu selected')
+  calibrate_motors()
+  
+  raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
+
+
 def menu_set_loc():
   logger.info('Set Location menu selected')
   lat = raw_input('Enter Latitude:')
@@ -755,18 +762,18 @@ def menu_set_loc():
   raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
-def menu_calibrate():
-  logger.info('Calibration menu selected')
-  calibrate_motors()
-  
+def menu_set_sys_time():
+  logger.info('Set system time menu selected')
+  time = raw_input('Enter system time in \'Nov 9 21:31:26\' format:')
+
+  os.system('sudo date -s \"' + time + '\"')
+
   raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
 
 # TODO:
 # def set_log_levels():
-# def set_lat_long()
-# def reset_azimuth():
-# def reset_elevation():
+
 
 
 ##########################
@@ -823,11 +830,13 @@ def main_menu():
   conf_subtitle = 'Select the desired menu option below'
   conf_track_submenu = ConsoleMenu(conf_title, conf_subtitle, formatter=menu_frmt)
 
-  set_loc_item = FunctionItem('Set System Latitude and Longitude', menu_set_loc)
   cal_sys_item = FunctionItem('Calibrate Shaft Encoders', menu_calibrate)
+  set_loc_item = FunctionItem('Set System Latitude and Longitude', menu_set_loc)
+  set_tim_item = FunctionItem('Set System Time Manually', menu_set_sys_time)
 
-  conf_track_submenu.append_item(set_loc_item)
   conf_track_submenu.append_item(cal_sys_item)
+  conf_track_submenu.append_item(set_loc_item)
+  conf_track_submenu.append_item(set_tim_item)
 
   conf_submenu_item = SubmenuItem(conf_title, submenu=conf_track_submenu)
   conf_submenu_item.set_menu(menu)
