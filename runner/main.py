@@ -649,8 +649,8 @@ def menu_normal_op():
     # log system parameters
     df_dict = get_sys_params_all(df_dict)
     df_logger.append_row(df_dict)
-    df_logger.dump_pickle() # dump to pickle
-    df_logger.dump_csv()    # dump to csv for plotting
+    df_logger.dump_pickle() # dump to pickle file
+    df_logger.dump_csv()    # dump to csv file for plotting
     
     open_loop_locked   = False
     closed_loop_locked = False
@@ -697,11 +697,7 @@ def menu_normal_op():
     logger.warn('Sleep calculation NOT DEFINED, defaulting sleep to 30s in loop')
     time.sleep(30)
   # end infinite loop
-  # TODO: log to dataframe and dump to file before shutting down
-  logger.warn('Log system information NOT DEFINED')
 
-  # TODO: use GPIO.cleanup() or GPIO.cleanup([channels]) somewhere before shutdown.
-  #       cleanup() may cause issues with AVRDude, so specifying used channels as [] or () is probably needed
   # TODO: check pin_is_set(PIN_UC_DEV_MODE_RX) to determine if we will use time.sleep() for the desired amount of time
   #       or if we can actually shutdown and set an alarm. If true, must operate inside a while True: loop and send email to user 
   #       if they forget to take the device out of dev mode after an hour or something.
