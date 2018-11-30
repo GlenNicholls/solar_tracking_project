@@ -407,8 +407,9 @@ def move_motors_open_loop(deg_az, deg_el, skip_az=False, skip_el=False):
   enc_thresh = 0.25 # defining tight threshold for motors
 
   # create constant to generate error term later without multiplier
-  desired_deg_az = deg_az
-  desired_deg_el = deg_el
+  prev_deg_az, prev_deg_el = get_encoder_positions_deg()
+  desired_deg_az = deg_az + float(prev_deg_az)
+  desired_deg_el = deg_el + float(prev_deg_el)
 
   # if encoders aren't reading correct position, loop
   not_lock_cnt = 0
@@ -763,7 +764,7 @@ def menu_set_az_position():
   curr_az, curr_el = get_encoder_positions_deg()
   while True:
     deg = raw_input('Enter desired azimuth position in degrees or \'q\' to quit:')
-    if deg == 'q' or deg == 'Q':
+    if deg.lower() == 'q':# or deg == 'Q':
       break
     else:
       if float(deg) > 55.5:
@@ -781,7 +782,7 @@ def menu_set_el_position():
   curr_az, curr_el = get_encoder_positions_deg()
   while True:
     deg = raw_input('Enter desired elevation position in degrees or \'q\' to quit::')
-    if deg == 'q' or deg == 'Q':
+    if deg.lower() == 'q':# or deg == 'Q':
       break
     else:
       if float(deg) > 0.0:
@@ -1003,7 +1004,7 @@ if __name__ == '__main__':
   # init_rtc()
   # NOTE: Mikes alg says to zero count, but we don't do that because the degree pos
   #       is calculated based on count.
-  raw_input('Are you ready to calibrate the motors? Press [ENTER] to continue')
+  #raw_input('Are you ready to calibrate the motors? Press [ENTER] to continue')
   calibrate_motors()
   logger.info('Application setup complete')
   print('-'*125 + '\n')
