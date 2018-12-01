@@ -655,12 +655,15 @@ def menu_normal_op():
   
   #Get astral with current location
   loc_astral = get_location_astral(GLOB.latitude, GLOB.longitude, GLOB.elevation)
+  
+  last_solar_deg_az, last_solar_deg_el = get_solar_position_deg(loc_astral)
        
   # infinite loop
   while True:
     
     open_loop_locked   = False
     closed_loop_locked = False
+	
     if is_daytime(loc_astral): #this will be the if check from above, implemented this way for development
       # get encoder current positions
       prev_enc_az = az_encoder.get_degrees()
@@ -672,8 +675,11 @@ def menu_normal_op():
       solar_deg_az, solar_deg_el = get_solar_position_deg(loc_astral)
       
       # Move to calculated sun posistion
-      deg_az = solar_deg_az - prev_enc_az
-      deg_el = solar_deg_el - prev_enc_el 
+      #deg_az = solar_deg_az - prev_enc_az
+      #deg_el = solar_deg_el - prev_enc_el 
+      deg_az = solar_deg_az - last_solar_deg_az
+      deg_el = solar_deg_el - last_solar_deg_el
+	  
       if deg_az > 1.0 or deg_el > 1.0:
         open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
       
@@ -686,7 +692,7 @@ def menu_normal_op():
     
       #Read light sensor
       # TODO: is this referring to limit switch? If so, I am taking care of this in motor class -GN
-      logger.info('Reading light sensor')
+      #logger.info('Reading light sensor')
       
     else:
       # get current encoder positions
@@ -701,8 +707,10 @@ def menu_normal_op():
       # Move to sunrise position for tomorrow
       logger.info('Moving to sunrise position for tomorrow')
       
-      deg_az = solar_deg_az - prev_enc_az
-      deg_el = solar_deg_el - prev_enc_el 
+      #deg_az = solar_deg_az - prev_enc_az
+      #deg_el = solar_deg_el - prev_enc_el 
+      deg_az = solar_deg_az - last_solar_deg_az
+      deg_el = solar_deg_el - last_solar_deg_el
       open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
     
 	# log system parameters
@@ -710,6 +718,9 @@ def menu_normal_op():
     df_logger.append_row(GLOB.df_dict)
     df_logger.dump_pickle() # dump to pickle file
     df_logger.dump_csv()    # dump to csv file for plotting
+	
+    last_solar_deg_az = deg_az
+    last_solar_deg_el = deg_el
 	
     logger.warn('Sleep calculation NOT DEFINED, defaulting sleep to 30s in loop')
     time.sleep(30)
