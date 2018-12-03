@@ -500,9 +500,9 @@ def move_motors_open_loop(deg_az, deg_el, skip_az=False, skip_el=False):
 
     # move motors
     if not locked_az:
-        move_motor_az(dir_az, deg_az)
+      move_motor_az(dir_az, deg_az)
     if not locked_el:
-        move_motor_el(dir_el, deg_el)
+      move_motor_el(dir_el, deg_el)
 
     # update position for lock check
     new_deg_az, new_deg_el = get_encoder_positions_deg()
@@ -552,7 +552,13 @@ def move_motors_open_loop(deg_az, deg_el, skip_az=False, skip_el=False):
 
 def move_motors_closed_loop():
   locked = False
-  move_mot_deg = 0.5
+  locked_az = False
+  locked_el = False
+  move_mot_deg = 0.25 # NOTE: changed from .5 to .25
+
+  # limits to how much sensors can adjust during events like cloud coverage
+  thresh_check = 1.0
+  prev_az, prev_el = get_encoder_positions_deg()
 
   not_lock_cnt = 0
   while not locked and not_lock_cnt < 20:
@@ -562,15 +568,30 @@ def move_motors_closed_loop():
     logger.info('Desired elevation direction: [{}]'.format(el_dir))
 
     # move motors
-    move_motor_el(el_dir, move_mot_deg)
-    move_motor_az(az_dir, move_mot_deg)
+    if not locked_az:
+      move_motor_az(az_dir, move_mot_deg)
+    if not locked_el:
+      move_motor_el(el_dir, move_mot_deg)
+    new_az, new_el = get_encoder_positions_deg()
+
+    # check if panel moved too far in az/el
+    err_az = abs(new_az - prev_az)
+    err_el = abs(new_el - prev_el)
+    if err_az > thresh_check:
+      locked_az = True
+      logger.warn('Azimuth sensors tried to adjust panel too far. Stopping azimuth adjustments!')
+    if err_el > thresh_check:
+      locked_el = True
+      logger.warn('Elevation sensors tried to adjust panel too far. Stopping elvation adjustments!')
 
     # check if locked
-    if az_dir == MotorCtrl_t.IDLE:
-      logger.info('Azimuth Locked!!!')
-    if el_dir == MotorCtrl_t.IDLE:
-      logger.info('Elevation Locked!!!')
-    if az_dir == MotorCtrl_t.IDLE and el_dir == MotorCtrl_t.IDLE:
+    if az_dir == MotorCtrl_t.IDLE and not locked_az:
+      logger.info('Azimuth Locked in Closed Loop!!!')
+      locked_az = True
+    if el_dir == MotorCtrl_t.IDLE and not locked_el:
+      logger.info('Elevation Locked in Closed Loop!!!')
+      locked_el = True
+    if locked_az and locked_el:
       logger.info('Azimuth and elevation are locked!!!')
       locked = True
 
