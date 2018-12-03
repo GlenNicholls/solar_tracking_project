@@ -182,7 +182,7 @@ When it works, you should now see something like the following:
 
 ## 5) Build a clean .hex file and load it to the device
 
-    cd misc_dev/
+    cd dev/
 
     make clean
 
