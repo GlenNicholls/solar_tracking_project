@@ -19,6 +19,7 @@
 	*solartrack1.pcb: Fixed level shifter direction issue
 			Changed LED package size back to 1206
 			Updated silkscreen to reflect schematic
+
 			Added better usb connector (thru hole)
 			
 2018-11-5 Graeme Danforth
@@ -28,3 +29,6 @@
 2018-11-28 Graeme Danforth
 	*solartrack1.pcb: fixed reversed silkscreen on load-switch LED
 			Moved attiny LEDs from level shifters to free GPIO pins to avoid voltage issue
+
+2018-12-3 Graeme Danforth
+	*solartrack1.pcb: moved attiny LEDs from GPIO to free attiny pins, because I'm an idiot and did it wrong the first time
