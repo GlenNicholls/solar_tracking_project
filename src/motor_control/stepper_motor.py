@@ -77,15 +77,11 @@ class stepper_motor(object):
   def __ISR_lim_az(self, pin):
     if MOT.input(pin):
       self._INT_az = True
-    else:
-      self._INT_az = False
   
 
   def __ISR_lim_el(self, pin):
     if MOT.input(pin):
       self._INT_el = True
-    else:
-      self._INT_el = False
   
     
   def __motor_step(self):
@@ -93,6 +89,13 @@ class stepper_motor(object):
     time.sleep(self._speed)
     MOT.output(self._clk, self._ENABLE)
     time.sleep(self._speed)
+
+    
+  def __move_motor_until_lim(self):
+    while not self._INT_az and not self._INT_el:
+      self.__motor_step()
+    return self._INT_az or self._INT_el
+      
 
 
   def __move_motor_x_steps(self, steps):
@@ -125,7 +128,7 @@ class stepper_motor(object):
     MOT.output(pin, self._ENABLE)
 
 
-  def move_motor(self, axis, dir, deg):
+  def move_motor(self, axis, dir, deg, cal=False):
     if not isinstance(dir, MotorCtrl_t):
       raise ValueError('Direction is not of direction type enumerate')
 
@@ -167,14 +170,20 @@ class stepper_motor(object):
     self.__activate_mot_move(axis, mot_dir)
 
     # step moter desired num of steps
-    self.logger.debug('Moving motor {} steps'.format(steps))
-    lim_reached = self.__move_motor_x_steps(steps)
-
+    if cal:
+      self.logger.info('Beginning calibration routine')
+      lim_reached = self.__move_motor_until_lim()
+    else:
+      self.logger.debug('Moving motor {} steps'.format(steps))
+      lim_reached = self.__move_motor_x_steps(steps)
+    
     # if we hit limit switches, step backwards until safe
     if lim_reached:
       self.__activate_mot_move(axis, mot_dir_N)
-      while self._INT_az or self._INT_el:
+      while MOT.input(self._lim_az) or MOT.input(self._lim_el):
         self.__motor_step()
+      self._INT_az = False
+      self._INT_el = False
       self.logger.info('Motor has been repositioned to safe limit!!')
 
     self.logger.debug('Motor move finished. Disabling specified axis motor')
