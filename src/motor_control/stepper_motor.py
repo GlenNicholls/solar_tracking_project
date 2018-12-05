@@ -181,7 +181,7 @@ class stepper_motor(object):
     # if we hit limit switches, step backwards until safe
     if lim_reached:
       self.__activate_mot_move(axis, mot_dir_N)
-      while MOT.input(pin_azimuth) or MOT.input(pin_elevation):
+      while MOT.input(self._az) or MOT.input(self._el):
       #while self._INT_az or self._INT_el:
         self.__motor_step()
       self._INT_az = False
