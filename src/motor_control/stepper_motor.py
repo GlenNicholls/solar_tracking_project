@@ -176,7 +176,8 @@ class stepper_motor(object):
     else:
       self.logger.debug('Moving motor {} steps'.format(steps))
       lim_reached = self.__move_motor_x_steps(steps)
-
+    self.logger.info('limit reached: {}'.format(lim_reached))# dbg
+    
     # if we hit limit switches, step backwards until safe
     if lim_reached:
       self.__activate_mot_move(axis, mot_dir_N)
