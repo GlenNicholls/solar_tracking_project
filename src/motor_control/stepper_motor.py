@@ -181,7 +181,6 @@ class stepper_motor(object):
     if lim_reached:
       self.__activate_mot_move(axis, mot_dir_N)
       while MOT.input(self._lim_az) or MOT.input(self._lim_el):
-      #while self._INT_az or self._INT_el:
         self.__motor_step()
       self._INT_az = False
       self._INT_el = False
