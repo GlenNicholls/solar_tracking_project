@@ -657,6 +657,8 @@ x 1) startup should drive uC ack pin high
 '''
 # TODO: determine how time will be passed in for update alarm and the error checking for this value
 def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
+  if shutdown_until_sunrise and shutdown_until_update:
+    raise ValueError('Must select EITHER shutdown until sunrise or update to ensure RTC alarm is set properly!')
   # TODO: add flag for nighttime and add this to rtc.set_alarm_sunrise() check
   logger.info('Initiating Shutdown')
 
@@ -711,8 +713,10 @@ def menu_normal_op():
         closed_loop_locked = move_motors(closed_loop=True)
     
       # check for lock state
-      if not closed_loop_locked or not open_loop_locked:
-        logger.error('Unable to acquire sun lock in open or closed loop algorithms')
+      if not closed_loop_locked:
+        logger.error('Unable to acquire sun lock in closed loop algorithm!')
+      if not open_loop_locked:
+        logger.error('Unable to acquire sun lock in open loop algorithm!')
       
     else:
       # get current encoder positions
