@@ -552,7 +552,7 @@ def move_motors_open_loop(deg_az, deg_el, skip_az=False, skip_el=False):
   return locked
   
 
-def move_motors_closed_loop():
+def move_motors_closed_loop(continuous_mode=False):
   locked = False
   locked_az = False
   locked_el = False
@@ -563,7 +563,17 @@ def move_motors_closed_loop():
   prev_az, prev_el = get_encoder_positions_deg()
 
   not_lock_cnt = 0
-  while not locked and not_lock_cnt < 20:
+  while (not locked and not_lock_cnt < 20) or continuous_mode:
+    # catch keyboard interrupt so we can gracefully exit process and go back to menu
+    # NOTE: this is not active during normal operation. This is only valid during development
+    #       where we would like to continuously track a light source for testing.
+    if continuous_mode:
+      try:
+        pass
+      except KeyboardInterrupt:
+        logger.info('Keyboard exception raised during closed loop tracking in continuous mode. Terminating process')
+        break
+
     # get motor movement directions based on sun sensor
     az_dir, el_dir = sun_sensors.get_motor_direction_all()
     logger.info('Desired azimuth direction: [{}]'.format(az_dir))
@@ -606,20 +616,22 @@ def move_motors_closed_loop():
   return locked
 
 
-def move_motors(deg_az=None, deg_el=None, open_loop=False, closed_loop=False, skip_az=False, skip_el=False):
+def move_motors(deg_az=None, deg_el=None, open_loop=False, closed_loop=False, skip_az=False, skip_el=False, continuous_mode=False):
   if open_loop and closed_loop:
     raise ValueError('Must select open loop OR closed loop, not both!')
   if open_loop and (deg_az == None or deg_el == None):
     raise ValueError('Must enter movement values for BOTH azimuth and elevation')
+  if open_loop and continuous_mode:
+    raise ValueError('Cannot run continuous mode in open loop tracking! Only works in closed loop tracking mode')
   if closed_loop and (deg_az != None or deg_el != None):
     self.logger.warn('Ignoring program calculated azimuth and elevation degree movements in closed loop mode!')
 
   if open_loop:
     logger.info('Open loop tracking initiated')
-    move_motors_open_loop(deg_az, deg_el, skip_az, skip_el)
+    move_motors_open_loop(deg_az=deg_az, deg_el=deg_el, skip_az=skip_az, skip_el=skip_el)
   elif closed_loop:
     logger.info('Closed loop tracking initiated')
-    move_motors_closed_loop()
+    move_motors_closed_loop(continuous_mode=continuous_mode)
 
 
 def is_daytime(loc_astral):
@@ -669,19 +681,12 @@ def shutdown(shutdown_until_sunrise=False, shutdown_until_update=False):
 ##########################
 # Menus
 ##########################  
-def menu_normal_op():
-  # Load stored parameters
-  #logger.warn('Loading stored prarmeters NOT DEFINED')
-  
-  #Load user specifice parameters
-  #logger.warn('Loading user specified parameters NOT DEFINED')
-  
+def menu_normal_op():  
   #Get astral with current location
   loc_astral = get_location_astral(GLOB.latitude, GLOB.longitude, GLOB.elevation)
        
   # infinite loop
   while True:
-    
     open_loop_locked   = False
     closed_loop_locked = False
 	
@@ -707,11 +712,7 @@ def menu_normal_op():
     
       # check for lock state
       if not closed_loop_locked or not open_loop_locked:
-        logger.warn('Unable to acquire sun lock in open or closed loop algorithms')
-    
-      #Read light sensor
-      # TODO: is this referring to limit switch? If so, I am taking care of this in motor class -GN
-      #logger.info('Reading light sensor')
+        logger.error('Unable to acquire sun lock in open or closed loop algorithms')
       
     else:
       # get current encoder positions
@@ -750,6 +751,7 @@ def menu_normal_op():
 def menu_open_loop():
   logger.info('Open loop tracking menu selected')
 
+  # get current encoder positions
   prev_enc_az = az_encoder.get_degrees()
   prev_enc_el = el_encoder.get_degrees()
   
@@ -759,21 +761,18 @@ def menu_open_loop():
   if is_daytime(loc_astral): #this will be the if check from above, implemented this way for development
     # Get solar position
     solar_deg_az, solar_deg_el = get_solar_position_deg(loc_astral)
-    
-    # Move to calculated sun posistion
-    deg_az = solar_deg_az - prev_enc_az
-    deg_el = solar_deg_el - prev_enc_el 
-    open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
+
+    logger.info('Moving to next sun position')
   else:
     #Get solar position for tomorrow morning
     solar_deg_az, solar_deg_el = get_sunrise_position_deg(loc_astral)
     
-    # Move to sunrise position for tomorrow
     logger.info('Moving to sunrise position for tomorrow')
     
-    deg_az = solar_deg_az - prev_enc_az
-    deg_el = solar_deg_el - prev_enc_el 
-    open_loop_locked = move_motors(deg_az, deg_el, open_loop=True)
+  # move motors desired amount
+  deg_az = solar_deg_az - prev_enc_az
+  deg_el = solar_deg_el - prev_enc_el 
+  move_motors(deg_az, deg_el, open_loop=True)
 
   raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
 
@@ -804,7 +803,7 @@ def menu_sun_simulation():
 
 def menu_closed_loop():
   logger.info('Closed loop tracking menu selected')
-  closed_loop_locked = move_motors(closed_loop=True)
+  closed_loop_locked = move_motors(closed_loop=True, continuous_mode=True)
   raw_input('Are you ready to go back to the menu? Press [ENTER] to continue')
     
 
