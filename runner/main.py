@@ -144,8 +144,8 @@ sys_mon = system_monitor( logger_name = logger_name,
 adc_vref     = 3.3
 adc_num_bits = 10
 
-adc_ch_panel_current   = 0
-adc_ch_battery_current = 1
+adc_ch_battery_current = 0
+adc_ch_panel_current   = 1
 adc_ch_battery_voltage = 2
 adc_ch_panel_voltage   = 3
 adc_ch_south_sun_sens  = 4 
