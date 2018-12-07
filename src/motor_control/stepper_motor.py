@@ -95,6 +95,7 @@ class stepper_motor(object):
     while (not self._INT_az) and (not self._INT_el):
       self.logger.critical('INT az: [{}], INT el: [{}]'.format(self._INT_az,self._INT_el))
       #self.__motor_step()
+    self.logger.critical('INT az: [{}], INT el: [{}]'.format(self._INT_az,self._INT_el))
     return (self._INT_az or self._INT_el)
       
 
