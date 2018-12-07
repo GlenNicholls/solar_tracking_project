@@ -91,10 +91,15 @@ class stepper_motor(object):
     time.sleep(self._speed)
 
     
-  def __move_motor_until_lim(self):
-    while not MOT.input(self._lim_az) and not MOT.input(self._lim_el): #(not self._INT_az) and (not self._INT_el):
-      self.logger.critical('pin az lim: [{}], pin el lim: [{}]'.format(MOT.input(self._lim_az),MOT.input(self._lim_el)))
-      self.__motor_step()
+  def __move_motor_until_lim(self, az=False, el=False):
+    while True:#not MOT.input(self._lim_az) and not MOT.input(self._lim_el): #(not self._INT_az) and (not self._INT_el):
+      if az and MOT.input(self._lim_az):
+        break
+      elif el and MOT.input(self._lim_el):
+        break
+      else:
+        self.logger.critical('pin az lim: [{}], pin el lim: [{}]'.format(MOT.input(self._lim_az),MOT.input(self._lim_el)))
+        self.__motor_step()
     self.logger.critical('pin az lim: [{}], pin el lim: [{}]'.format(MOT.input(self._lim_az),MOT.input(self._lim_el)))
     return (self._INT_az or self._INT_el)
       
@@ -138,6 +143,8 @@ class stepper_motor(object):
     # during testing when multiple members were the same integer value caused
     # names to get mixed up between az/el. Fine for driving motors, but logging and UI
     # would become very confusing.
+    lim_reached = False
+
     mot_dir = -1 # induce error if we somehow don't update
     if dir == MotorCtrl_t.IDLE:
       self.logger.debug('Motor is in IDLE mode, not moving')
@@ -174,7 +181,10 @@ class stepper_motor(object):
     # step moter desired num of steps
     if cal:
       self.logger.info('Beginning calibration routine')
-      lim_reached = self.__move_motor_until_lim()
+      if axis == self._az:
+        lim_reached = self.__move_motor_until_lim(az=True)
+      elif axis == self._el:
+        lim_reached = self.__move_motor_until_lim(el=True)
     else:
       self.logger.debug('Moving motor {} steps'.format(steps))
       lim_reached = self.__move_motor_x_steps(steps)
