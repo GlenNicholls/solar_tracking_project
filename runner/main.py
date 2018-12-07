@@ -65,8 +65,8 @@ PIN_MOT_CLOCK     = 9
 PIN_MOT_DIRECTION = 1
 
 # Limit switches
-PIN_LIM_SW_AZIMUTH   = 18
-PIN_LIM_SW_ELEVATION = 17
+PIN_LIM_SW_AZIMUTH   = 17
+PIN_LIM_SW_ELEVATION = 18
 
 
 ##########################
@@ -300,7 +300,8 @@ def init_pi_hat():
 def init_interrupts():
   az_encoder.configure_encoder_INT()
   el_encoder.configure_encoder_INT()
-  motor.configure_limit_switch_INT()
+  # seeing if the below is causing azimuth not to work
+  # motor.configure_limit_switch_INT() # DBG
 
 
 def init_rtc():
@@ -348,9 +349,7 @@ def calibrate_az():
     prev, _ = get_encoder_positions_deg()
 
     # move motor
-    #lim = move_motor_az(MotorCtrl_t.EAST, 0.5)
-    #lim = move_motor_az(MotorCtrl_t.EAST, 5.0)
-    lim = motor.move_motor(PIN_MOT_AZIMUTH, MotorCtrl_t.EAST, 0.0, cal=True)
+    lim = motor.move_motor(axis=PIN_MOT_AZIMUTH, dir=MotorCtrl_t.EAST, deg=0.0, cal=True)
 
     # get new position
     new, _ = get_encoder_positions_deg()
@@ -362,7 +361,7 @@ def calibrate_az():
       logger.critical('Motors not moving, calibration FAILED!!!')
       break
 
-  az_encoder.set_degrees(55.0)
+  az_encoder.set_degrees(57.0)
 
 
 def calibrate_el():
@@ -375,9 +374,7 @@ def calibrate_el():
     _, prev = get_encoder_positions_deg()
 
     # move motor
-    #lim = move_motor_el(MotorCtrl_t.SOUTH, 0.5)
     lim = motor.move_motor(PIN_MOT_ELEVATION, MotorCtrl_t.SOUTH, 0.0, cal=True) 
-    #move_motor_el(MotorCtrl_t.SOUTH, 5.0)
 
     # get new position
     _, new = get_encoder_positions_deg()
@@ -556,7 +553,10 @@ def move_motors_closed_loop(continuous_mode=False):
   locked = False
   locked_az = False
   locked_el = False
-  move_mot_deg = 0.25 # NOTE: changed from .5 to .25
+  if continuous_mode:
+    move_mot_deg = 1.0
+  else:
+    move_mot_deg = 0.25 # NOTE: changed from .5 to .25
 
   # limits to how much sensors can adjust during events like cloud coverage
   thresh_check = 1.0
