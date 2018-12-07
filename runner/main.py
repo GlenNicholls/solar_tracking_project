@@ -361,7 +361,7 @@ def calibrate_az():
       logger.critical('Motors not moving, calibration FAILED!!!')
       break
 
-  az_encoder.set_degrees(55.0)
+  az_encoder.set_degrees(57.0)
 
 
 def calibrate_el():
@@ -553,7 +553,10 @@ def move_motors_closed_loop(continuous_mode=False):
   locked = False
   locked_az = False
   locked_el = False
-  move_mot_deg = 0.25 # NOTE: changed from .5 to .25
+  if continuous_mode:
+    move_mot_deg = 2.5
+  else:
+    move_mot_deg = 0.25 # NOTE: changed from .5 to .25
 
   # limits to how much sensors can adjust during events like cloud coverage
   thresh_check = 1.0
