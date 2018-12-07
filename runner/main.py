@@ -589,23 +589,27 @@ def move_motors_closed_loop(continuous_mode=False):
     # check if panel moved too far in az/el
     err_az = abs(new_az - prev_az)
     err_el = abs(new_el - prev_el)
-    if err_az > thresh_check:
-      locked_az = True
-      logger.warn('Azimuth sensors tried to adjust panel too far. Stopping azimuth adjustments!')
-    if err_el > thresh_check:
-      locked_el = True
-      logger.warn('Elevation sensors tried to adjust panel too far. Stopping elvation adjustments!')
+    if continuous_mode:
+      logger.info('Tracking in continuous mode')
+    else:
+      if err_az > thresh_check:
+        locked_az = True
+        logger.warn('Azimuth sensors tried to adjust panel too far. Stopping azimuth adjustments!')
+      if err_el > thresh_check:
+        locked_el = True
+        logger.warn('Elevation sensors tried to adjust panel too far. Stopping elvation adjustments!')
 
     # check if locked
-    if az_dir == MotorCtrl_t.IDLE and not locked_az:
-      logger.info('Azimuth Locked in Closed Loop!!!')
-      locked_az = True
-    if el_dir == MotorCtrl_t.IDLE and not locked_el:
-      logger.info('Elevation Locked in Closed Loop!!!')
-      locked_el = True
-    if locked_az and locked_el:
-      logger.info('Azimuth and elevation are locked!!!')
-      locked = True
+    if not continuous_mode:
+      if az_dir == MotorCtrl_t.IDLE and not locked_az:
+        logger.info('Azimuth Locked in Closed Loop!!!')
+        locked_az = True
+      if el_dir == MotorCtrl_t.IDLE and not locked_el:
+        logger.info('Elevation Locked in Closed Loop!!!')
+        locked_el = True
+      if locked_az and locked_el:
+        logger.info('Azimuth and elevation are locked!!!')
+        locked = True
 
     # increment not locked counter
     not_lock_cnt += 1
