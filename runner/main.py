@@ -554,7 +554,7 @@ def move_motors_closed_loop(continuous_mode=False):
   locked_az = False
   locked_el = False
   if continuous_mode:
-    move_mot_deg = 2.5
+    move_mot_deg = 1.0
   else:
     move_mot_deg = 0.25 # NOTE: changed from .5 to .25
 
