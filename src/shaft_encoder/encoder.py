@@ -84,5 +84,5 @@ class encoder:
 
   def set_degrees(self, deg):
     self.logger.info('Setting encoder current position value to: {} deg'.format(deg))
-    cnt = round(self.ppr * deg / 360.0) # round to nearest integer
+    cnt = int(round(self.ppr * deg / 360.0)) # round to nearest integer and typecast from float to int
     self.set_count(cnt)
