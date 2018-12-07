@@ -394,8 +394,8 @@ def calibrate_el():
 
 def calibrate_motors():
   logger.info('Starting system calibration')
-  calibrate_az()
   calibrate_el()
+  calibrate_az()
   
   
 def get_encoder_positions_deg():
