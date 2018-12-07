@@ -348,8 +348,6 @@ def calibrate_az():
     prev, _ = get_encoder_positions_deg()
 
     # move motor
-    #lim = move_motor_az(MotorCtrl_t.EAST, 0.5)
-    #lim = move_motor_az(MotorCtrl_t.EAST, 5.0)
     lim = motor.move_motor(PIN_MOT_AZIMUTH, MotorCtrl_t.EAST, 0.0, cal=True)
 
     # get new position
@@ -375,9 +373,7 @@ def calibrate_el():
     _, prev = get_encoder_positions_deg()
 
     # move motor
-    #lim = move_motor_el(MotorCtrl_t.SOUTH, 0.5)
     lim = motor.move_motor(PIN_MOT_ELEVATION, MotorCtrl_t.SOUTH, 0.0, cal=True) 
-    #move_motor_el(MotorCtrl_t.SOUTH, 5.0)
 
     # get new position
     _, new = get_encoder_positions_deg()

@@ -92,9 +92,10 @@ class stepper_motor(object):
 
     
   def __move_motor_until_lim(self):
-    while not self._INT_az and not self._INT_el:
-      self.__motor_step()
-    return self._INT_az or self._INT_el
+    while (not self._INT_az) and (not self._INT_el):
+      self.logger.critical('INT az: [{}], INT el: [{}]'.format(self._INT_az,self._INT_el))
+      #self.__motor_step()
+    return (self._INT_az or self._INT_el)
       
 
 
