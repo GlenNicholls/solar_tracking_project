@@ -15,7 +15,6 @@ class encoder:
     # instantiate logger
     self.logger = logging.getLogger(logger_name + '.' + logger_module_name)
     self.logger.info('creating an instance of the ' + __name__ + ' with the alias {}'.format(logger_module_name))
-    print(GPIO)
     
     # Define pin numbers for A/B channels on azimuth/elevation motors
     self.A_pin=a_pin
@@ -59,6 +58,10 @@ class encoder:
     # Check if channel A is leading channel B (A=1,B=0)
     # If channel A leads, rotation is CCW
     # Increment/Decrement position counter based on direction
+    print GPIO
+    print GPIO.input(self.B_pin)    
+    print GPIO.input(self.A_pin)
+
     if GPIO.input(self.B_pin):
       #CCW
       self.a_count += 1
