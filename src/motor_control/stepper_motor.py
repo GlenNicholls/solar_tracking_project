@@ -98,9 +98,9 @@ class stepper_motor(object):
       elif el and MOT.input(self._lim_el):
         break
       else:
-        self.logger.critical('pin az lim: [{}], pin el lim: [{}]'.format(MOT.input(self._lim_az),MOT.input(self._lim_el)))
+        #self.logger.critical('pin az lim: [{}], pin el lim: [{}]'.format(MOT.input(self._lim_az),MOT.input(self._lim_el)))
         self.__motor_step()
-    self.logger.critical('pin az lim: [{}], pin el lim: [{}]'.format(MOT.input(self._lim_az),MOT.input(self._lim_el)))
+    #self.logger.critical('pin az lim: [{}], pin el lim: [{}]'.format(MOT.input(self._lim_az),MOT.input(self._lim_el)))
     return (self._INT_az or self._INT_el)
       
 
