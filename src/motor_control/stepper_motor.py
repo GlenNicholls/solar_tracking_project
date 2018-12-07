@@ -70,18 +70,18 @@ class stepper_motor(object):
     self.logger.info('Initializing logic change INT on pin [{}, {}]'.format(self._lim_az, self._lim_el))
 
     # set up logic change detectors for each pin
-    MOT.add_event_detect(self._lim_az, MOT.BOTH, callback=self.__ISR_lim_az)
-    MOT.add_event_detect(self._lim_el, MOT.BOTH, callback=self.__ISR_lim_el)
+    MOT.add_event_detect(self._lim_az, MOT.RISING, callback=self.__ISR_lim_az)
+    MOT.add_event_detect(self._lim_el, MOT.RISING, callback=self.__ISR_lim_el)
 
 
   def __ISR_lim_az(self, pin):
-    if MOT.input(pin):
-      self._INT_az = True
+    #if MOT.input(pin):
+    self._INT_az = True
   
 
   def __ISR_lim_el(self, pin):
-    if MOT.input(pin):
-      self._INT_el = True
+    #if MOT.input(pin):
+    self._INT_el = True
   
     
   def __motor_step(self):

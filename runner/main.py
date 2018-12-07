@@ -567,12 +567,12 @@ def move_motors_closed_loop(continuous_mode=False):
     # catch keyboard interrupt so we can gracefully exit process and go back to menu
     # NOTE: this is not active during normal operation. This is only valid during development
     #       where we would like to continuously track a light source for testing.
-    if continuous_mode:
-      try:
-        pass
-      except KeyboardInterrupt:
-        logger.info('Keyboard exception raised during closed loop tracking in continuous mode. Terminating process')
-        break
+    #if continuous_mode:
+    #  try:
+    #    pass
+    #  except KeyboardInterrupt:
+    #    logger.info('Keyboard exception raised during closed loop tracking in continuous mode. Terminating process')
+    #    break
 
     # get motor movement directions based on sun sensor
     az_dir, el_dir = sun_sensors.get_motor_direction_all()
