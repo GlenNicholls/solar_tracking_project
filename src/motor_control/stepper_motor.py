@@ -70,18 +70,18 @@ class stepper_motor(object):
     self.logger.info('Initializing logic change INT on pin [{}, {}]'.format(self._lim_az, self._lim_el))
 
     # set up logic change detectors for each pin
-    MOT.add_event_detect(self._lim_az, MOT.BOTH, callback=self.__ISR_lim_az)
-    MOT.add_event_detect(self._lim_el, MOT.BOTH, callback=self.__ISR_lim_el)
+    MOT.add_event_detect(self._lim_az, MOT.RISING, callback=self.__ISR_lim_az)
+    MOT.add_event_detect(self._lim_el, MOT.RISING, callback=self.__ISR_lim_el)
 
 
   def __ISR_lim_az(self, pin):
-    if MOT.input(pin):
-      self._INT_az = True
+    #if MOT.input(pin):
+    self._INT_az = True
   
 
   def __ISR_lim_el(self, pin):
-    if MOT.input(pin):
-      self._INT_el = True
+    #if MOT.input(pin):
+    self._INT_el = True
   
     
   def __motor_step(self):
@@ -91,17 +91,23 @@ class stepper_motor(object):
     time.sleep(self._speed)
 
     
-  def __move_motor_until_lim(self):
-    while not self._INT_az and not self._INT_el:
-      self.__motor_step()
-    return self._INT_az or self._INT_el
+  def __move_motor_until_lim(self, az=False, el=False):
+    while True:#not MOT.input(self._lim_az) and not MOT.input(self._lim_el): #(not self._INT_az) and (not self._INT_el):
+      if az and MOT.input(self._lim_az):
+        break
+      elif el and MOT.input(self._lim_el):
+        break
+      else:
+        self.__motor_step()
+    self.logger.debug('pin az lim: [{}], pin el lim: [{}]'.format(MOT.input(self._lim_az),MOT.input(self._lim_el)))
+    return (self._INT_az or self._INT_el)
       
 
 
   def __move_motor_x_steps(self, steps):
     step_cnt = 0
     lim_reached = False
-    for i in range(int(steps)):
+    for i in range(int(round(steps))):
       step_cnt = i
       self.__motor_step()
 
@@ -136,6 +142,8 @@ class stepper_motor(object):
     # during testing when multiple members were the same integer value caused
     # names to get mixed up between az/el. Fine for driving motors, but logging and UI
     # would become very confusing.
+    lim_reached = False
+
     mot_dir = -1 # induce error if we somehow don't update
     if dir == MotorCtrl_t.IDLE:
       self.logger.debug('Motor is in IDLE mode, not moving')
@@ -172,7 +180,10 @@ class stepper_motor(object):
     # step moter desired num of steps
     if cal:
       self.logger.info('Beginning calibration routine')
-      lim_reached = self.__move_motor_until_lim()
+      if axis == self._az:
+        lim_reached = self.__move_motor_until_lim(az=True)
+      elif axis == self._el:
+        lim_reached = self.__move_motor_until_lim(el=True)
     else:
       self.logger.debug('Moving motor {} steps'.format(steps))
       lim_reached = self.__move_motor_x_steps(steps)
