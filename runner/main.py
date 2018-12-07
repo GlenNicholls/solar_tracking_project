@@ -300,7 +300,8 @@ def init_pi_hat():
 def init_interrupts():
   az_encoder.configure_encoder_INT()
   el_encoder.configure_encoder_INT()
-  motor.configure_limit_switch_INT()
+  # seeing if the below is causing azimuth not to work
+  # motor.configure_limit_switch_INT() # DBG
 
 
 def init_rtc():
