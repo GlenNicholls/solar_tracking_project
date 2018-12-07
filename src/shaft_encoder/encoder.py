@@ -58,9 +58,9 @@ class encoder:
     # Check if channel A is leading channel B (A=1,B=0)
     # If channel A leads, rotation is CCW
     # Increment/Decrement position counter based on direction
-    print GPIO
-    print GPIO.input(self.B_pin)    
-    print GPIO.input(self.A_pin)
+    #print GPIO
+    #print GPIO.input(self.B_pin)    
+    #print GPIO.input(self.A_pin)
 
     if GPIO.input(self.B_pin):
       #CCW
