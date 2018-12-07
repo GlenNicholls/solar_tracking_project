@@ -75,13 +75,13 @@ class stepper_motor(object):
 
 
   def __ISR_lim_az(self, pin):
-    if MOT.input(pin):
-      self._INT_az = True
+    #if MOT.input(pin):
+    self._INT_az = True
   
 
   def __ISR_lim_el(self, pin):
-    if MOT.input(pin):
-      self._INT_el = True
+    #if MOT.input(pin):
+    self._INT_el = True
   
     
   def __motor_step(self):
