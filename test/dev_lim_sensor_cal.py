@@ -6,7 +6,7 @@ EL = 18
 AZ = 17
 MOT.setup(18,MOT.IN)
 MOT.setup(17,MOT.IN)
-while(1):
-  print(MOT.input(AZ))
+while(not MOT.input(EL)):
+  print(MOT.input(EL))
 
 
