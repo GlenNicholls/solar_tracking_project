@@ -349,7 +349,7 @@ def calibrate_az():
     prev, _ = get_encoder_positions_deg()
 
     # move motor
-    lim = motor.move_motor(PIN_MOT_AZIMUTH, MotorCtrl_t.EAST, 0.0, cal=True)
+    lim = motor.move_motor(axis=PIN_MOT_AZIMUTH, dir=MotorCtrl_t.EAST, deg=0.0, cal=True)
 
     # get new position
     new, _ = get_encoder_positions_deg()
