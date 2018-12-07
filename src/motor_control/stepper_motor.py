@@ -101,7 +101,7 @@ class stepper_motor(object):
   def __move_motor_x_steps(self, steps):
     step_cnt = 0
     lim_reached = False
-    for i in range(int(steps)):
+    for i in range(int(round(steps))):
       step_cnt = i
       self.__motor_step()
 
