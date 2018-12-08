@@ -229,11 +229,24 @@ Make sure that you see a similar success reported like so:
 The board is now programmed.
 
 
-# Final Test TBD
+# Final Test
 Connect the Raspberry Pi to the provided pi hat expansion along with wiring the unit. Run the following to test the system:
 
     cd ~/solar_tracking_project
 
     sudo python setup.py test
 
-After the tests have passed, no further configuration is required and the system is ready
+After the tests have passed, no further configuration is required and the system is ready to grow some broccoli!
+
+# Running
+The software is capable of running in numerous different modes which are self-explanatory for the most part. To run the software in the normal operation mode, run the following:
+
+    sudo python runner/main.py
+    
+To boot the software into the development menu for debugging and testing isolated aspects of the system:
+
+    sudo python runner/main.py -m
+    
+Finally, to understand the different runtime options for the software, check the help descriptions:
+
+    sudo python runner/main.py -h
