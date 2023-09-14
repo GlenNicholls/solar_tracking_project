@@ -1,3 +1,5 @@
+This repo is archived. If you have questions about the work here, feel free to reach out.
+
 # PV Array Sun Tracking Project
 This is the the repository for our solar tracking capstone project.
 
